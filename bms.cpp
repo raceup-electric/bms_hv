@@ -154,7 +154,8 @@ void read_voltages() {
 void save_voltages(uint8_t slave_idx, uint8_t reg, uint8_t *raw_voltages) {
   for (int cell = 0; cell < VREG_LEN; cell += 2) {
     uint16_t voltage = (raw_voltages[cell + 1] << 8) | (raw_voltages[cell] & 0xFF);
-    slaves[slave_idx].cells[(reg / (uint16_t)CommandCode::RDCVA) - 2].voltage = voltage;
+    uint16_t offset = ((reg - (uint16_t)CommandCode::RDCVA) / 2) * CELLS_PER_REG;
+    slaves[slave_idx].cells[offset + (cell / 2)].voltage = voltage;
   }
 }
 
