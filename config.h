@@ -2,17 +2,13 @@
 #define CONFIG_H_
 
 // Number of slaves in BMS (max 16)
-constexpr uint8_t SLAVE_NUM = 5;
+constexpr uint8_t SLAVE_NUM = 1;
 // Slaves' address (must be same length as SLAVE_NUM)
 constexpr uint8_t SLAVES_ADDRESS[SLAVE_NUM] = {
-  0b1101,
-  0b1110,
-  0b0011,
-  0b1111,
-  0b0101
+  0b0010
 };
 // Number of cells per slave (max 12)
-constexpr uint8_t CELL_NUM = 9;
+constexpr uint8_t CELL_NUM = 12;
 // 0 -> Selects Modes 422Hz, 27kHz, 7kHz or 26Hz with MD[1:0] Bits in ADC Conversion Commands (Default) 
 // 1 -> Selects Modes 1kHz, 14kHz, 3kHz or 2kHz with MD[1:0] Bits in ADC Conversion Commands
 constexpr uint8_t ADC_OPT = 0;

@@ -118,7 +118,7 @@ void read_voltages() {
   for (uint16_t reg = (uint16_t)CommandCode::RDCVA; reg <= (uint16_t)CommandCode::RDCVD - ((REG_NUM - (CELL_NUM / CELLS_PER_REG)) * 2); reg += 2) {
     // addressed command
     for (int slave_idx = 0; slave_idx < SLAVE_NUM; slave_idx++) {
-      buffer[0] = 0b10000000 | (slaves[slave_idx].address << 3) | (reg >> 8);
+      buffer[0] = 0b10000000 | (slaves[slave_idx].address << 3);
       buffer[1] = (uint8_t)reg;
       // command pec
       uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
@@ -139,7 +139,7 @@ void read_voltages() {
 
       // check if incoming PEC is valid
       uint16_t in_data_pec = pec15_calc(VREG_LEN, &(buffer[CMD_LEN + PEC_LEN]));
-      if (in_data_pec == ((buffer[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (buffer[CMD_LEN + PEC_LEN + VREG_LEN]))) {
+      if (in_data_pec == ((buffer[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (buffer[CMD_LEN + PEC_LEN + VREG_LEN + 1]))) {
         // parse the raw data and save the voltages in the appropriate structures
         save_voltages(slave_idx, reg, &(buffer[CMD_LEN + PEC_LEN]));
         slaves[slave_idx].error = false;
@@ -172,7 +172,8 @@ void print_slaves() {
         Serial.print("\tCell ");
         Serial.print(cell);
         Serial.print(": ");
-        Serial.println(slaves[slave_idx].cells[cell].voltage);
+        Serial.print(slaves[slave_idx].cells[cell].voltage / 10000.0);
+        Serial.println(" V");
       }
     }
   }

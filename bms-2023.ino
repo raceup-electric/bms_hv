@@ -20,6 +20,7 @@ void setup() {
   Serial.println("SPI port initialized");
 
   wakeup_sleep();
+  Serial.println("Wakeup completed");
 
   init_slaves_struct();
   init_slaves_cfg();
@@ -30,6 +31,8 @@ void setup() {
 }
 
 void loop() {
+
+  wakeup_sleep();
   start_adcv();
   read_voltages();
 
