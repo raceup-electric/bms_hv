@@ -2,6 +2,21 @@
 
 Questa repository contiene il codice per l'host del BMS basato su Arduino 2. 
 
+## Table of contents
+- [Come funziona](#come-funziona)
+    - [Processo](#processo)
+- [Invio e ricezione](#invio-e-ricezione)
+    - [Command format](#command-format)
+        - [CMD0 CMD1](#cmd0-cmd1)
+        - [PEC0 PEC1](#pec0-pec1)
+        - [Command code](#cc)
+- [Codice](#codice)
+    - [Configurazione](#configurazione)
+    - [Stato](#stato)
+    - [Comandi](#comandi)
+    - [Timer](#timer)
+- [Sviluppo](#sviluppo)
+
 ## Come funziona
 
 Il BMS (Battery Managment System) è il software che permette la lettura della temperatura, tensione e altri dati significati dai 16 slave. Ogni slave legge i valori da 18 celle (9 parallelo) per un totale di 288.  

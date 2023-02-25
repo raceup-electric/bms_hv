@@ -189,13 +189,22 @@ void read_temperatures() {
       uint16_t in_data_pec = pec15_calc(VREG_LEN, &(buffer[CMD_LEN + PEC_LEN]));
       if (in_data_pec == ((buffer[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (buffer[CMD_LEN + PEC_LEN + VREG_LEN + 1]))) {
         // parse the raw data and save the voltages in the appropriate structures
-        save_voltages(slave_idx, reg, &(buffer[CMD_LEN + PEC_LEN]));
+        save_temperatures(slave_idx, reg, &(buffer[CMD_LEN + PEC_LEN]));
         slaves[slave_idx].error = false;
       }
       else {
         slaves[slave_idx].error = true;
       }
     }
+  }
+}
+
+void save_temperatures(uint8_t slave_idx, uint8_t reg, uint8_t *raw_temperatures) {
+  for (int raw_gpio = 0; raw_gpio < GPIO_REG_LEN; raw_gpio += 2) {
+    uint16_t temperature = (raw_temperatures[raw_gpio + 1] << 8) | (raw_temperatures[raw_gpio] & 0xFF);
+    uint16_t offset = (reg == (uint16_t)CommandCode::RDAUXA) ? 0 : TEMPS_PER_REG;
+    for (int cell_idx = offset; cell_idx < offset + 3; cell_idx++)
+      slaves[slave_idx].cells[cell_idx].temperature = parse_temperatures(temperature);
   }
 }
 
@@ -213,8 +222,19 @@ void print_slaves() {
         Serial.print(cell);
         Serial.print(": ");
         Serial.print(slaves[slave_idx].cells[cell].voltage / 10000.0);
-        Serial.println(" V");
+        Serial.print(" V, ");
+        Serial.print(slaves[slave_idx].cells[cell].temperature / 7.0);
       }
     }
   }
+}
+
+uint16_t parse_temperatures(uint16_t temperature) {
+  return (
+    TEMP_FIT_COEFF[0] * pow(temperature, 4) +
+    TEMP_FIT_COEFF[1] * pow(temperature, 3) + 
+    TEMP_FIT_COEFF[2] * pow(temperature, 2) +
+    TEMP_FIT_COEFF[3] * temperature + 
+    TEMP_FIT_COEFF[4]
+  );
 }

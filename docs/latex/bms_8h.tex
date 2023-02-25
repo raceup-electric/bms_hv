@@ -1,0 +1,461 @@
+\hypertarget{bms_8h}{}\doxysection{bms.\+h File Reference}
+\label{bms_8h}\index{bms.h@{bms.h}}
+
+
+BMS library.  
+
+
+{\ttfamily \#include \char`\"{}config.\+h\char`\"{}}\newline
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_cell}{Cell}}
+\begin{DoxyCompactList}\small\item\em \mbox{\hyperlink{struct_cell}{Cell}} struct. \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{struct_slave}{Slave}}
+\begin{DoxyCompactList}\small\item\em \mbox{\hyperlink{struct_slave}{Slave}} struct. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2}{Command\+Code}} \{ \newline
+\mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a4196100ea30ad75027a77a17014a0cdb}{ADCV}} = 0b01001100000 $\vert$ (ADC\+\_\+\+CONVERSION\+\_\+\+MODE \texorpdfstring{$<$}{<}\texorpdfstring{$<$}{<} 7) $\vert$ ADC\+\_\+\+DCP \texorpdfstring{$<$}{<}\texorpdfstring{$<$}{<} 4 $\vert$ CELL\+\_\+\+CHANNEL
+, \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a52a7ac66d8ab9a4682c753417b66294c}{WRCFGA}} = 0x01
+, \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a592c00a1a240bf405a46e53a35544d31}{RDCVA}} = 4
+, \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2ad0fde39895dc9056d93307b73605a0da}{RDCVB}} = 6
+, \newline
+\mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a3bf3198e46a57f4acfe7cfb3768bf56f}{RDCVC}} = 8
+, \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2aedcde809f21c4e39e5d7d6d2c350f918}{RDCVD}} = 10
+, \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a4b47e7577f6d40944be6476661e6f41d}{ADAX}} = 0b10001100000 $\vert$ (ADC\+\_\+\+CONVERSION\+\_\+\+MODE \texorpdfstring{$<$}{<}\texorpdfstring{$<$}{<} 7) $\vert$ GPIO\+\_\+\+CHANNEL
+, \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2ae3aaa10abbb677f387177ba542e01e06}{RDAUXA}} = 12
+, \newline
+\mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a93b03104d430957edeafe1e7bc3c92a7}{RDAUXB}} = 14
+ \}
+\begin{DoxyCompactList}\small\item\em Command Codes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint16\+\_\+t \mbox{\hyperlink{bms_8h_a62bd2c15a1dc8c3f754489a531047d27}{pec15\+\_\+calc}} (uint8\+\_\+t len, uint8\+\_\+t $\ast$data)
+\begin{DoxyCompactList}\small\item\em Compute PEC. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_aa9f42a61cc56ebbed9c2b2eed9c4d818}{wakeup\+\_\+idle}} ()
+\begin{DoxyCompactList}\small\item\em Wakes up from idle ltc6811. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_aeacc77d4d9999b2af8996090a8d6a189}{wakeup\+\_\+sleep}} ()
+\begin{DoxyCompactList}\small\item\em Wakes up from sleep ltc6811. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_a09984e66f76daff6f7eb71b9dcaa748e}{init\+\_\+slaves\+\_\+struct}} ()
+\begin{DoxyCompactList}\small\item\em Initializes slaves struct. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_a78925be3fd486c31a642cd7a3d77d41f}{init\+\_\+slaves\+\_\+cfg}} ()
+\begin{DoxyCompactList}\small\item\em Initializes slaves configuration. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_a651c1e82545d6a604daccd2c4b80b86a}{write\+\_\+slaves\+\_\+cfg}} ()
+\begin{DoxyCompactList}\small\item\em Write slaves configuration. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_af287f77358bffec22416158c02e091c3}{start\+\_\+adcv}} ()
+\begin{DoxyCompactList}\small\item\em Starts ADC voltages conversion. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_af473e260d65c8f954ff772c22998147b}{read\+\_\+voltages}} ()
+\begin{DoxyCompactList}\small\item\em Read all slaves voltages. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_a0de026d0fd6960372e584cdaa742ed35}{save\+\_\+voltages}} (uint8\+\_\+t address, uint8\+\_\+t reg, uint8\+\_\+t $\ast$raw\+\_\+voltages)
+\begin{DoxyCompactList}\small\item\em Saves slave voltages. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_a3efbba2ca7c752bc6ec6df3107650df0}{read\+\_\+temperatures}} ()
+\begin{DoxyCompactList}\small\item\em Read all slaves temperatures. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_aac4331dd7ab8aa9e37f6de109cd57d8b}{save\+\_\+temperatures}} (uint8\+\_\+t address, uint8\+\_\+t reg, uint8\+\_\+t $\ast$raw\+\_\+temperatures)
+\begin{DoxyCompactList}\small\item\em Saves slave temperatures. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{bms_8h_a18f66bd8dd798c0cd1f847575a06c495}{print\+\_\+slaves}} ()
+\begin{DoxyCompactList}\small\item\em Print slave info. \end{DoxyCompactList}\item 
+uint16\+\_\+t \mbox{\hyperlink{bms_8h_a0da3f8eb3049bcf91d0640e33fb50ecd}{parse\+\_\+temperatures}} (uint16\+\_\+t temperature)
+\begin{DoxyCompactList}\small\item\em Parses temperature. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a9595b99dbc2cb64ef004d15faa8a3b3b}{CELLS\+\_\+\+PER\+\_\+\+REG}} = 3
+\begin{DoxyCompactList}\small\item\em Cells x Register. \end{DoxyCompactList}\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a2fdc29e9e2eb790a184a9ada089babd2}{VREG\+\_\+\+LEN}} = \mbox{\hyperlink{bms_8h_a9595b99dbc2cb64ef004d15faa8a3b3b}{CELLS\+\_\+\+PER\+\_\+\+REG}} $\ast$ 2
+\begin{DoxyCompactList}\small\item\em Voltage register length. \end{DoxyCompactList}\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a788d06b6e23e4114a3be7718c7b5ba90}{REG\+\_\+\+NUM}} = 4
+\begin{DoxyCompactList}\small\item\em Total registers. \end{DoxyCompactList}\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a4299f5ab4e71f79f905453ed3498a4d9}{GPIO\+\_\+\+REG\+\_\+\+LEN}} = 6
+\begin{DoxyCompactList}\small\item\em Voltage register length. \end{DoxyCompactList}\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a4fc839a789fd7f1c553ef422ed818e57}{TEMPS\+\_\+\+PER\+\_\+\+REG}} = 12
+\begin{DoxyCompactList}\small\item\em Temperature x Register. \end{DoxyCompactList}\item 
+constexpr float \mbox{\hyperlink{bms_8h_a95c4698d5c192a8e4dfc45a58edcc174}{TEMP\+\_\+\+FIT\+\_\+\+COEFF}} \mbox{[}5\mbox{]}
+\begin{DoxyCompactList}\small\item\em Temperature equation coefficients. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{struct_slave}{Slave}} \mbox{\hyperlink{bms_8h_a8da52d3cf3bf83854501719af98ab0e4}{slaves}} \mbox{[}\mbox{\hyperlink{config_8h_a9d3dfaea3b1a9a8e8307c02ce7a0acf0}{SLAVE\+\_\+\+NUM}}\mbox{]}
+\begin{DoxyCompactList}\small\item\em \mbox{\hyperlink{struct_slave}{Slave}} array. \end{DoxyCompactList}\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a8bf6169d30bbeede2c2c0c47ea1bdd83}{CFG\+\_\+\+LEN}} = 6
+\begin{DoxyCompactList}\small\item\em Configuration length. \end{DoxyCompactList}\item 
+uint8\+\_\+t \mbox{\hyperlink{bms_8h_a35ec6d306f657f09635404cb28835f54}{slaves\+\_\+config}} \mbox{[}\mbox{\hyperlink{bms_8h_a8bf6169d30bbeede2c2c0c47ea1bdd83}{CFG\+\_\+\+LEN}}\mbox{]}
+\begin{DoxyCompactList}\small\item\em \mbox{\hyperlink{struct_slave}{Slave}} configuration. \end{DoxyCompactList}\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a7b3a7ab4f89be32310f6cc391ca8a682}{CMD\+\_\+\+LEN}} = 2
+\begin{DoxyCompactList}\small\item\em Command length. \end{DoxyCompactList}\item 
+constexpr uint8\+\_\+t \mbox{\hyperlink{bms_8h_a03a5044a9d26de9c15e95f447b69c0cd}{PEC\+\_\+\+LEN}} = 2
+\begin{DoxyCompactList}\small\item\em PEC length. \end{DoxyCompactList}\item 
+constexpr uint16\+\_\+t pec\+\_\+table\mbox{[}256\mbox{]} \mbox{\hyperlink{bms_8h_abbc8e214e711eaf6666d20cd1dad4bb0}{PROGMEM}}
+\begin{DoxyCompactList}\small\item\em Precomputed CRC15 Table. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+BMS library. 
+
+\begin{DoxyAuthor}{Author}
+Tommaso Prandin, Luca Bombonati 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+0.\+1 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+2023-\/02-\/25
+\end{DoxyDate}
+\begin{DoxyCopyright}{Copyright}
+Copyright Race\+UP(c) 2023 
+\end{DoxyCopyright}
+
+
+\doxysubsection{Enumeration Type Documentation}
+\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2}} 
+\index{bms.h@{bms.h}!CommandCode@{CommandCode}}
+\index{CommandCode@{CommandCode}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{CommandCode}{CommandCode}}
+{\footnotesize\ttfamily enum class \mbox{\hyperlink{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2}{Command\+Code}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+
+
+Command Codes. 
+
+Enumerate usefull command codes \begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ADCV@{ADCV}!bms.h@{bms.h}}\index{bms.h@{bms.h}!ADCV@{ADCV}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a4196100ea30ad75027a77a17014a0cdb}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a4196100ea30ad75027a77a17014a0cdb}} 
+ADCV&Start ADC voltages. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{WRCFGA@{WRCFGA}!bms.h@{bms.h}}\index{bms.h@{bms.h}!WRCFGA@{WRCFGA}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a52a7ac66d8ab9a4682c753417b66294c}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a52a7ac66d8ab9a4682c753417b66294c}} 
+WRCFGA&Write configuration into slaves register A. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{RDCVA@{RDCVA}!bms.h@{bms.h}}\index{bms.h@{bms.h}!RDCVA@{RDCVA}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a592c00a1a240bf405a46e53a35544d31}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a592c00a1a240bf405a46e53a35544d31}} 
+RDCVA&Read register A stored voltages. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{RDCVB@{RDCVB}!bms.h@{bms.h}}\index{bms.h@{bms.h}!RDCVB@{RDCVB}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2ad0fde39895dc9056d93307b73605a0da}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2ad0fde39895dc9056d93307b73605a0da}} 
+RDCVB&Read register B stored voltages. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{RDCVC@{RDCVC}!bms.h@{bms.h}}\index{bms.h@{bms.h}!RDCVC@{RDCVC}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a3bf3198e46a57f4acfe7cfb3768bf56f}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a3bf3198e46a57f4acfe7cfb3768bf56f}} 
+RDCVC&Read register C stored voltages. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{RDCVD@{RDCVD}!bms.h@{bms.h}}\index{bms.h@{bms.h}!RDCVD@{RDCVD}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2aedcde809f21c4e39e5d7d6d2c350f918}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2aedcde809f21c4e39e5d7d6d2c350f918}} 
+RDCVD&Read register D stored voltages. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ADAX@{ADAX}!bms.h@{bms.h}}\index{bms.h@{bms.h}!ADAX@{ADAX}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a4b47e7577f6d40944be6476661e6f41d}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a4b47e7577f6d40944be6476661e6f41d}} 
+ADAX&Start ADC GPIO. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{RDAUXA@{RDAUXA}!bms.h@{bms.h}}\index{bms.h@{bms.h}!RDAUXA@{RDAUXA}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2ae3aaa10abbb677f387177ba542e01e06}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2ae3aaa10abbb677f387177ba542e01e06}} 
+RDAUXA&Read auxiliary register A stored values. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{RDAUXB@{RDAUXB}!bms.h@{bms.h}}\index{bms.h@{bms.h}!RDAUXB@{RDAUXB}}}\mbox{\Hypertarget{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a93b03104d430957edeafe1e7bc3c92a7}\label{bms_8h_a805cf38fd2b6d5604bf1f1036b80fde2a93b03104d430957edeafe1e7bc3c92a7}} 
+RDAUXB&Read auxiliary register B stored values. \\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{bms_8h_a78925be3fd486c31a642cd7a3d77d41f}\label{bms_8h_a78925be3fd486c31a642cd7a3d77d41f}} 
+\index{bms.h@{bms.h}!init\_slaves\_cfg@{init\_slaves\_cfg}}
+\index{init\_slaves\_cfg@{init\_slaves\_cfg}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{init\_slaves\_cfg()}{init\_slaves\_cfg()}}
+{\footnotesize\ttfamily void init\+\_\+slaves\+\_\+cfg (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Initializes slaves configuration. 
+
+Every ltc6811 needs a configuration to be written. \begin{DoxySeeAlso}{See also}
+README -\/\texorpdfstring{$>$}{>} Codice \texorpdfstring{$>$}{>} Configurazione 
+\end{DoxySeeAlso}
+\mbox{\Hypertarget{bms_8h_a09984e66f76daff6f7eb71b9dcaa748e}\label{bms_8h_a09984e66f76daff6f7eb71b9dcaa748e}} 
+\index{bms.h@{bms.h}!init\_slaves\_struct@{init\_slaves\_struct}}
+\index{init\_slaves\_struct@{init\_slaves\_struct}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{init\_slaves\_struct()}{init\_slaves\_struct()}}
+{\footnotesize\ttfamily void init\+\_\+slaves\+\_\+struct (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Initializes slaves struct. 
+
+Slaves are stored as Struct, this method initialize the data structure \mbox{\Hypertarget{bms_8h_a0da3f8eb3049bcf91d0640e33fb50ecd}\label{bms_8h_a0da3f8eb3049bcf91d0640e33fb50ecd}} 
+\index{bms.h@{bms.h}!parse\_temperatures@{parse\_temperatures}}
+\index{parse\_temperatures@{parse\_temperatures}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{parse\_temperatures()}{parse\_temperatures()}}
+{\footnotesize\ttfamily uint16\+\_\+t parse\+\_\+temperatures (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{temperature }\end{DoxyParamCaption})}
+
+
+
+Parses temperature. 
+
+Converts voltage drop to temperature using the P9-\/\+JT thermistor and 4° grade polynomial fit
+
+
+\begin{DoxyParams}{Parameters}
+{\em temperature} & temperature to convert \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+uint16\+\_\+t parsed temperature 
+\end{DoxyReturn}
+\mbox{\Hypertarget{bms_8h_a62bd2c15a1dc8c3f754489a531047d27}\label{bms_8h_a62bd2c15a1dc8c3f754489a531047d27}} 
+\index{bms.h@{bms.h}!pec15\_calc@{pec15\_calc}}
+\index{pec15\_calc@{pec15\_calc}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{pec15\_calc()}{pec15\_calc()}}
+{\footnotesize\ttfamily uint16\+\_\+t pec15\+\_\+calc (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{len,  }\item[{uint8\+\_\+t $\ast$}]{data }\end{DoxyParamCaption})}
+
+
+
+Compute PEC. 
+
+Computes PEC15 code \mbox{\Hypertarget{bms_8h_a18f66bd8dd798c0cd1f847575a06c495}\label{bms_8h_a18f66bd8dd798c0cd1f847575a06c495}} 
+\index{bms.h@{bms.h}!print\_slaves@{print\_slaves}}
+\index{print\_slaves@{print\_slaves}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{print\_slaves()}{print\_slaves()}}
+{\footnotesize\ttfamily void print\+\_\+slaves (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Print slave info. 
+
+User readable voltages and temperatures \mbox{\Hypertarget{bms_8h_a3efbba2ca7c752bc6ec6df3107650df0}\label{bms_8h_a3efbba2ca7c752bc6ec6df3107650df0}} 
+\index{bms.h@{bms.h}!read\_temperatures@{read\_temperatures}}
+\index{read\_temperatures@{read\_temperatures}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{read\_temperatures()}{read\_temperatures()}}
+{\footnotesize\ttfamily void read\+\_\+temperatures (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Read all slaves temperatures. 
+
+Iterate over each slave and read stored temperatures \mbox{\Hypertarget{bms_8h_af473e260d65c8f954ff772c22998147b}\label{bms_8h_af473e260d65c8f954ff772c22998147b}} 
+\index{bms.h@{bms.h}!read\_voltages@{read\_voltages}}
+\index{read\_voltages@{read\_voltages}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{read\_voltages()}{read\_voltages()}}
+{\footnotesize\ttfamily void read\+\_\+voltages (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Read all slaves voltages. 
+
+Iterate over each slave and read register group N stored voltage \mbox{\Hypertarget{bms_8h_aac4331dd7ab8aa9e37f6de109cd57d8b}\label{bms_8h_aac4331dd7ab8aa9e37f6de109cd57d8b}} 
+\index{bms.h@{bms.h}!save\_temperatures@{save\_temperatures}}
+\index{save\_temperatures@{save\_temperatures}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{save\_temperatures()}{save\_temperatures()}}
+{\footnotesize\ttfamily void save\+\_\+temperatures (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{address,  }\item[{uint8\+\_\+t}]{reg,  }\item[{uint8\+\_\+t $\ast$}]{raw\+\_\+temperatures }\end{DoxyParamCaption})}
+
+
+
+Saves slave temperatures. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em address} & slave address \\
+\hline
+{\em reg} & register where temperatures are stored \\
+\hline
+{\em raw\+\_\+temperatures} & pointer where temperatures will be stored \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{bms_8h_a0de026d0fd6960372e584cdaa742ed35}\label{bms_8h_a0de026d0fd6960372e584cdaa742ed35}} 
+\index{bms.h@{bms.h}!save\_voltages@{save\_voltages}}
+\index{save\_voltages@{save\_voltages}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{save\_voltages()}{save\_voltages()}}
+{\footnotesize\ttfamily void save\+\_\+voltages (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{address,  }\item[{uint8\+\_\+t}]{reg,  }\item[{uint8\+\_\+t $\ast$}]{raw\+\_\+voltages }\end{DoxyParamCaption})}
+
+
+
+Saves slave voltages. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em address} & slave address \\
+\hline
+{\em reg} & register group where voltages are stored \\
+\hline
+{\em raw\+\_\+voltages} & pointer where voltages will be stored \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{bms_8h_af287f77358bffec22416158c02e091c3}\label{bms_8h_af287f77358bffec22416158c02e091c3}} 
+\index{bms.h@{bms.h}!start\_adcv@{start\_adcv}}
+\index{start\_adcv@{start\_adcv}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{start\_adcv()}{start\_adcv()}}
+{\footnotesize\ttfamily void start\+\_\+adcv (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Starts ADC voltages conversion. 
+
+Converts from analog to digital cells voltage \begin{DoxySeeAlso}{See also}
+Read \char`\"{}\+ADCV\char`\"{} command in datasheet 
+\end{DoxySeeAlso}
+\mbox{\Hypertarget{bms_8h_aa9f42a61cc56ebbed9c2b2eed9c4d818}\label{bms_8h_aa9f42a61cc56ebbed9c2b2eed9c4d818}} 
+\index{bms.h@{bms.h}!wakeup\_idle@{wakeup\_idle}}
+\index{wakeup\_idle@{wakeup\_idle}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{wakeup\_idle()}{wakeup\_idle()}}
+{\footnotesize\ttfamily void wakeup\+\_\+idle (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Wakes up from idle ltc6811. 
+
+This method guarantees that the ltc6811 is not \char`\"{}idle\char`\"{} \mbox{\Hypertarget{bms_8h_aeacc77d4d9999b2af8996090a8d6a189}\label{bms_8h_aeacc77d4d9999b2af8996090a8d6a189}} 
+\index{bms.h@{bms.h}!wakeup\_sleep@{wakeup\_sleep}}
+\index{wakeup\_sleep@{wakeup\_sleep}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{wakeup\_sleep()}{wakeup\_sleep()}}
+{\footnotesize\ttfamily void wakeup\+\_\+sleep (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Wakes up from sleep ltc6811. 
+
+This method guarantees that the ltc6811 is not \char`\"{}sleep\char`\"{} \mbox{\Hypertarget{bms_8h_a651c1e82545d6a604daccd2c4b80b86a}\label{bms_8h_a651c1e82545d6a604daccd2c4b80b86a}} 
+\index{bms.h@{bms.h}!write\_slaves\_cfg@{write\_slaves\_cfg}}
+\index{write\_slaves\_cfg@{write\_slaves\_cfg}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{write\_slaves\_cfg()}{write\_slaves\_cfg()}}
+{\footnotesize\ttfamily void write\+\_\+slaves\+\_\+cfg (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Write slaves configuration. 
+
+Send through SPI a \char`\"{}\+Write configurazion\char`\"{} broadcast command using initialized config \begin{DoxySeeAlso}{See also}
+init\+\_\+slave\+\_\+cfg() 
+\end{DoxySeeAlso}
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{bms_8h_a9595b99dbc2cb64ef004d15faa8a3b3b}\label{bms_8h_a9595b99dbc2cb64ef004d15faa8a3b3b}} 
+\index{bms.h@{bms.h}!CELLS\_PER\_REG@{CELLS\_PER\_REG}}
+\index{CELLS\_PER\_REG@{CELLS\_PER\_REG}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{CELLS\_PER\_REG}{CELLS\_PER\_REG}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t CELLS\+\_\+\+PER\+\_\+\+REG = 3\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Cells x Register. 
+
+Number of cells per register \mbox{\Hypertarget{bms_8h_a8bf6169d30bbeede2c2c0c47ea1bdd83}\label{bms_8h_a8bf6169d30bbeede2c2c0c47ea1bdd83}} 
+\index{bms.h@{bms.h}!CFG\_LEN@{CFG\_LEN}}
+\index{CFG\_LEN@{CFG\_LEN}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{CFG\_LEN}{CFG\_LEN}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t CFG\+\_\+\+LEN = 6\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Configuration length. 
+
+Configuration data length in bytes \mbox{\Hypertarget{bms_8h_a7b3a7ab4f89be32310f6cc391ca8a682}\label{bms_8h_a7b3a7ab4f89be32310f6cc391ca8a682}} 
+\index{bms.h@{bms.h}!CMD\_LEN@{CMD\_LEN}}
+\index{CMD\_LEN@{CMD\_LEN}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{CMD\_LEN}{CMD\_LEN}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t CMD\+\_\+\+LEN = 2\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Command length. 
+
+Command length in bytes \mbox{\Hypertarget{bms_8h_a4299f5ab4e71f79f905453ed3498a4d9}\label{bms_8h_a4299f5ab4e71f79f905453ed3498a4d9}} 
+\index{bms.h@{bms.h}!GPIO\_REG\_LEN@{GPIO\_REG\_LEN}}
+\index{GPIO\_REG\_LEN@{GPIO\_REG\_LEN}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{GPIO\_REG\_LEN}{GPIO\_REG\_LEN}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t GPIO\+\_\+\+REG\+\_\+\+LEN = 6\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Voltage register length. 
+
+Length of temperature register in slave (2 bytes per cell) \mbox{\Hypertarget{bms_8h_a03a5044a9d26de9c15e95f447b69c0cd}\label{bms_8h_a03a5044a9d26de9c15e95f447b69c0cd}} 
+\index{bms.h@{bms.h}!PEC\_LEN@{PEC\_LEN}}
+\index{PEC\_LEN@{PEC\_LEN}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{PEC\_LEN}{PEC\_LEN}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t PEC\+\_\+\+LEN = 2\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+PEC length. 
+
+PEC code length in bytes \mbox{\Hypertarget{bms_8h_abbc8e214e711eaf6666d20cd1dad4bb0}\label{bms_8h_abbc8e214e711eaf6666d20cd1dad4bb0}} 
+\index{bms.h@{bms.h}!PROGMEM@{PROGMEM}}
+\index{PROGMEM@{PROGMEM}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{PROGMEM}{PROGMEM}}
+{\footnotesize\ttfamily constexpr uint16\+\_\+t pec\+\_\+table \mbox{[}256\mbox{]} PROGMEM\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Precomputed CRC15 Table. 
+
+Precomputed CRC15 table for PEC \mbox{\Hypertarget{bms_8h_a788d06b6e23e4114a3be7718c7b5ba90}\label{bms_8h_a788d06b6e23e4114a3be7718c7b5ba90}} 
+\index{bms.h@{bms.h}!REG\_NUM@{REG\_NUM}}
+\index{REG\_NUM@{REG\_NUM}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{REG\_NUM}{REG\_NUM}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t REG\+\_\+\+NUM = 4\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Total registers. 
+
+Number of registers \mbox{\Hypertarget{bms_8h_a8da52d3cf3bf83854501719af98ab0e4}\label{bms_8h_a8da52d3cf3bf83854501719af98ab0e4}} 
+\index{bms.h@{bms.h}!slaves@{slaves}}
+\index{slaves@{slaves}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{slaves}{slaves}}
+{\footnotesize\ttfamily \mbox{\hyperlink{struct_slave}{Slave}} slaves\mbox{[}\mbox{\hyperlink{config_8h_a9d3dfaea3b1a9a8e8307c02ce7a0acf0}{SLAVE\+\_\+\+NUM}}\mbox{]}\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+\mbox{\hyperlink{struct_slave}{Slave}} array. 
+
+Array where all slaves struct are stored \mbox{\Hypertarget{bms_8h_a35ec6d306f657f09635404cb28835f54}\label{bms_8h_a35ec6d306f657f09635404cb28835f54}} 
+\index{bms.h@{bms.h}!slaves\_config@{slaves\_config}}
+\index{slaves\_config@{slaves\_config}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{slaves\_config}{slaves\_config}}
+{\footnotesize\ttfamily uint8\+\_\+t slaves\+\_\+config\mbox{[}\mbox{\hyperlink{bms_8h_a8bf6169d30bbeede2c2c0c47ea1bdd83}{CFG\+\_\+\+LEN}}\mbox{]}\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+\mbox{\hyperlink{struct_slave}{Slave}} configuration. 
+
+Array where slaves configuration are stored \mbox{\Hypertarget{bms_8h_a95c4698d5c192a8e4dfc45a58edcc174}\label{bms_8h_a95c4698d5c192a8e4dfc45a58edcc174}} 
+\index{bms.h@{bms.h}!TEMP\_FIT\_COEFF@{TEMP\_FIT\_COEFF}}
+\index{TEMP\_FIT\_COEFF@{TEMP\_FIT\_COEFF}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{TEMP\_FIT\_COEFF}{TEMP\_FIT\_COEFF}}
+{\footnotesize\ttfamily constexpr float TEMP\+\_\+\+FIT\+\_\+\+COEFF\mbox{[}5\mbox{]}\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{}
+\DoxyCodeLine{\ \ 14.134900,\ }
+\DoxyCodeLine{\ \ -\/101.489923,}
+\DoxyCodeLine{\ \ 249.045542,}
+\DoxyCodeLine{\ \ -\/275.876113,}
+\DoxyCodeLine{\ \ 133.921822\ }
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Temperature equation coefficients. 
+
+Coefficients extracted from 4° grade polynomial fit over P9-\/\+JT spreadsheet \mbox{\Hypertarget{bms_8h_a4fc839a789fd7f1c553ef422ed818e57}\label{bms_8h_a4fc839a789fd7f1c553ef422ed818e57}} 
+\index{bms.h@{bms.h}!TEMPS\_PER\_REG@{TEMPS\_PER\_REG}}
+\index{TEMPS\_PER\_REG@{TEMPS\_PER\_REG}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{TEMPS\_PER\_REG}{TEMPS\_PER\_REG}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t TEMPS\+\_\+\+PER\+\_\+\+REG = 12\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Temperature x Register. 
+
+Number of tempperatures per register \mbox{\Hypertarget{bms_8h_a2fdc29e9e2eb790a184a9ada089babd2}\label{bms_8h_a2fdc29e9e2eb790a184a9ada089babd2}} 
+\index{bms.h@{bms.h}!VREG\_LEN@{VREG\_LEN}}
+\index{VREG\_LEN@{VREG\_LEN}!bms.h@{bms.h}}
+\doxysubsubsection{\texorpdfstring{VREG\_LEN}{VREG\_LEN}}
+{\footnotesize\ttfamily constexpr uint8\+\_\+t VREG\+\_\+\+LEN = \mbox{\hyperlink{bms_8h_a9595b99dbc2cb64ef004d15faa8a3b3b}{CELLS\+\_\+\+PER\+\_\+\+REG}} $\ast$ 2\hspace{0.3cm}{\ttfamily [constexpr]}}
+
+
+
+Voltage register length. 
+
+Length of voltage register in slave (2 bytes per cell) 
