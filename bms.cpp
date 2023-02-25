@@ -159,6 +159,46 @@ void save_voltages(uint8_t slave_idx, uint8_t reg, uint8_t *raw_voltages) {
   }
 }
 
+void read_temperatures() {
+  uint8_t buffer[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN] = {};
+
+  // read all the registers available based on the cells number
+  for (uint16_t reg = (uint16_t)CommandCode::RDAUXA; reg <= (uint16_t)CommandCode::RDAUXB; reg += 2) {
+    // addressed command
+    for (int slave_idx = 0; slave_idx < SLAVE_NUM; slave_idx++) {
+      buffer[0] = 0b10000000 | (slaves[slave_idx].address << 3);
+      buffer[1] = (uint8_t)reg;
+      // command pec
+      uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
+      buffer[2] = cmd_pec >> 8;
+      buffer[3] = cmd_pec & 0xFF;
+
+      // transfer data via SPI
+      wakeup_idle();
+
+      digitalWrite(SPI_CS_PIN, LOW);
+      for (int i = 0; i < CMD_LEN + PEC_LEN; i++) {
+        SPI.transfer(buffer[i]);
+      }
+      for (int i = 0; i < VREG_LEN + PEC_LEN; i++) {
+        buffer[CMD_LEN + PEC_LEN + i] = SPI.transfer(0xFF);
+      }
+      digitalWrite(SPI_CS_PIN, HIGH);
+
+      // check if incoming PEC is valid
+      uint16_t in_data_pec = pec15_calc(VREG_LEN, &(buffer[CMD_LEN + PEC_LEN]));
+      if (in_data_pec == ((buffer[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (buffer[CMD_LEN + PEC_LEN + VREG_LEN + 1]))) {
+        // parse the raw data and save the voltages in the appropriate structures
+        save_voltages(slave_idx, reg, &(buffer[CMD_LEN + PEC_LEN]));
+        slaves[slave_idx].error = false;
+      }
+      else {
+        slaves[slave_idx].error = true;
+      }
+    }
+  }
+}
+
 void print_slaves() {
   for (int slave_idx = 0; slave_idx < SLAVE_NUM; slave_idx++) {
     Serial.print("Slave ");

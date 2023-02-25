@@ -24,12 +24,17 @@ extern uint8_t slaves_config[CFG_LEN];
 
 constexpr uint8_t CMD_LEN = 2; // command length in bytes
 enum class CommandCode {
+  // voltages
   ADCV = 0b01001100000 | (ADC_CONVERSION_MODE << 7) | ADC_DCP << 4 | CELL_CHANNEL, 
   WRCFGA = 0x01,
   RDCVA = 4,
   RDCVB = 6,
   RDCVC = 8,
-  RDCVD = 10
+  RDCVD = 10,
+  // temperatures
+  ADAX = 0b10001100000 | (ADC_CONVERSION_MODE << 7) | GPIO_CHANNEL, 
+  RDAUXA = 12,
+  RDAUXB = 14
 };
 
 constexpr uint8_t PEC_LEN = 2; // PEC code length in bytes
@@ -51,6 +56,10 @@ void start_adcv();
 void read_voltages();
 
 void save_voltages(uint8_t address, uint8_t reg, uint8_t* raw_voltages);
+
+void read_temperatures();
+
+void save_temperatures(uint8_t address, uint8_t reg, uint8_t* raw_temperatures);
 
 void print_slaves();
 

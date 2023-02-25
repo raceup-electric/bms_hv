@@ -5,10 +5,10 @@
 constexpr uint8_t SLAVE_NUM = 1;
 // Slaves' address (must be same length as SLAVE_NUM)
 constexpr uint8_t SLAVES_ADDRESS[SLAVE_NUM] = {
-  0b0010
+  0b0000
 };
 // Number of cells per slave (max 12)
-constexpr uint8_t CELL_NUM = 12;
+constexpr uint8_t CELL_NUM = 9;
 // 0 -> Selects Modes 422Hz, 27kHz, 7kHz or 26Hz with MD[1:0] Bits in ADC Conversion Commands (Default) 
 // 1 -> Selects Modes 1kHz, 14kHz, 3kHz or 2kHz with MD[1:0] Bits in ADC Conversion Commands
 constexpr uint8_t ADC_OPT = 0;
@@ -25,6 +25,8 @@ constexpr uint16_t UV_THRESHOLD = 33000;
 constexpr uint16_t OV_THRESHOLD = 42000;
 // Time delay (ms) between measurement
 constexpr uint16_t MEASUREMENT_LOOP_DELAY = 20 * SLAVE_NUM;
+// GPIO channel 000 -> measure all
+constexpr uint8_t GPIO_CHANNEL = 0;
 
 constexpr uint8_t SPI_CS_PIN = 5;
 
