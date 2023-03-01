@@ -40,7 +40,7 @@ constexpr uint8_t GPIO_REG_LEN = 6;
 /**
  * @brief Temperature x Register
  * 
- * Number of tempperatures per register
+ * Number of temperatures per register
  */
 constexpr uint8_t TEMPS_PER_REG = 12;
 
@@ -161,6 +161,8 @@ enum class CommandCode {
   RDAUXB = 14
 };
 
+enum class CommandType { BROADCAST, ADDRESSED };
+
 /**
  * @brief PEC length
  * 
@@ -177,6 +179,40 @@ constexpr uint8_t PEC_LEN = 2;
  * @param data message
  */
 uint16_t pec15_calc(uint8_t len, uint8_t* data);
+
+/**
+ * Sends @ref tx_bytes bytes of data via SPI.
+ * @param tx_data Buffer containing data to be sent (must be at least @ref tx_bytes long).
+ * @param tx_bytes Number of bytes to be sent.
+*/
+void tx(uint8_t* tx_data, int tx_bytes);
+
+/**
+ * Receives @ref rx_bytes bytes of data from SPI (if available)
+ * @param rx_data Buffer where incoming data is stored (must be at least @ref rx_bytes long).
+ * @param rx_bytes Number of bytes to receive.
+*/
+void rx(uint8_t* rx_data, int rx_bytes);
+
+/**
+ * Sends @ref tx_bytes bytes of data via SPI, then receives @ref rx_bytes bytes of data from SPI. 
+ * @param tx_data Buffer containing data to be sent (must be at least @ref tx_bytes long).
+ * @param tx_bytes Number of bytes to be sent.
+ * @param rx_data Buffer where incoming data is stored (must be at least @ref rx_bytes long).
+ * @param rx_bytes Number of bytes to receive.
+ * 
+ * @see tx()
+ * @see rx()
+*/
+void txrx(uint8_t* tx_data, int tx_bytes, uint8_t* rx_data, int rx_bytes);
+
+/**
+ * Prepares a command into a packet
+ * @param cc Command code of the command
+ * @param ct Whether it is a broadcasted or addressed command
+ * @param addr Address of the slave (only addressed command) 
+*/
+void prepare_cmd(uint8_t* packet, CommandCode cc, CommandType ct, uint8_t addr = 0);
 
 /**
  * @brief Wakes up from idle ltc6811

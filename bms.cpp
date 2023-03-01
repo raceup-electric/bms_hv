@@ -34,6 +34,48 @@ void wakeup_sleep() {
   digitalWrite(SPI_CS_PIN, HIGH);
 }
 
+void tx(uint8_t* tx_data, int tx_bytes) {
+  digitalWrite(SPI_CS_PIN, LOW);
+  for (int i = 0; i < tx_bytes; i++) {
+    SPI.transfer(tx_data[i]);
+  }
+  digitalWrite(SPI_CS_PIN, HIGH);
+}
+
+void rx(uint8_t* rx_data, int rx_bytes) {
+  digitalWrite(SPI_CS_PIN, LOW);
+  for (int i = 0; i < rx_bytes; i++) {
+    rx_data[i] = SPI.transfer(0xFF);
+  }
+  digitalWrite(SPI_CS_PIN, HIGH);
+}
+
+void txrx(uint8_t* tx_data, int tx_bytes, uint8_t* rx_data, int rx_bytes) {
+  digitalWrite(SPI_CS_PIN, LOW);
+  for (int i = 0; i < tx_bytes; i++) {
+    SPI.transfer(tx_data[i]);
+  }
+  for (int i = 0; i < rx_bytes; i++) {
+    rx_data[i] = SPI.transfer(0xFF);
+  }
+  digitalWrite(SPI_CS_PIN, HIGH);
+}
+
+void prepare_cmd(uint8_t* packet, CommandCode cc, CommandType ct, uint8_t addr) {
+  uint16_t cmd = (uint16_t)cc;
+  if (ct == CommandType::BROADCAST) {
+    packet[0] = cmd >> 8;
+    packet[1] = cmd & 0xFF;
+  }
+  else {
+    packet[0] = 0b10000000 | (addr << 3) | (cmd >> 8);
+    packet[1] = cmd & 0xFF;
+  }
+  uint16_t cmd_pec = pec15_calc(CMD_LEN, packet);
+  packet[2] = cmd_pec >> 8;
+  packet[3] = cmd_pec & 0xFF;
+}
+
 void init_slaves_struct() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     slaves[i] = {
@@ -62,53 +104,34 @@ void init_slaves_cfg() {
 }
 
 void write_slaves_cfg() {
-  uint8_t buffer[CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN] = {};
+  uint8_t packet[CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN] = {};
 
   // broadcast command
-  buffer[0] = (uint16_t)CommandCode::WRCFGA >> 8;
-  buffer[1] = (uint8_t)CommandCode::WRCFGA;
-  // command pec
-  uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
-  buffer[2] = cmd_pec >> 8;
-  buffer[3] = cmd_pec & 0xFF;
-  // copy config data to buffer
+  prepare_cmd(packet, CommandCode::WRCFGA, CommandType::BROADCAST);
+  // copy config data to packet
   for (int i = 0; i < CFG_LEN; i++) {
-    buffer[CMD_LEN + PEC_LEN + i] = slaves_config[i];
+    packet[CMD_LEN + PEC_LEN + i] = slaves_config[i];
   }
   // data pec
-  uint16_t data_pec = pec15_calc(CFG_LEN, &(buffer[CMD_LEN + PEC_LEN]));
-  buffer[CMD_LEN + PEC_LEN + CFG_LEN] = data_pec >> 8;
-  buffer[CMD_LEN + PEC_LEN + CFG_LEN + 1] = data_pec & 0xFF;
+  uint16_t data_pec = pec15_calc(CFG_LEN, &(packet[CMD_LEN + PEC_LEN]));
+  packet[CMD_LEN + PEC_LEN + CFG_LEN] = data_pec >> 8;
+  packet[CMD_LEN + PEC_LEN + CFG_LEN + 1] = data_pec & 0xFF;
 
   // send the data via SPI
   wakeup_idle();
-  digitalWrite(SPI_CS_PIN, LOW);
-  for (int i = 0; i < CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN; i++) {
-    SPI.transfer(buffer[i]);
-  }
-  digitalWrite(SPI_CS_PIN, HIGH);
+  tx(&(packet[0]), CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN);
 
 }
 
 void start_adcv() {
-  uint8_t buffer[CMD_LEN + PEC_LEN] = {};
+  uint8_t packet[CMD_LEN + PEC_LEN] = {};
 
   // broadcast command
-  buffer[0] = (uint16_t)CommandCode::ADCV >> 8;
-  buffer[1] = (uint8_t)CommandCode::ADCV; 
-  // command pec
-  uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
-  buffer[2] = cmd_pec >> 8;
-  buffer[3] = cmd_pec & 0xFF;
+  prepare_cmd(packet, CommandCode::ADCV, CommandType::BROADCAST);
 
   // send the data via SPI
   wakeup_idle();
-
-  digitalWrite(SPI_CS_PIN, LOW);
-  for (int i = 0; i < CMD_LEN + PEC_LEN; i++) {
-    SPI.transfer(buffer[i]);
-  }
-  digitalWrite(SPI_CS_PIN, HIGH);
+  tx(&(packet[0]), CMD_LEN + PEC_LEN);
 }
 
 void start_adax() {
@@ -133,36 +156,23 @@ void start_adax() {
 }
 
 void read_voltages() {
-  uint8_t buffer[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN] = {};
+  uint8_t packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN] = {};
 
   // read all the registers available based on the cells number
   for (uint16_t reg = (uint16_t)CommandCode::RDCVA; reg <= (uint16_t)CommandCode::RDCVD - ((REG_NUM - (CELL_NUM / CELLS_PER_REG)) * 2); reg += 2) {
     // addressed command
     for (int slave_idx = 0; slave_idx < SLAVE_NUM; slave_idx++) {
-      buffer[0] = 0b10000000 | (slaves[slave_idx].address << 3);
-      buffer[1] = (uint8_t)reg;
-      // command pec
-      uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
-      buffer[2] = cmd_pec >> 8;
-      buffer[3] = cmd_pec & 0xFF;
+      prepare_cmd(packet, (CommandCode)reg, CommandType::ADDRESSED, slaves[slave_idx].address);
 
       // transfer data via SPI
       wakeup_idle();
-
-      digitalWrite(SPI_CS_PIN, LOW);
-      for (int i = 0; i < CMD_LEN + PEC_LEN; i++) {
-        SPI.transfer(buffer[i]);
-      }
-      for (int i = 0; i < VREG_LEN + PEC_LEN; i++) {
-        buffer[CMD_LEN + PEC_LEN + i] = SPI.transfer(0xFF);
-      }
-      digitalWrite(SPI_CS_PIN, HIGH);
+      txrx(&(packet[0]), CMD_LEN + PEC_LEN, &(packet[CMD_LEN + PEC_LEN]), VREG_LEN + PEC_LEN);
 
       // check if incoming PEC is valid
-      uint16_t in_data_pec = pec15_calc(VREG_LEN, &(buffer[CMD_LEN + PEC_LEN]));
-      if (in_data_pec == ((buffer[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (buffer[CMD_LEN + PEC_LEN + VREG_LEN + 1]))) {
+      uint16_t in_data_pec = pec15_calc(VREG_LEN, &(packet[CMD_LEN + PEC_LEN]));
+      if (in_data_pec == ((packet[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (packet[CMD_LEN + PEC_LEN + VREG_LEN + 1]))) {
         // parse the raw data and save the voltages in the appropriate structures
-        save_voltages(slave_idx, reg, &(buffer[CMD_LEN + PEC_LEN]));
+        save_voltages(slave_idx, reg, &(packet[CMD_LEN + PEC_LEN]));
         slaves[slave_idx].error = false;
       }
       else {
@@ -181,36 +191,23 @@ void save_voltages(uint8_t slave_idx, uint8_t reg, uint8_t *raw_voltages) {
 }
 
 void read_temperatures() {
-  uint8_t buffer[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN] = {};
+  uint8_t packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN] = {};
 
   // read all the registers available based on the cells number
   for (uint16_t reg = (uint16_t)CommandCode::RDAUXA; reg <= (uint16_t)CommandCode::RDAUXB; reg += 2) {
     // addressed command
     for (int slave_idx = 0; slave_idx < SLAVE_NUM; slave_idx++) {
-      buffer[0] = 0b10000000 | (slaves[slave_idx].address << 3);
-      buffer[1] = (uint8_t)reg;
-      // command pec
-      uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
-      buffer[2] = cmd_pec >> 8;
-      buffer[3] = cmd_pec & 0xFF;
+      prepare_cmd(packet, (CommandCode)reg, CommandType::ADDRESSED, slaves[slave_idx].address);
 
       // transfer data via SPI
       wakeup_idle();
-
-      digitalWrite(SPI_CS_PIN, LOW);
-      for (int i = 0; i < CMD_LEN + PEC_LEN; i++) {
-        SPI.transfer(buffer[i]);
-      }
-      for (int i = 0; i < VREG_LEN + PEC_LEN; i++) {
-        buffer[CMD_LEN + PEC_LEN + i] = SPI.transfer(0xFF);
-      }
-      digitalWrite(SPI_CS_PIN, HIGH);
+      txrx(&(packet[0]), CMD_LEN + PEC_LEN, &(packet[CMD_LEN + PEC_LEN]), GPIO_REG_LEN + PEC_LEN);
 
       // check if incoming PEC is valid
-      uint16_t in_data_pec = pec15_calc(VREG_LEN, &(buffer[CMD_LEN + PEC_LEN]));
-      if (in_data_pec == ((buffer[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (buffer[CMD_LEN + PEC_LEN + VREG_LEN + 1]))) {
+      uint16_t in_data_pec = pec15_calc(VREG_LEN, &(packet[CMD_LEN + PEC_LEN]));
+      if (in_data_pec == ((packet[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (packet[CMD_LEN + PEC_LEN + VREG_LEN + 1]))) {
         // parse the raw data and save the voltages in the appropriate structures
-        save_temperatures(slave_idx, reg, &(buffer[CMD_LEN + PEC_LEN]));
+        save_temperatures(slave_idx, reg, &(packet[CMD_LEN + PEC_LEN]));
         slaves[slave_idx].error = false;
       }
       else {
