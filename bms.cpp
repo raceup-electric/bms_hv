@@ -241,11 +241,7 @@ void print_slaves() {
         Serial.print(": ");
         Serial.print(slaves[slave_idx].cells[cell].voltage / 10000.0);
         Serial.print(" V, ");
-        uint16_t measured = slaves[slave_idx].cells[cell].temperature;
-        Serial.print("\t");
-        Serial.print(measured);
-        Serial.print(" V, ");
-        Serial.print(parse_temperatures(measured));
+        Serial.print(parse_temperatures(slaves[slave_idx].cells[cell].temperature));
         Serial.println(" C");
       }
     }
