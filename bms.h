@@ -49,12 +49,10 @@ constexpr uint8_t TEMPS_PER_REG = 12;
  * 
  * Coefficients extracted from 4° grade polynomial fit over P9-JT spreadsheet
  */
-constexpr float TEMP_FIT_COEFF[5] = {
-  14.134900,        // x^4
-  -101.489923,      // x^3
-  249.045542,       // x^2
-  -275.876113,      // x^1
-  133.921822        // x^0
+constexpr float TEMP_FIT_COEFF[3] = {
+  56.352829,        // x^2
+  -161.4534,      // x^1
+  120.304777       // x^0
 };
 
 /**
@@ -128,7 +126,7 @@ enum class CommandCode {
   /**
    * @brief Start ADC voltages
    */
-  ADCV = 0b01001100000 | (ADC_CONVERSION_MODE << 7) | ADC_DCP << 4 | CELL_CHANNEL, 
+  ADCV = 0b01001100000 | (ADC_CONVERSION_MODE << 7) | (ADC_DCP << 4) | (CELL_CHANNEL), 
   /**
    * @brief Write configuration into slaves register A
    */
@@ -152,7 +150,7 @@ enum class CommandCode {
   /**
    * @brief Start ADC GPIO
    */
-  ADAX = 0b10001100000 | (ADC_CONVERSION_MODE << 7) | GPIO_CHANNEL, 
+  ADAX = 0b10001100000 | (ADC_CONVERSION_MODE << 7) | (GPIO_CHANNEL), 
   /**
    * @brief Read auxiliary register A stored values
    */
@@ -174,6 +172,9 @@ constexpr uint8_t PEC_LEN = 2;
  * @brief Compute PEC
  *
  * Computes PEC15 code
+ * 
+ * @param len message length
+ * @param data message
  */
 uint16_t pec15_calc(uint8_t len, uint8_t* data);
 
@@ -221,6 +222,8 @@ void write_slaves_cfg();
  * @see Read "ADCV" command in datasheet
  */
 void start_adcv();
+
+void start_adax();
 
 /**
  * @brief Read all slaves voltages

@@ -49,7 +49,7 @@ void init_slaves_cfg() {
   uint16_t ov_val = (OV_THRESHOLD / 16); // values required by datasheet
 
   // turn on GPIO pins pulldown, enable discharge timer and set ADC OPT flag (table 52 datasheet)
-  slaves_config[0] = 0x02 | ADC_OPT;
+  slaves_config[0] = 0xFA | ADC_OPT;
   // LSB of undervolt value
   slaves_config[1] = uv_val & 0xFF;
   // four LSB of overvolt value and remaining MSB of undervolt
@@ -96,6 +96,27 @@ void start_adcv() {
   // broadcast command
   buffer[0] = (uint16_t)CommandCode::ADCV >> 8;
   buffer[1] = (uint8_t)CommandCode::ADCV; 
+  // command pec
+  uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
+  buffer[2] = cmd_pec >> 8;
+  buffer[3] = cmd_pec & 0xFF;
+
+  // send the data via SPI
+  wakeup_idle();
+
+  digitalWrite(SPI_CS_PIN, LOW);
+  for (int i = 0; i < CMD_LEN + PEC_LEN; i++) {
+    SPI.transfer(buffer[i]);
+  }
+  digitalWrite(SPI_CS_PIN, HIGH);
+}
+
+void start_adax() {
+  uint8_t buffer[CMD_LEN + PEC_LEN] = {};
+
+  // broadcast command
+  buffer[0] = (uint16_t)CommandCode::ADAX >> 8;
+  buffer[1] = (uint8_t)CommandCode::ADAX; 
   // command pec
   uint16_t cmd_pec = pec15_calc(CMD_LEN, buffer);
   buffer[2] = cmd_pec >> 8;
@@ -202,9 +223,9 @@ void read_temperatures() {
 void save_temperatures(uint8_t slave_idx, uint8_t reg, uint8_t *raw_temperatures) {
   for (int raw_gpio = 0; raw_gpio < GPIO_REG_LEN; raw_gpio += 2) {
     uint16_t temperature = (raw_temperatures[raw_gpio + 1] << 8) | (raw_temperatures[raw_gpio] & 0xFF);
-    uint16_t offset = (reg == (uint16_t)CommandCode::RDAUXA) ? 0 : TEMPS_PER_REG;
-    for (int cell_idx = offset; cell_idx < offset + 3; cell_idx++)
-      slaves[slave_idx].cells[cell_idx].temperature = parse_temperatures(temperature);
+    uint16_t offset = ((reg == (uint16_t)CommandCode::RDAUXA) ? 0 : TEMPS_PER_REG);
+    for (int cell_idx = offset + raw_gpio; cell_idx < offset + raw_gpio + 3; cell_idx++)
+      slaves[slave_idx].cells[cell_idx].temperature = temperature;
   }
 }
 
@@ -223,18 +244,22 @@ void print_slaves() {
         Serial.print(": ");
         Serial.print(slaves[slave_idx].cells[cell].voltage / 10000.0);
         Serial.print(" V, ");
-        Serial.print(slaves[slave_idx].cells[cell].temperature / 7.0);
+        uint16_t measured = slaves[slave_idx].cells[cell].temperature;
+        Serial.print("\t");
+        Serial.print(measured);
+        Serial.print(" V, ");
+        Serial.print(parse_temperatures(measured));
+        Serial.println(" C");
       }
     }
   }
 }
 
 uint16_t parse_temperatures(uint16_t temperature) {
-  return (
-    TEMP_FIT_COEFF[0] * pow(temperature, 4) +
-    TEMP_FIT_COEFF[1] * pow(temperature, 3) + 
-    TEMP_FIT_COEFF[2] * pow(temperature, 2) +
-    TEMP_FIT_COEFF[3] * temperature + 
-    TEMP_FIT_COEFF[4]
+  float _temperature = temperature / 10000.0;
+  return (uint16_t) ( 
+    TEMP_FIT_COEFF[0] * pow(_temperature, 2) +
+    TEMP_FIT_COEFF[1] * _temperature + 
+    TEMP_FIT_COEFF[2]
   );
 }

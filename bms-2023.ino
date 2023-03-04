@@ -34,9 +34,12 @@ void loop() {
 
   wakeup_sleep();
   start_adcv();
+  delay(MEASUREMENT_LOOP_DELAY);
   read_voltages();
+  start_adax();
+  delay(MEASUREMENT_LOOP_DELAY);
+  read_temperatures();
+  delay(MEASUREMENT_LOOP_DELAY);
 
   print_slaves();
-
-  delay(MEASUREMENT_LOOP_DELAY);
 }
