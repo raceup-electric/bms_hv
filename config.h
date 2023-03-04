@@ -25,7 +25,7 @@ constexpr uint8_t SLAVE_NUM = 1;
  * @see SLAVE_NUM
  */
 constexpr uint8_t SLAVES_ADDRESS[SLAVE_NUM] = {
-  0b0000
+  0b1000
 };
 
 /**
@@ -109,6 +109,6 @@ constexpr uint8_t GPIO_CHANNEL = 0;
  */
 constexpr uint8_t SPI_CS_PIN = 5;
 
-constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1100;
+constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
 
 #endif

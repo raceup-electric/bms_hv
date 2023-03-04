@@ -5,6 +5,7 @@
 
 uint8_t slaves_config[CFG_LEN] = {};
 Slave slaves[SLAVE_NUM];
+uint8_t pwm_config[PWM_LEN] = {};
 
 uint16_t pec15_calc(uint8_t len, uint8_t *data) {
 	uint16_t remainder, addr;
@@ -87,6 +88,7 @@ void init_slaves_struct() {
 }
 
 void init_slaves_cfg() {
+  memset(slaves_config, 0, sizeof(uint8_t) * CFG_LEN);
   uint16_t uv_val = (UV_THRESHOLD / 16) - 1;
   uint16_t ov_val = (OV_THRESHOLD / 16); // values required by datasheet
 
@@ -224,6 +226,38 @@ void save_temperatures(uint8_t slave_idx, uint8_t reg, uint8_t *raw_temperatures
     for (int cell_idx = offset + raw_gpio; cell_idx < offset + raw_gpio + 3; cell_idx++)
       slaves[slave_idx].cells[cell_idx].temperature = temperature;
   }
+}
+
+void balcfg(uint8_t dcto) {
+  memset(slaves_config, 0, sizeof(uint8_t) * CFG_LEN);
+  slaves_config[0] = 0x2;
+  slaves_config[CFG_LEN - 2] = 0x03;
+  slaves_config[CFG_LEN - 1] |= ((dcto & 0xF) << 4); 
+}
+
+void pwmcfg() {
+  memset(pwm_config, 0, sizeof(uint8_t) * PWM_LEN);
+  uint8_t pwm_byte = (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
+  for (int i = 0; i < PWM_LEN; i++) {
+    pwm_config[i] = pwm_byte;
+  }
+}
+
+void write_pwmcfg() {
+  uint8_t packet[CMD_LEN + PEC_LEN + PWM_LEN + PEC_LEN] = {};
+  prepare_cmd(packet, CommandCode::WRPWM, CommandType::BROADCAST);
+  for (int i = 0; i < PWM_LEN; i++) {
+    packet[CMD_LEN + PEC_LEN + i] = pwm_config[i];
+  }
+  uint16_t data_pec = pec15_calc(PWM_LEN, &(packet[CMD_LEN + PEC_LEN]));
+  packet[CMD_LEN + PEC_LEN + PWM_LEN] = data_pec >> 8;
+  packet[CMD_LEN + PEC_LEN + PWM_LEN + 1] = data_pec & 0xFF;
+  tx(&(packet[0]), CMD_LEN + PEC_LEN + PWM_LEN + PEC_LEN);
+}
+
+void start_balancing(uint8_t dcto) {
+  balcfg(dcto);
+  write_slaves_cfg();
 }
 
 void print_slaves() {

@@ -158,7 +158,8 @@ enum class CommandCode {
   /**
    * @brief Read auxiliary register B stored values
    */
-  RDAUXB = 14
+  RDAUXB = 14,
+  WRPWM = 32
 };
 
 enum class CommandType { BROADCAST, ADDRESSED };
@@ -169,6 +170,8 @@ enum class CommandType { BROADCAST, ADDRESSED };
  * PEC code length in bytes
  */
 constexpr uint8_t PEC_LEN = 2;
+
+constexpr uint8_t PWM_LEN = 6;
 
 /**
  * @brief Compute PEC
@@ -242,6 +245,12 @@ void init_slaves_struct();
  * @see README -> Codice > Configurazione
  */
 void init_slaves_cfg();
+
+void pwmcfg();
+
+void write_pwmcfg();
+
+void balcfg(uint8_t dcto);
 
 /**
  * @brief Write slaves configuration

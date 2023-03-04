@@ -25,9 +25,12 @@ void setup() {
   init_slaves_struct();
   init_slaves_cfg();
   write_slaves_cfg();
+  pwmcfg();
+  write_pwmcfg();
   Serial.println("BMS slaves initialized");
 
-  Serial.println("Starting...");
+  Serial.println("Starting balancing...");
+  //start_balancing(0x3);
 }
 
 void loop() {
