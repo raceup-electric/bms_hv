@@ -109,4 +109,6 @@ constexpr uint8_t GPIO_CHANNEL = 0;
  */
 constexpr uint8_t SPI_CS_PIN = 5;
 
+constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1100;
+
 #endif

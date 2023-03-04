@@ -310,6 +310,8 @@ void print_slaves();
  */
 uint16_t parse_temperatures(uint16_t temperature);
 
+void start_balancing(uint8_t dcto);
+
 /**
  * @brief Precomputed CRC15 Table
  * 
