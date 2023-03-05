@@ -87,22 +87,35 @@ void init_slaves_struct() {
   }
 }
 
-void init_slaves_cfg() {
+void init_slaves_cfg(char mode) {
   memset(slaves_config, 0, sizeof(uint8_t) * CFG_LEN);
   uint16_t uv_val = (UV_THRESHOLD / 16) - 1;
   uint16_t ov_val = (OV_THRESHOLD / 16); // values required by datasheet
 
-  // turn on GPIO pins pulldown, enable discharge timer and set ADC OPT flag (table 52 datasheet)
-  slaves_config[0] = 0xFA | ADC_OPT;
-  // LSB of undervolt value
-  slaves_config[1] = uv_val & 0xFF;
-  // four LSB of overvolt value and remaining MSB of undervolt
-  slaves_config[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
-  // eigth MSB of overvolt value
-  slaves_config[3] = ov_val >> 4;
-  // (temporary) disable cell discharging
-  slaves_config[4] = 0;
-  slaves_config[5] = 0;
+  switch (mode) {
+    case static_cast<char>(MODE::NORMAL):
+      // turn on GPIO pins pulldown, enable discharge timer and set ADC OPT flag (table 52 datasheet)
+      slaves_config[0] = 0xFA | ADC_OPT;
+      // LSB of undervolt value
+      slaves_config[1] = uv_val & 0xFF;
+      // four LSB of overvolt value and remaining MSB of undervolt
+      slaves_config[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
+      // eigth MSB of overvolt value
+      slaves_config[3] = ov_val >> 4;
+      // (temporary) disable cell discharging
+      slaves_config[4] = 0;
+      slaves_config[5] = 0;
+      break;
+
+    case static_cast<char>(MODE::BALANCING):
+      slaves_config[0] = 0x2;
+      slaves_config[CFG_LEN - 2] = 0x03;
+      slaves_config[CFG_LEN - 1] |= ((DCTO & 0xF) << 4); 
+      break;
+
+    default:
+      break;
+  };
 }
 
 void write_slaves_cfg() {
@@ -228,13 +241,6 @@ void save_temperatures(uint8_t slave_idx, uint8_t reg, uint8_t *raw_temperatures
   }
 }
 
-void balcfg(uint8_t dcto) {
-  memset(slaves_config, 0, sizeof(uint8_t) * CFG_LEN);
-  slaves_config[0] = 0x2;
-  slaves_config[CFG_LEN - 2] = 0x03;
-  slaves_config[CFG_LEN - 1] |= ((dcto & 0xF) << 4); 
-}
-
 void pwmcfg() {
   memset(pwm_config, 0, sizeof(uint8_t) * PWM_LEN);
   uint8_t pwm_byte = (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
@@ -253,11 +259,6 @@ void write_pwmcfg() {
   packet[CMD_LEN + PEC_LEN + PWM_LEN] = data_pec >> 8;
   packet[CMD_LEN + PEC_LEN + PWM_LEN + 1] = data_pec & 0xFF;
   tx(&(packet[0]), CMD_LEN + PEC_LEN + PWM_LEN + PEC_LEN);
-}
-
-void start_balancing(uint8_t dcto) {
-  balcfg(dcto);
-  write_slaves_cfg();
 }
 
 void print_slaves() {

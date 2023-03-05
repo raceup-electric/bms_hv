@@ -244,13 +244,11 @@ void init_slaves_struct();
  * Every ltc6811 needs a configuration to be written.
  * @see README -> Codice > Configurazione
  */
-void init_slaves_cfg();
+void init_slaves_cfg(char mode);
 
 void pwmcfg();
 
 void write_pwmcfg();
-
-void balcfg(uint8_t dcto);
 
 /**
  * @brief Write slaves configuration
@@ -319,7 +317,11 @@ void print_slaves();
  */
 uint16_t parse_temperatures(uint16_t temperature);
 
-void start_balancing(uint8_t dcto);
+enum class MODE {
+  NORMAL = 'N',       //normal
+  BALANCING = 'B',    //balancing
+  SLEEP = 'S'         //sleep
+};
 
 /**
  * @brief Precomputed CRC15 Table

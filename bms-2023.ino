@@ -3,6 +3,9 @@
 #include "config.h"
 #include "bms.h"
 
+char MODE = 'O';
+bool MODE_CHANGED = true;
+
 void setup() {
   // The CS pin idles high
   pinMode(SPI_CS_PIN, OUTPUT);
@@ -11,38 +14,58 @@ void setup() {
   delay(500);
 
   Serial.begin(115200);
-  Serial.println("Initializing...");
+  //Serial.println("Initializing...");
 
   SPI.begin();
   SPI.setDataMode(SPI_MODE3);
   SPI.setBitOrder(MSBFIRST);
   SPI.setClockDivider(84); // 1 MHz
-  Serial.println("SPI port initialized");
+  //Serial.println("SPI port initialized");
 
   wakeup_sleep();
-  Serial.println("Wakeup completed");
+  //Serial.println("Wakeup completed");
 
   init_slaves_struct();
-  init_slaves_cfg();
-  write_slaves_cfg();
+  init_slaves_cfg(MODE);
   pwmcfg();
   write_pwmcfg();
-  Serial.println("BMS slaves initialized");
-
-  Serial.println("Starting balancing...");
-  //start_balancing(0x3);
 }
 
 void loop() {
+  if(MODE_CHANGED){
+    init_slaves_cfg(MODE);
+    write_slaves_cfg();
+    MODE_CHANGED = false;
+  }
 
-  wakeup_sleep();
-  start_adcv();
-  delay(MEASUREMENT_LOOP_DELAY);
-  read_voltages();
-  start_adax();
-  delay(MEASUREMENT_LOOP_DELAY);
-  read_temperatures();
-  delay(MEASUREMENT_LOOP_DELAY);
+  switch(MODE) {
+    case 'N':
+      wakeup_sleep();
+      start_adcv();
+      delay(MEASUREMENT_LOOP_DELAY);
+      read_voltages();
+      start_adax();
+      delay(MEASUREMENT_LOOP_DELAY);
+      read_temperatures();
+      delay(MEASUREMENT_LOOP_DELAY);
 
-  print_slaves();
+      Serial.write((const char*) slaves, sizeof(slaves));
+      break;
+
+    case 'B':
+      break;
+    
+    default:
+      break;
+  }
+
+  if(Serial.available() > 0) {
+    char newMODE = (char) Serial.read();
+    MODE_CHANGED = (newMODE != MODE) ? true : false;
+    MODE = newMODE;
+
+    Serial.write(MODE + "_ACK");
+    delay(200);
+    Serial.flush();
+  }
 }

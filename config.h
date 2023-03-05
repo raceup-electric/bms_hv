@@ -93,7 +93,7 @@ constexpr uint16_t OV_THRESHOLD = 42000;
  * 
  * Time delay in milliseconds between measurement
  */
-constexpr uint16_t MEASUREMENT_LOOP_DELAY = 20 * SLAVE_NUM;
+constexpr uint16_t MEASUREMENT_LOOP_DELAY = 60;
 
 /**
  * @brief GPIO selection for ADC conversion
@@ -108,6 +108,8 @@ constexpr uint8_t GPIO_CHANNEL = 0;
  * Specify SPI chip select pin in arduino board
  */
 constexpr uint8_t SPI_CS_PIN = 5;
+
+constexpr uint8_t DCTO = 0x3;
 
 constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
 
