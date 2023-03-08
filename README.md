@@ -90,7 +90,10 @@ La notazione è in big endian ⚠️
 
 `RDSTATA` invia la richiesta di trasmissione del contenuto dei registri di status del gruppo A.  
 
-`ADAX` salva il valore dei GPIO (temperature) nei registri _Auxiliary Register Group A_ (GPIO 1-3) e _B_ (GPIO 4, 5)
+`ADAX` salva il valore dei GPIO (temperature) nei registri _Auxiliary Register Group A_ (GPIO 1-3) e _B_ (GPIO 4, 5)  
+Il valore che viene misurato è la tensione su un [termistore](schematics/P9-JT-Thermistor-1621687.pdf). La curva di conversione è modellata partendo dai dati della tabella "Resistance/temperature" presente nel datasheet attraverso un fit polinomiale di grado 2.  
+Gli errori introdotti sono visibili nel grafico:  
+<img src="schematics/tempFitting.png">
 
 ### Timer
 <img src="schematics/timers.png">

@@ -93,7 +93,7 @@ void init_slaves_cfg(char mode) {
   uint16_t ov_val = (OV_THRESHOLD / 16); // values required by datasheet
 
   switch (mode) {
-    case static_cast<char>(MODE::NORMAL):
+    case static_cast<char>(MODES::NORMAL):
       // turn on GPIO pins pulldown, enable discharge timer and set ADC OPT flag (table 52 datasheet)
       slaves_config[0] = 0xFA | ADC_OPT;
       // LSB of undervolt value
@@ -107,7 +107,7 @@ void init_slaves_cfg(char mode) {
       slaves_config[5] = 0;
       break;
 
-    case static_cast<char>(MODE::BALANCING):
+    case static_cast<char>(MODES::BALANCING):
       slaves_config[0] = 0x2;
       slaves_config[CFG_LEN - 2] = 0x03;
       slaves_config[CFG_LEN - 1] |= ((DCTO & 0xF) << 4); 

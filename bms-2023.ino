@@ -3,7 +3,7 @@
 #include "config.h"
 #include "bms.h"
 
-char MODE = 'O';
+char MODE = static_cast<char>(MODES::SLEEP);
 bool MODE_CHANGED = true;
 
 void setup() {
@@ -26,20 +26,19 @@ void setup() {
   //Serial.println("Wakeup completed");
 
   init_slaves_struct();
-  init_slaves_cfg(MODE);
-  pwmcfg();
-  write_pwmcfg();
 }
 
 void loop() {
   if(MODE_CHANGED){
     init_slaves_cfg(MODE);
     write_slaves_cfg();
+    pwmcfg();
+    write_pwmcfg();
     MODE_CHANGED = false;
   }
 
   switch(MODE) {
-    case 'N':
+    case static_cast<char>(MODES::NORMAL):
       wakeup_sleep();
       start_adcv();
       delay(MEASUREMENT_LOOP_DELAY);
@@ -52,7 +51,7 @@ void loop() {
       Serial.write((const char*) slaves, sizeof(slaves));
       break;
 
-    case 'B':
+    case static_cast<char>(MODES::BALANCING):
       break;
     
     default:
@@ -62,7 +61,7 @@ void loop() {
   if(Serial.available() > 0) {
     char newMODE = (char) Serial.read();
     MODE_CHANGED = (newMODE != MODE) ? true : false;
-    MODE = newMODE;
+    MODE = static_cast<char>((MODES) newMODE);
 
     Serial.write(MODE + "_ACK");
     delay(200);

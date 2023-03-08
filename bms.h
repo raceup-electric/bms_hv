@@ -317,7 +317,7 @@ void print_slaves();
  */
 uint16_t parse_temperatures(uint16_t temperature);
 
-enum class MODE {
+enum class MODES {
   NORMAL = 'N',       //normal
   BALANCING = 'B',    //balancing
   SLEEP = 'S'         //sleep
