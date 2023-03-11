@@ -29,6 +29,16 @@ void setup() {
 }
 
 void loop() {
+  if(Serial.available() > 0) {
+    char newMODE = (char) Serial.read();
+    MODE_CHANGED = (newMODE != MODE) ? true : false;
+    MODE = static_cast<char>((MODES) newMODE);
+
+    Serial.write(newMODE);
+    delay(200);
+    Serial.flush();
+  }
+
   if(MODE_CHANGED){
     init_slaves_cfg(MODE);
     write_slaves_cfg();
@@ -56,15 +66,5 @@ void loop() {
     
     default:
       break;
-  }
-
-  if(Serial.available() > 0) {
-    char newMODE = (char) Serial.read();
-    MODE_CHANGED = (newMODE != MODE) ? true : false;
-    MODE = static_cast<char>((MODES) newMODE);
-
-    Serial.write(MODE + "_ACK");
-    delay(200);
-    Serial.flush();
   }
 }
