@@ -12,4 +12,4 @@ void txrx(uint8_t* tx_data, int tx_bytes, uint8_t* rx_data, int rx_bytes);
 void wakeup_idle();
 void wakeup_sleep();
 
-#endif SPI_H_
+#endif //SPI_H_

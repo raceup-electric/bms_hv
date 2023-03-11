@@ -1,5 +1,4 @@
 #include "spi.h"
-#include "config.h"
 #include "operations.h"
 
 // globals
@@ -20,6 +19,6 @@ void loop() {
     read_volts();
     start_adax();
     read_temps();
-    Serial.write((const char*) slaves, sizeof(slaves));
   }
+  print_slaves_hr();
 }

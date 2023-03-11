@@ -5,46 +5,39 @@
 void wrcfg(uint8_t *cfg_data) {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN;
   uint8_t packet[packet_len] = {};
-
   init_cmd(packet, CommandCode::WRCFGA, CommandMode::BROADCAST);
   init_data(packet, cfg_data, CFG_LEN);
-
+  wakeup_idle();
   tx(packet, packet_len);
-  
 }
 
 void wrpwm(uint8_t *pwm_data) {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN + PWM_LEN + PEC_LEN;
   uint8_t packet[packet_len] = {};
-
   init_cmd(packet, CommandCode::WRPWM, CommandMode::BROADCAST);
   init_data(packet, pwm_data, CFG_LEN);
-
+  wakeup_idle();
   tx(packet, packet_len);
-  
 }
 
 void adcv() {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN; 
   uint8_t packet[packet_len] = {};
-
   init_cmd(packet, CommandCode::ADCV, CommandMode::BROADCAST);
-
+  wakeup_idle();
   tx(packet, packet_len);
 }
 
 void adax() {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN; 
   uint8_t packet[packet_len] = {};
-
   init_cmd(packet, CommandCode::ADAX, CommandMode::BROADCAST);
-
+  wakeup_idle();
   tx(packet, packet_len);
 }
 
 void rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
   uint8_t packet[CMD_LEN + PEC_LEN] = {};
-
   CommandCode cc = {};
   switch (reg) {
   case 'A': cc = CommandCode::RDCVA;
@@ -56,15 +49,13 @@ void rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
   case 'D': cc = CommandCode::RDCVD;
     break;
   }
-
   init_cmd(packet, cc, CommandMode::ADDRESSED, addr);
-
+  wakeup_idle();
   txrx(packet, CMD_LEN + PEC_LEN, volt_buf, VREG_LEN + PEC_LEN);
 }
 
 void rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
   uint8_t packet[CMD_LEN + PEC_LEN] = {};
-
   CommandCode cc = {};
   switch (reg) {
   case 'A': cc = CommandCode::RDAUXA;
@@ -72,9 +63,8 @@ void rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
   case 'B': cc = CommandCode::RDAUXB;
     break;
   }
-
   init_cmd(packet, cc, CommandMode::ADDRESSED, addr);
-
+  wakeup_idle();
   txrx(packet, CMD_LEN + PEC_LEN, gpio_buf, VREG_LEN + PEC_LEN);
 }
 

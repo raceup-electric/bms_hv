@@ -24,7 +24,7 @@ struct Slave {
 extern Slave slaves[SLAVE_NUM];
 extern Mode mode;
 
-void init();
+void init_bms();
 
 void init_pwm();
 
@@ -45,5 +45,9 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps);
 void update_mode();
 
 Mode read_mode();
+
+void print_slaves_hr();
+
+void print_slaves_bin();
 
 #endif

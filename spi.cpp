@@ -7,7 +7,6 @@ constexpr uint8_t SPI_CS_PIN = 5;
 void init_spi() {
   pinMode(SPI_CS_PIN, OUTPUT);
   digitalWrite(SPI_CS_PIN, HIGH);
-  delay(500);
   SPI.begin();
   SPI.setDataMode(SPI_MODE3);
   SPI.setBitOrder(MSBFIRST);

@@ -2,8 +2,9 @@
 #include "commands.h"
 #include "utils.h"
 #include "spi.h"
+#include "config.h"
 
-void init() {
+void init_bms() {
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
     slaves[i] = {
       .addr = i,
@@ -145,4 +146,21 @@ Mode read_mode() {
       case 'S': return Mode::SLEEP;
     }
   }
+}
+
+void print_slaves_hr() {
+  for (int i = 0; i < SLAVE_NUM; i++) {
+    Serial.print("Slave "); Serial.println(slaves[i].addr);
+    Serial.print("enabled: "); Serial.println(slaves[i].enabled);
+    Serial.print("err: "); Serial.println(slaves[i].err);
+    for (int j = 0; j < CELL_NUM; j++) {
+      Serial.print("\tCell "); Serial.print(j); Serial.print("\t");
+        Serial.print(slaves[i].cells[j].volt / 10000.0); Serial.print(" V\t");
+        Serial.print(slaves[i].cells[j].temp); Serial.print(" C ");
+    }
+  }
+}
+
+void print_slaves_bin() {
+  Serial.write((uint8_t*)(&slaves[0]), sizeof(Slave) * SLAVE_NUM);
 }
