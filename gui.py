@@ -9,7 +9,7 @@ from time import gmtime
 
 N_VS = 9
 N_TS = 3
-N_SLAVES = 18
+N_SLAVES = 2
 UPDATE_FREQ = 200
 
 MAX_TEMP = 60
@@ -147,6 +147,7 @@ class App(ctk.CTk):
         connected = [port.device for port in serial.tools.list_ports.comports()]
         if len(connected) == 0:
             connected = ["No Device Found"]
+            self.switch.deselect()
         self.option_COM.configure(values=connected)
         self.option_COM.set(connected[0])
 
@@ -159,21 +160,29 @@ class App(ctk.CTk):
             return
 
         if self.mode.get() == "Normal Mode":
-            mode = ("P", "Normal")
+            mode = "N"
         elif self.mode.get() == "Sleep Mode":
-            mode = ("S", "Sleep")
+            mode = "S"
         else:
-            mode = ("B", "Balance")
+            mode = "B"
 
         ser.flush()
+        ser.write(bytes(mode, 'utf-8'))
 
-        while not ser.in_waiting:
-            ser.write(bytes(mode[0], 'utf-8'))
+        mustend = time.time() + 2
+        while time.time() < mustend:
+            if ser.in_waiting:
+                break
+        else:
+            print("Errore niente in ritorno")
+            raise Exception
 
         ack = ser.readline().decode('ascii')
-        if ack != mode[1]:
-            print("Errore ack")  # todo: bisognerà fare qualcosa
+        if ack != mode:
+            print("Errore ack sbagliato")  # todo: bisognerà fare qualcosa
+            raise Exception
 
+        ser.flush()
         time.sleep(UPDATE_FREQ / 1000)
 
     def switch_event(self):
@@ -192,25 +201,25 @@ class App(ctk.CTk):
                     time.sleep(0.4)
                     self.set_mode()
 
-                except Exception:
+                except Exception as e:
+                    print("raised exception")
                     self.switch.deselect()
                     self.get_COM()
                     self.textbox.configure(text="Select a correct Serial Port")
 
+
     def update_gui_normal(self):
+
         try:
-            # resp = ser.read(size_struct*N_SLAVES)
-            # print(ser.in_waiting)
-            #
-            # resp = []
             ser.flush()
-            while not ser.in_waiting:
+
+            # while not ser.in_waiting:
+            #     pass
+
+            while ser.in_waiting < size_struct * N_SLAVES:
                 pass
 
-                # print(ser.in_waiting)
             resp = ser.read(size_struct * N_SLAVES)
-
-            # print(time.time())
 
 
         except Exception:
