@@ -11,16 +11,12 @@ enum class Mode {
   BALANCE
 };
 
-struct Cell {
-  uint16_t volt;
-  uint16_t temp;
-};
-
 struct Slave {
+  uint16_t volts[SLAVE_NUM];
+  uint16_t temps[3];
   uint8_t addr;
   bool err;
   bool enabled;
-  Cell cells[CELL_NUM];
 };
 
 extern Slave slaves[SLAVE_NUM];
