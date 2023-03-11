@@ -12,7 +12,7 @@ enum class Mode {
 };
 
 struct Slave {
-  uint16_t volts[SLAVE_NUM];
+  uint16_t volts[CELL_NUM];
   uint16_t temps[3];
   uint8_t addr;
   bool err;
