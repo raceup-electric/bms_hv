@@ -14,7 +14,7 @@ void setup() {
 
 void loop() { 
   update_mode();
-  if (Mode::NORMAL) {
+  if (mode == Mode::NORMAL) {
     start_adcv();
     read_volts();
     start_adax();

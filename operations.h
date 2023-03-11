@@ -1,9 +1,11 @@
 #ifndef OPERATIONS_H_
 #define OPERATIONS_H_
 
+#include <Arduino.h>
+
 #include "config.h"
 
-enum Mode {
+enum class Mode {
   NORMAL,
   SLEEP,
   BALANCE

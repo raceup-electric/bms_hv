@@ -36,8 +36,8 @@ void adax() {
   tx(packet, packet_len);
 }
 
-void rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
-  uint8_t packet[CMD_LEN + PEC_LEN] = {};
+int rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
+  uint8_t packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN] = {};
   CommandCode cc = {};
   switch (reg) {
   case 'A': cc = CommandCode::RDCVA;
@@ -51,10 +51,16 @@ void rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
   }
   init_cmd(packet, cc, CommandMode::ADDRESSED, addr);
   wakeup_idle();
-  txrx(packet, CMD_LEN + PEC_LEN, volt_buf, VREG_LEN + PEC_LEN);
+  txrx(packet, CMD_LEN + PEC_LEN, &(packet[CMD_LEN + PEC_LEN]), VREG_LEN + PEC_LEN);
+  uint16_t rec_pec = (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 2] << 8) | (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 1] & 0xFF);
+  if (rec_pec == pec15_calc(CMD_LEN, &(packet[CMD_LEN + PEC_LEN])))
+    for (int i = 0; i < VREG_LEN; i++)
+      volt_buf[i] = packet[CMD_LEN + PEC_LEN + i];
+    return 0;
+  return 1;
 }
 
-void rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
+int rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
   uint8_t packet[CMD_LEN + PEC_LEN] = {};
   CommandCode cc = {};
   switch (reg) {
@@ -66,6 +72,12 @@ void rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
   init_cmd(packet, cc, CommandMode::ADDRESSED, addr);
   wakeup_idle();
   txrx(packet, CMD_LEN + PEC_LEN, gpio_buf, VREG_LEN + PEC_LEN);
+  uint16_t rec_pec = (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 2] << 8) | (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 1] & 0xFF);
+  if (rec_pec == pec15_calc(CMD_LEN, &(packet[CMD_LEN + PEC_LEN])))
+    for (int i = 0; i < VREG_LEN; i++)
+      gpio_buf[i] = packet[CMD_LEN + PEC_LEN + i];
+    return 0;
+  return 1;
 }
 
 void init_cmd(uint8_t* packet, CommandCode cc, CommandMode cm, uint8_t addr) {

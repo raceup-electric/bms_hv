@@ -64,9 +64,14 @@ void read_volts() {
     if (!slaves[i].enabled) continue;
     // for each register
     for (char reg = 'A'; reg <= 'D'; reg++) {
-      uint8_t raw_volts[VREG_LEN];
-      rdcv(slaves[i].addr, reg, raw_volts);
-      save_volts(i, reg, raw_volts);
+      uint8_t raw_volts[VREG_LEN] = {};
+      if (rdcv(slaves[i].addr, reg, raw_volts) == 0) { 
+        save_volts(i, reg, raw_volts);
+        slaves[i].err = false;
+      }
+      else {
+        slaves[i].err = true;
+      }
     }
   }
 }
@@ -91,9 +96,14 @@ void read_temps() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
-      uint8_t raw_temps[GREG_LEN];
-      rdaux(slaves[i].addr, reg, raw_temps);
-      save_temps(i, reg, raw_temps);
+      uint8_t raw_temps[GREG_LEN] = {};
+      if (rdaux(slaves[i].addr, reg, raw_temps) == 0) {
+        save_temps(i, reg, raw_temps);
+        slaves[i].err = false;
+      }
+      else {
+        slaves[i].err = true;
+      }
     }
   }
 }
@@ -153,10 +163,12 @@ void print_slaves_hr() {
     Serial.print("Slave "); Serial.println(slaves[i].addr);
     Serial.print("enabled: "); Serial.println(slaves[i].enabled);
     Serial.print("err: "); Serial.println(slaves[i].err);
-    for (int j = 0; j < CELL_NUM; j++) {
-      Serial.print("\tCell "); Serial.print(j); Serial.print("\t");
-        Serial.print(slaves[i].cells[j].volt / 10000.0); Serial.print(" V\t");
-        Serial.print(slaves[i].cells[j].temp); Serial.print(" C ");
+    if (!slaves[i].err) {
+      for (int j = 0; j < CELL_NUM; j++) {
+        Serial.print("\tCell "); Serial.print(j); Serial.print("\t");
+          Serial.print(slaves[i].cells[j].volt / 10000.0); Serial.print(" V\t");
+          Serial.print(slaves[i].cells[j].temp); Serial.println(" C ");
+      }
     }
   }
 }

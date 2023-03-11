@@ -1,6 +1,8 @@
 #ifndef PEC_H_
 #define PEC_H_
 
+#include <Arduino.h>
+
 constexpr uint8_t PEC_LEN = 2;
 
 uint16_t pec15_calc(uint8_t len, uint8_t* data);

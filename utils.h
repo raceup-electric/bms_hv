@@ -1,6 +1,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <Arduino.h>
+
 constexpr float TEMP_FIT_COEFF[3] = {
   56.352829,        // x^2
   -161.4534,      // x^1

@@ -1,6 +1,8 @@
 #ifndef COMMANDS_H_
 #define COMMANDS_H_
 
+#include <Arduino.h>
+
 #include "config.h"
 
 constexpr uint8_t CMD_LEN = 2;
@@ -9,7 +11,7 @@ constexpr uint8_t PWM_LEN = 6;
 constexpr uint8_t VREG_LEN = 6;
 constexpr uint8_t GREG_LEN = 6;
 
-enum CommandCode {
+enum class CommandCode {
   ADCV = 0b01001100000 | (ADC_CONVERSION_MODE << 7) | (ADC_DCP << 4) | (CELL_CHANNEL), 
   WRCFGA = 0x01,
   RDCVA = 4,
@@ -22,7 +24,7 @@ enum CommandCode {
   WRPWM = 32
 };
 
-enum CommandMode {
+enum class CommandMode {
   BROADCAST,
   ADDRESSED
 };
@@ -35,9 +37,9 @@ void adcv();
 
 void adax();
 
-void rdcv(uint8_t addr, char reg, uint8_t* volt_buf);
+int rdcv(uint8_t addr, char reg, uint8_t* volt_buf);
 
-void rdaux(uint8_t addr, char reg, uint8_t* gpio_buf);
+int rdaux(uint8_t addr, char reg, uint8_t* gpio_buf);
 
 // helper functions
 void init_cmd(uint8_t* packet, CommandCode cc, CommandMode cm, uint8_t addr = 0);
