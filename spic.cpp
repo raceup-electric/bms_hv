@@ -1,4 +1,4 @@
-#include "spi.h"
+#include "spic.h"
 #include <SPI.h>
 
 constexpr uint8_t SPI_CS_PIN = 5;
