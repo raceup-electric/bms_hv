@@ -1,13 +1,3 @@
-/**
- * @file config.h
- * @author Tommaso Prandin, Luca Bombonati
- * @brief BMS configuration file
- * @version 0.1
- * @date 2023-02-25
- * 
- * @copyright Copyright RaceUP(c) 2023
- */
-
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
@@ -17,17 +7,6 @@
  * Number of slaves in BMS (max 16)
  */
 constexpr uint8_t SLAVE_NUM = 1;
-
-/**
- * @brief Slaves addresses
- * 
- * Array where slaves addresses will be stored. Must be same length as SLAVE_NUM
- * @see SLAVE_NUM
- */
-constexpr uint8_t SLAVES_ADDRESS[SLAVE_NUM] = {
-  0b1000
-};
-
 /**
  * @brief Cells per slave
  * 
@@ -93,7 +72,7 @@ constexpr uint16_t OV_THRESHOLD = 42000;
  * 
  * Time delay in milliseconds between measurement
  */
-constexpr uint16_t MEASUREMENT_LOOP_DELAY = 60;
+constexpr uint16_t MEAS_DELAY = 60;
 
 /**
  * @brief GPIO selection for ADC conversion
@@ -107,10 +86,10 @@ constexpr uint8_t GPIO_CHANNEL = 0;
  * 
  * Specify SPI chip select pin in arduino board
  */
-constexpr uint8_t SPI_CS_PIN = 5;
 
+// discharge timer
 constexpr uint8_t DCTO = 0x3;
-
+// discharge duty cicle 
 constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
 
 #endif

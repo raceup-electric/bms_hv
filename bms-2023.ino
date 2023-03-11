@@ -1,70 +1,25 @@
-#include <SPI.h>
-
+#include "spi.h"
 #include "config.h"
-#include "bms.h"
+#include "operations.h"
 
-char MODE = static_cast<char>(MODES::SLEEP);
-bool MODE_CHANGED = true;
+// globals
+Slave slaves[SLAVE_NUM];
+Mode mode;
 
 void setup() {
-  // The CS pin idles high
-  pinMode(SPI_CS_PIN, OUTPUT);
-  digitalWrite(SPI_CS_PIN, HIGH);
-
-  delay(500);
-
   Serial.begin(115200);
-  //Serial.println("Initializing...");
-
-  SPI.begin();
-  SPI.setDataMode(SPI_MODE3);
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(84); // 1 MHz
-  //Serial.println("SPI port initialized");
-
+  init_spi();
   wakeup_sleep();
-  //Serial.println("Wakeup completed");
-
-  init_slaves_struct();
+  init();
 }
 
-void loop() {
-  if(MODE_CHANGED){
-    init_slaves_cfg(MODE);
-    write_slaves_cfg();
-    pwmcfg();
-    write_pwmcfg();
-    MODE_CHANGED = false;
-  }
-
-  switch(MODE) {
-    case static_cast<char>(MODES::NORMAL):
-      wakeup_sleep();
-      start_adcv();
-      delay(MEASUREMENT_LOOP_DELAY);
-      read_voltages();
-      start_adax();
-      delay(MEASUREMENT_LOOP_DELAY);
-      read_temperatures();
-      delay(MEASUREMENT_LOOP_DELAY);
-
-      Serial.write((const char*) slaves, sizeof(slaves));
-      break;
-
-    case static_cast<char>(MODES::BALANCING):
-      break;
-    
-    default:
-      break;
-  }
-
-  if(Serial.available() > 0) {
-    char newMODE = (char) Serial.read();
-    MODE_CHANGED = (newMODE != MODE) ? true : false;
-    MODE = static_cast<char>((MODES) newMODE);
-
-    Serial.write(MODE + "_ACK");
-    delay(200);
-    Serial.flush();
+void loop() { 
+  update_mode();
+  if (Mode::NORMAL) {
+    start_adcv();
+    read_volts();
+    start_adax();
+    read_temps();
+    Serial.write((const char*) slaves, sizeof(slaves));
   }
 }
