@@ -6,7 +6,7 @@ void wrcfg(uint8_t *cfg_data) {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN;
   uint8_t packet[packet_len] = {};
   init_cmd(packet, CommandCode::WRCFGA, CommandMode::BROADCAST);
-  init_data(packet, cfg_data, CFG_LEN);
+  init_data(&(packet[CMD_LEN + PEC_LEN]), cfg_data, CFG_LEN);
   wakeup_idle();
   tx(packet, packet_len);
 }
@@ -15,7 +15,7 @@ void wrpwm(uint8_t *pwm_data) {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN + PWM_LEN + PEC_LEN;
   uint8_t packet[packet_len] = {};
   init_cmd(packet, CommandCode::WRPWM, CommandMode::BROADCAST);
-  init_data(packet, pwm_data, CFG_LEN);
+  init_data(&(packet[CMD_LEN + PEC_LEN]), pwm_data, CFG_LEN);
   wakeup_idle();
   tx(packet, packet_len);
 }
@@ -38,7 +38,7 @@ void adax() {
 
 int rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
   uint8_t packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN] = {};
-  CommandCode cc = {};
+  CommandCode cc = CommandCode::RDCVA;
   switch (reg) {
   case 'A': cc = CommandCode::RDCVA;
     break;
@@ -52,11 +52,12 @@ int rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
   init_cmd(packet, cc, CommandMode::ADDRESSED, addr);
   wakeup_idle();
   txrx(packet, CMD_LEN + PEC_LEN, &(packet[CMD_LEN + PEC_LEN]), VREG_LEN + PEC_LEN);
-  uint16_t rec_pec = (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 2] << 8) | (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 1] & 0xFF);
-  if (rec_pec == pec15_calc(CMD_LEN, &(packet[CMD_LEN + PEC_LEN])))
+  uint16_t rec_pec = (packet[CMD_LEN + PEC_LEN + VREG_LEN] << 8) | (packet[CMD_LEN + PEC_LEN + VREG_LEN + 1] & 0xFF);
+  if (rec_pec == pec15_calc(VREG_LEN, &(packet[CMD_LEN + PEC_LEN]))) {
     for (int i = 0; i < VREG_LEN; i++)
       volt_buf[i] = packet[CMD_LEN + PEC_LEN + i];
     return 0;
+  }
   return 1;
 }
 
@@ -71,12 +72,13 @@ int rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
   }
   init_cmd(packet, cc, CommandMode::ADDRESSED, addr);
   wakeup_idle();
-  txrx(packet, CMD_LEN + PEC_LEN, gpio_buf, VREG_LEN + PEC_LEN);
-  uint16_t rec_pec = (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 2] << 8) | (packet[CMD_LEN + PEC_LEN + VREG_LEN + PEC_LEN - 1] & 0xFF);
-  if (rec_pec == pec15_calc(CMD_LEN, &(packet[CMD_LEN + PEC_LEN])))
+  txrx(packet, CMD_LEN + PEC_LEN, gpio_buf, GREG_LEN + PEC_LEN);
+  uint16_t rec_pec = (packet[CMD_LEN + PEC_LEN + GREG_LEN] << 8) | (packet[CMD_LEN + PEC_LEN + GREG_LEN + 1] & 0xFF);
+  if (rec_pec == pec15_calc(GREG_LEN, &(packet[CMD_LEN + PEC_LEN]))) {
     for (int i = 0; i < VREG_LEN; i++)
       gpio_buf[i] = packet[CMD_LEN + PEC_LEN + i];
     return 0;
+  }
   return 1;
 }
 

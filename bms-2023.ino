@@ -2,7 +2,7 @@
 #include "operations.h"
 
 // globals
-Slave slaves[SLAVE_NUM];
+Slave slaves[SLAVE_NUM] = {};
 Mode mode = Mode::NORMAL;
 
 void setup() {
@@ -15,15 +15,11 @@ void setup() {
 }
 
 void loop() { 
-  update_mode();
+  //update_mode();
   if (mode == Mode::NORMAL) {
     start_adcv();
-    Serial.println("ADC started");
     read_volts();
-    Serial.println("Voltage read");
-    delay(MEAS_DELAY);
     // start_adax();
-    // delay(MEAS_DELAY);
     // read_temps();
   }
   print_slaves_hr();

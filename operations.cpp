@@ -6,15 +6,13 @@
 
 void init_bms() {
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
-    slaves[i] = {
-      .addr = i,
-      .err = false,
-      .enabled = true,
-      .cells = {}
-    };
-  };
+    slaves[i].addr = 0b1000;
+    slaves[i].enabled = true;
+    slaves[i].err = false;
+  }
   init_cfg(Mode::NORMAL);
-}
+  init_pwm();
+};
 
 void init_cfg(Mode mode) {
   uint8_t cfg_data[CFG_LEN] = {};
@@ -46,7 +44,6 @@ void init_cfg(Mode mode) {
 
 void init_pwm() {
   uint8_t pwm_data[PWM_LEN];
-  (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
   for (int i = 0; i < PWM_LEN; i++) {
     pwm_data[i] = (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
   }
@@ -63,9 +60,10 @@ void read_volts() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     if (!slaves[i].enabled) continue;
     // for each register
-    for (char reg = 'A'; reg <= 'D'; reg++) {
+    for (char reg = 'A'; reg <= 'C'; reg++) {
       uint8_t raw_volts[VREG_LEN] = {};
       if (rdcv(slaves[i].addr, reg, raw_volts) == 0) { 
+        delay(MEAS_DELAY);
         save_volts(i, reg, raw_volts);
         slaves[i].err = false;
       }
@@ -82,7 +80,7 @@ void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   for (int i = 0; i < VREG_LEN; i += 2) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
-    slaves[slave_idx].cells[offset + (i / 2)].volt = voltage;
+    slaves[slave_idx].volts[offset + (i / 2)] = voltage;
   }
 }
 
@@ -94,10 +92,13 @@ void start_adax() {
 void read_temps() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
+    if (!slaves[i].enabled) continue;
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
       uint8_t raw_temps[GREG_LEN] = {};
       if (rdaux(slaves[i].addr, reg, raw_temps) == 0) {
+        Serial.println("VOLT OK");
+        delay(MEAS_DELAY);
         save_temps(i, reg, raw_temps);
         slaves[i].err = false;
       }
@@ -117,10 +118,7 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
     for (int i = 0; i < GREG_LEN - 2 ; i += 2) {
       uint16_t volt = (raw_temps[i + 1] << 8) | (raw_temps[i] & 0xFF);
       uint16_t temp = parse_temp(volt);
-      // three cell per measurement
-      for (int j = 0; j < CELLS_PER_MEAS; j++) {
-        slaves[slave_idx].cells[((i / 2) * CELLS_PER_MEAS) + j].temp = temp;
-      }
+      slaves[slave_idx].temps[i / 2] = temp; 
     }
   }
   if (reg == 'B') {
@@ -128,9 +126,7 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
     uint16_t volt = (raw_temps[1] << 8) | (raw_temps[0] & 0xFF);
     uint16_t temp = parse_temp(volt);
     // three cell per measurement
-    for (int j = 0; j < CELLS_PER_MEAS; j++) {
-      slaves[slave_idx].cells[(CELLS_PER_MEAS * 2) + j].temp = temp;
-    }
+    slaves[slave_idx].temps[3] = temp;
   }
 }
 
@@ -165,9 +161,18 @@ void print_slaves_hr() {
     Serial.print("err: "); Serial.println(slaves[i].err);
     if (!slaves[i].err) {
       for (int j = 0; j < CELL_NUM; j++) {
-        Serial.print("\tCell "); Serial.print(j); Serial.print("\t");
-          Serial.print(slaves[i].cells[j].volt / 10000.0); Serial.print(" V\t");
-          Serial.print(slaves[i].cells[j].temp); Serial.println(" C ");
+        Serial.print("\tCell ");
+        Serial.print(j);
+        Serial.print("\t");
+        Serial.print(slaves[i].volts[j] / 10000.0);
+        Serial.println(" V\t");
+      }
+      for (int k = 0; k < TEMP_NUM; k++) {
+        Serial.print("\tTemp ");
+        Serial.print(k);
+        Serial.print("\t");
+        Serial.print(slaves[i].temps[k]);
+        Serial.println(" C ");
       }
     }
   }
