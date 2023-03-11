@@ -1,7 +1,6 @@
 import struct
 import tkinter
 import customtkinter as ctk
-# import serial
 import serial.tools.list_ports
 import time
 from struct import *
@@ -9,7 +8,8 @@ from time import gmtime
 
 N_VS = 9
 N_TS = 3
-N_SLAVES = 2
+N_SLAVES = 1
+
 UPDATE_FREQ = 200
 
 MAX_TEMP = 60
@@ -18,8 +18,9 @@ MAX_VOLT = 4.2
 MIN_VOLT = 3.3
 
 # H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte)
-STR_FORMAT = "H" * (N_VS + N_TS) + "?c"
+STR_FORMAT = "H" * (N_VS + N_TS) + "c?"
 size_struct = struct.calcsize(STR_FORMAT)
+print(size_struct)
 
 ser = serial.Serial(timeout=0.1)
 
@@ -35,6 +36,9 @@ class App(ctk.CTk):
         tabview.grid(row=0, column=0, padx=(20, 0))
         tabview.add("CONFIGURATION")
         tabview.tab("CONFIGURATION").grid_columnconfigure(0, weight=1)
+
+        self.switch = ctk.CTkSwitch(tabview.tab("CONFIGURATION"), text=f"OFF/ON", command=self.switch_event, switch_width=60, switch_height=30)
+        self.switch.grid(row=3, column=0, padx=20, pady=(30, 10))
 
         self.option_COM = ctk.CTkOptionMenu(tabview.tab("CONFIGURATION"))
         self.get_COM()
@@ -62,8 +66,6 @@ class App(ctk.CTk):
         balancing = ctk.CTkRadioButton(master=mode_frame, variable=self.mode, value="Balancing Mode", text="Balancing Mode", command=self.set_mode)
         balancing.grid(row=3, column=0, pady=(5, 10))
 
-        self.switch = ctk.CTkSwitch(tabview.tab("CONFIGURATION"), text=f"OFF/ON", command=self.switch_event, switch_width=60, switch_height=30)
-        self.switch.grid(row=3, column=0, padx=20, pady=(30, 10))
 
         refresh = ctk.CTkButton(tabview.tab("CONFIGURATION"), fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Refresh Serial",
                                 command=self.get_COM)
@@ -84,7 +86,7 @@ class App(ctk.CTk):
     def information_frame(self):
 
         box1 = ctk.CTkFrame(master=self)
-        box1.grid(row=0, column=1, padx=(10, 10), pady=20, sticky="nsew", rowspan=2, ipadx=3)
+        box1.grid(row=0, column=1, padx=(10, 10), pady=(20,20), sticky="nsew", rowspan=2, ipadx=3)
 
         for i in range(N_VS):
             label = ctk.CTkLabel(box1, text="Cell " + str(i + 1), fg_color=("gray70", "gray25"), corner_radius=4, width=50)
@@ -97,7 +99,7 @@ class App(ctk.CTk):
         for i in range(1, N_SLAVES + 1):
 
             label = ctk.CTkLabel(box1, text="Slv " + str(i), fg_color=("gray70", "gray25"), corner_radius=4, width=49)
-            label.grid(column=i, row=0, sticky="nsew", padx=(5, 5), pady=(5, 5))
+            label.grid(column=i, row=0, sticky="nsew", padx=(5, 5), pady=(20, 5))
 
             s = list()
             for j in range(1, N_VS + N_TS + 1):
@@ -166,20 +168,21 @@ class App(ctk.CTk):
         else:
             mode = "B"
 
-        ser.flush()
         ser.write(bytes(mode, 'utf-8'))
+        ser.flush()         # todo pulire buffer invio host
 
         mustend = time.time() + 2
         while time.time() < mustend:
             if ser.in_waiting:
                 break
         else:
-            print("Errore niente in ritorno")
+            self.textbox.configure(text="No ACK received")
             raise Exception
 
-        ack = ser.readline().decode('ascii')
+        ack = ser.readline().decode("ascii")
+
         if ack != mode:
-            print("Errore ack sbagliato")  # todo: bisognerà fare qualcosa
+            self.textbox.configure(text="Received wrong ACK")
             raise Exception
 
         ser.flush()
@@ -202,7 +205,7 @@ class App(ctk.CTk):
                     self.set_mode()
 
                 except Exception as e:
-                    print("raised exception")
+                    print(e)
                     self.switch.deselect()
                     self.get_COM()
                     self.textbox.configure(text="Select a correct Serial Port")
@@ -213,17 +216,19 @@ class App(ctk.CTk):
         try:
             ser.flush()
 
-            # while not ser.in_waiting:
-            #     pass
-
             while ser.in_waiting < size_struct * N_SLAVES:
                 pass
 
             resp = ser.read(size_struct * N_SLAVES)
 
-
         except Exception:
-            print("Errore Pacchetto")
+            self.get_COM()
+            # if switch is still on:
+            if self.switch.get() == 1:
+                self.textbox.configure(text="Error Unpacking")
+            else:
+                ser.close()
+
             return 0
 
         # min_volt, max_volt, avg_volt, tot_volt,  min_temp, max_temp, tot_temp
@@ -235,19 +240,25 @@ class App(ctk.CTk):
             cell_value = unpack(STR_FORMAT, resp[i * size_struct: (i + 1) * size_struct])
 
             for j in range(N_VS):
-                value = round(cell_value[j] / 10000, 2)
-                self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_VOLT, MAX_VOLT))
-                # add_infos[0] = min(add_infos[0], value)
-                # add_infos[1] = max(add_infos[1], value)
-                # add_infos[2] += value
-                # add_infos[3] += value
+                if cell_value[N_VS+N_TS+1]:
+                    self.total_pack_labels[i][j].configure(text="💀", fg_color="gray")
+                else:
+                    value = round(cell_value[j] / 10000, 2)
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_VOLT, MAX_VOLT))
+                    # add_infos[0] = min(add_infos[0], value)
+                    # add_infos[1] = max(add_infos[1], value)
+                    # add_infos[2] += value
+                    # add_infos[3] += value
 
             for j in range(N_VS, N_VS + N_TS):
-                value = round(cell_value[j] / 1000, 2)
-                self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_TEMP, MAX_TEMP))
-                # add_infos[4] = min(add_infos[4], value)
-                # add_infos[5] = max(add_infos[5], value)
-                # add_infos[6] += value
+                if cell_value[N_VS + N_TS + 1]:
+                    self.total_pack_labels[i][j].configure(text="💀", fg_color="gray")
+                else:
+                    value = round(cell_value[j], 2)
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_TEMP, MAX_TEMP))
+                    # add_infos[4] = min(add_infos[4], value)
+                    # add_infos[5] = max(add_infos[5], value)
+                    # add_infos[6] += value
         #
         # add_infos[2] /= (N_SLAVES*N_VS)
         # add_infos[6] /= (N_SLAVES*N_TS)
