@@ -7,7 +7,6 @@
 void init_bms() {
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
     slaves[i].addr = 0b1000;
-    slaves[i].enabled = true;
     slaves[i].err = false;
   }
   init_cfg(Mode::NORMAL);
@@ -58,7 +57,6 @@ void start_adcv() {
 void read_volts() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
-    if (!slaves[i].enabled) continue;
     // for each register
     for (char reg = 'A'; reg <= 'C'; reg++) {
       uint8_t raw_volts[VREG_LEN] = {};
@@ -92,12 +90,10 @@ void start_adax() {
 void read_temps() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
-    if (!slaves[i].enabled) continue;
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
       uint8_t raw_temps[GREG_LEN] = {};
       if (rdaux(slaves[i].addr, reg, raw_temps) == 0) {
-        Serial.println("VOLT OK");
         delay(MEAS_DELAY);
         save_temps(i, reg, raw_temps);
         slaves[i].err = false;
@@ -126,7 +122,7 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
     uint16_t volt = (raw_temps[1] << 8) | (raw_temps[0] & 0xFF);
     uint16_t temp = parse_temp(volt);
     // three cell per measurement
-    slaves[slave_idx].temps[3] = temp;
+    slaves[slave_idx].temps[2] = temp;
   }
 }
 
@@ -143,7 +139,7 @@ void update_mode() {
 Mode read_mode() {
   if(Serial.available() > 0) {
     char input = (char) Serial.read();
-    Serial.write(input + "_ACK");
+    Serial.write(input);
     delay(100);
     Serial.flush();
     switch(input) {
@@ -152,12 +148,12 @@ Mode read_mode() {
       case 'S': return Mode::SLEEP;
     }
   }
+  return mode;
 }
 
 void print_slaves_hr() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     Serial.print("Slave "); Serial.println(slaves[i].addr);
-    Serial.print("enabled: "); Serial.println(slaves[i].enabled);
     Serial.print("err: "); Serial.println(slaves[i].err);
     if (!slaves[i].err) {
       for (int j = 0; j < CELL_NUM; j++) {
@@ -179,5 +175,5 @@ void print_slaves_hr() {
 }
 
 void print_slaves_bin() {
-  Serial.write((uint8_t*)(&slaves[0]), sizeof(Slave) * SLAVE_NUM);
+  Serial.write((const char *)slaves, sizeof(slaves));
 }

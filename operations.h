@@ -16,7 +16,6 @@ struct Slave {
   uint16_t temps[3];
   uint8_t addr;
   bool err;
-  bool enabled;
 };
 
 extern Slave slaves[SLAVE_NUM];

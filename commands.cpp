@@ -62,8 +62,8 @@ int rdcv(uint8_t addr, char reg, uint8_t *volt_buf) {
 }
 
 int rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
-  uint8_t packet[CMD_LEN + PEC_LEN] = {};
-  CommandCode cc = {};
+  uint8_t packet[CMD_LEN + PEC_LEN + GREG_LEN + PEC_LEN] = {};
+  CommandCode cc = CommandCode::RDAUXA;
   switch (reg) {
   case 'A': cc = CommandCode::RDAUXA;
     break;
@@ -72,10 +72,10 @@ int rdaux(uint8_t addr, char reg, uint8_t *gpio_buf) {
   }
   init_cmd(packet, cc, CommandMode::ADDRESSED, addr);
   wakeup_idle();
-  txrx(packet, CMD_LEN + PEC_LEN, gpio_buf, GREG_LEN + PEC_LEN);
+  txrx(packet, CMD_LEN + PEC_LEN, &(packet[CMD_LEN + PEC_LEN]), GREG_LEN + PEC_LEN);
   uint16_t rec_pec = (packet[CMD_LEN + PEC_LEN + GREG_LEN] << 8) | (packet[CMD_LEN + PEC_LEN + GREG_LEN + 1] & 0xFF);
   if (rec_pec == pec15_calc(GREG_LEN, &(packet[CMD_LEN + PEC_LEN]))) {
-    for (int i = 0; i < VREG_LEN; i++)
+    for (int i = 0; i < GREG_LEN; i++)
       gpio_buf[i] = packet[CMD_LEN + PEC_LEN + i];
     return 0;
   }
