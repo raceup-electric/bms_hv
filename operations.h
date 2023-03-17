@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "config.h"
+#include "canc.h"
 
 enum class Mode {
   NORMAL,
@@ -46,5 +47,7 @@ Mode read_mode();
 void print_slaves_hr();
 
 void print_slaves_bin();
+
+void send_slaves_can();
 
 #endif

@@ -175,5 +175,37 @@ void print_slaves_hr() {
 }
 
 void print_slaves_bin() {
-  Serial.write((const char *)slaves, sizeof(slaves));
+  Serial.write((const char *) slaves, sizeof(slaves));
+}
+
+void send_slaves_can() {
+  uint16_t minVolt, minTemp = 0xFFFF;
+  uint16_t maxVolt, maxTemp = 0x0;
+  uint8_t maxTempSlave = 0x0;
+
+  uint32_t meanVolt, meanTemp = 0x0;
+
+  for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
+    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex++) {
+      uint16_t cellVolt = slaves[slaveIndex].volts[cellIndex];
+      uint16_t cellTemp = slaves[slaveIndex].temps[(int) cellIndex/3];
+
+      if(cellVolt < minVolt) minVolt = cellVolt;
+      if(cellVolt > maxVolt) maxVolt = cellVolt;
+
+      if(cellTemp < minTemp) minTemp = cellTemp;
+      if(cellTemp > maxTemp) {
+        maxTemp = cellTemp;
+        maxTempSlave = SLAVE_NUM;
+      }
+
+      meanVolt += cellVolt;
+      meanTemp += cellTemp;
+    }
+  }
+
+  meanVolt /= SLAVE_NUM * CELL_NUM;
+  meanTemp /= SLAVE_NUM * CELL_NUM;
+
+  send_data_to_ECU(maxVolt, meanVolt, minVolt, maxTemp, meanTemp, minTemp, maxTempSlave);
 }

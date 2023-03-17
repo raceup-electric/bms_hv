@@ -1,5 +1,6 @@
 #include "spic.h"
 #include "operations.h"
+#include "canc.h"
 
 // globals
 Slave slaves[SLAVE_NUM] = {};
@@ -10,6 +11,8 @@ void setup() {
   init_spi();
   wakeup_sleep();
   init_bms();
+
+  init_can();
 }
 
 void loop() { 
@@ -20,5 +23,6 @@ void loop() {
     start_adax();
     read_temps();
     print_slaves_bin();
+    send_slaves_can();
   }
 }
