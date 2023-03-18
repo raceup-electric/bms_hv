@@ -4,6 +4,6 @@
 #include "config.h"
 
 void init_fan();
-void set_fan_dutycycle(uint16_t temp);
+void set_fan_dutycycle();
 
 #endif
