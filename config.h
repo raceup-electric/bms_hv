@@ -16,5 +16,8 @@ constexpr uint16_t MEAS_DELAY = 100;
 constexpr uint8_t GPIO_CHANNEL = 0;
 constexpr uint8_t DCTO = 0x3;
 constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
+constexpr uint32_t DEFAULT_FAN_PERIOD = 100000; 
+constexpr uint16_t MIN_TEMP_FAN = 25;
+constexpr uint16_t MAX_TEMP_FAN = 45;
 
 #endif
