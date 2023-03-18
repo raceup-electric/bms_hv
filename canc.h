@@ -6,9 +6,6 @@
 #include "lem.h"
 #include "precharge.h"
 
-extern float dc_bus_voltage;
-extern bool prechViaCan;
-
 void init_can();
 void read_lem(CAN_FRAME *frame);
 void read_precharge(CAN_FRAME *frame);

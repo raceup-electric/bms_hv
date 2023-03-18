@@ -150,13 +150,12 @@ void update_data() {
 
 void check_faults() {
   if (
-    bms_data.fault_volt - millis() > T_FAULT_TIME ||
+    bms_data.fault_volt - millis() > V_FAULT_TIME ||
     bms_data.fault_temp - millis() > T_FAULT_TIME ||
     !is_lem_in_time()
   ) {
     sdc_open();
   }
-
 }
 
 void update_mode() {

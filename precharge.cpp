@@ -15,36 +15,21 @@ void precharge_control() {
    * Per regolamento, la chiusura del secondo air deve avvenire quando la tensione in uscita del pacco raggiunge il 95% della sua tensione massima.
    * La tensione massima e' data dalla somma di tutte le celle della batteria e la misura della tensione in uscita del pacco viene misurata dagli inverter.
    */
-
+  uint8_t cycle_counter = 0;
   // lo stato del gpio SDC_SENSE indica lo stato dell'air 1
   if (digitalRead(SDC_SENSE_PIN) == HIGH) {
-    if (sdc == false) // sdc indica lo stato precedente dell' air 1
-    {
-      sdc = true;
-      prechStartTime = millis();
-      precharge_counter = 0;
-    }
     /*
      * if LEM messages are received, precharge will be as requested by the rules (95%)
      * Otherwise, if LEM is disconnected or communication is not working, we simply wait 5 seconds
      */
-    if (prechViaCan) {
-      if (dc_bus_voltage > (somma95 / 1000) && ((lastTime - prechStartTime) > 5000)) {
-        digitalWrite(AIR_2, HIGH);
-        precharge_counter = 0;
+    delay(5000);
+    if (prech.via_can) {
+      if (prech.bus_volt > (somma95 / 1000)) {
+        digitalWrite(AIR_2_PIN, HIGH);
+        cycle_counter = 0;
 
         // Fan management
-        pwm_pin35.set_duty(PWM_PERIOD_PIN_35 * 0.3); // Go to 70%
-      }
-    }
-    else {
-      if ((lastTime - prechStartTime) > 5000) {
-        digitalWrite(AIR_2, HIGH);
-        // Serial.println("PRECH_EN HIGH");
-        precharge_counter = 0;
-
-        // Fan management
-        pwm_pin35.set_duty(PWM_PERIOD_PIN_35 * 0.3); // Go to 70%
+        //pwm_pin35.set_duty(PWM_PERIOD_PIN_35 * 0.3); // Go to 70%
       }
     }
   }
@@ -53,8 +38,7 @@ void precharge_control() {
    * This is a safe configuration in case of SDC_SENSE GPIO is read
    * incorrectly
    */
-  else
-  {
+  else {
     precharge_counter++;
     if (precharge_counter > 20)
     {
