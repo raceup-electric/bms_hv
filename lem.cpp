@@ -1,8 +1,5 @@
 #include "lem.h"
 
-/*
- * Simple can message read
- */
 void set_lem(BytesUnion *data) {
   uint32_t current = 0;
   current |= ((uint32_t)(data->bytes[0]) << 24);
@@ -12,12 +9,6 @@ void set_lem(BytesUnion *data) {
   current ^= 1 << 31;
   lem.curr = (int32_t)(current);
   lem.last_recv = millis();
-
-  #ifdef DEBUG_SENDYNE
-      Serial.print("Current [mA]: ");
-      Serial.println(lem.curr);
-      Serial.println(data->bytes[4],HEX);
-  #endif
 }
 
 /*

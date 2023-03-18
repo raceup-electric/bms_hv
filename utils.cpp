@@ -37,23 +37,22 @@ uint16_t max_volt() {
 }
 
 uint16_t avg_volt() {
-  uint32_t meanVolt = 0x0;
+  uint32_t meanVolt = 0;
 
   for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
     for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex++)
       meanVolt += slaves[slaveIndex].volts[cellIndex];
   }
 
-  return (meanVolt / (SLAVE_NUM * CELL_NUM));
+  return (uint16_t)(meanVolt / (SLAVE_NUM * CELL_NUM));
 }
 
 uint16_t min_temp() {
   uint16_t minTemp = 0xFFFF;
 
   for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
-    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3) {
-      uint16_t cellTemp = slaves[slaveIndex].temps[cellIndex];
-
+    for (int tempIndex = 0; tempIndex < TEMP_NUM; tempIndex++) {
+      uint16_t cellTemp = slaves[slaveIndex].temps[tempIndex];
       if(cellTemp < minTemp) minTemp = cellTemp;
     }
   }
@@ -62,12 +61,11 @@ uint16_t min_temp() {
 }
 
 uint16_t max_temp() {
-  uint16_t maxTemp = 0x0;
+  uint16_t maxTemp = 0;
 
   for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
-    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3) {
-      uint16_t cellTemp = slaves[slaveIndex].temps[cellIndex];
-
+    for (int tempIndex = 0; tempIndex < TEMP_NUM; tempIndex++) {
+      uint16_t cellTemp = slaves[slaveIndex].temps[tempIndex];
       if(cellTemp > maxTemp) maxTemp = cellTemp;
     }
   }
@@ -79,11 +77,11 @@ uint16_t avg_temp() {
   uint32_t meanTemp = 0x0;
 
   for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
-    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3)
-      meanTemp += slaves[slaveIndex].temps[cellIndex];
+    for (int tempIndex = 0; tempIndex < TEMP_NUM; tempIndex++)
+      meanTemp += slaves[slaveIndex].temps[tempIndex];
   }
 
-  return (meanTemp / (SLAVE_NUM * (CELL_NUM / 3)));
+  return (meanTemp / (SLAVE_NUM * TEMP_NUM));
 }
 
 uint8_t max_temp_nslave() {
@@ -91,9 +89,8 @@ uint8_t max_temp_nslave() {
   uint8_t maxTempSlaveNum = 0x0;
 
   for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
-    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3) {
-      uint16_t cellTemp = slaves[slaveIndex].temps[cellIndex];
-
+    for (int tempIndex = 0; tempIndex < TEMP_NUM; tempIndex++) {
+      uint16_t cellTemp = slaves[slaveIndex].temps[tempIndex];
       if(cellTemp > maxTemp){ 
         maxTemp = cellTemp;
         maxTempSlaveNum = slaveIndex;

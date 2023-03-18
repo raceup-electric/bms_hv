@@ -141,19 +141,24 @@ void update_data() {
     bms_data.fault_volt = millis();
   }
   if (bms_data.max_temp < TEMP_THRESHOLD) {
-    bms_data.fault_volt = 0;
+    bms_data.fault_temp = 0;
   }
   else if (bms_data.fault_temp == 0) {
-    bms_data.fault_volt = millis();
+    bms_data.fault_temp = millis();
   }
 }
 
 void check_faults() {
-  if (
-    bms_data.fault_volt - millis() > V_FAULT_TIME ||
-    bms_data.fault_temp - millis() > T_FAULT_TIME ||
-    !is_lem_in_time()
-  ) {
+  if (bms_data.fault_volt - millis() > V_FAULT_TIME) {
+    Serial.println("FAULT VOLT!");
+    sdc_open();
+  }
+  if (bms_data.fault_temp - millis() > T_FAULT_TIME) {
+    Serial.println("FAULT TEMP!");
+    sdc_open();
+  }
+  if (!is_lem_in_time()) {
+    Serial.println("FAULT LEM!");
     sdc_open();
   }
 }

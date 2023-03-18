@@ -1,6 +1,7 @@
 #include "isospi.h"
 #include "operations.h"
 #include "canc.h"
+#include "fan.h"
 
 // globals
 Slave slaves[SLAVE_NUM] = {};
@@ -15,6 +16,7 @@ void setup() {
   wakeup_sleep();
   init_bms();
   init_can();
+  init_fan();
 }
 
 void loop() { 
@@ -25,8 +27,9 @@ void loop() {
     start_adax();
     read_temps();
     update_data();
+    set_fan_dutycycle(); 
     check_faults();
-    print_slaves_bin();
+    print_slaves_hr();
     send_slaves_can();
   }
 }

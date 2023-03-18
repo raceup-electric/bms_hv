@@ -1,6 +1,6 @@
 #include "canc.h"
 
-constexpr uint32_t CAN_BAUD_RATE = 500000;
+constexpr uint32_t CAN_BAUD_RATE = 1000000;
 constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
 constexpr uint32_t LEM_CURRENT_ID = 0x3c2;
 constexpr uint32_t DATA_VOLTAGE_ID = 0x110;
