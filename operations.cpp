@@ -179,11 +179,5 @@ void print_slaves_bin() {
 }
 
 void send_slaves_can() {
-  uint16_t voltValues[3] = {};  // MIN | MAX | AVG
-  uint16_t tempValues[4] = {};  // MIN | MAX | AVG | MAX TEMP SLAVE NUMBER
-
-  minMaxAvg_Volts(voltValues);
-  minMaxAvg_Temps(tempValues);
-
-  send_data_to_ECU(voltValues[1], voltValues[2], voltValues[0], tempValues[1], tempValues[2], tempValues[0], tempValues[3]);
+  send_data_to_ECU(max_volt(), avg_volt(), min_volt(), max_temp(), avg_temp(), min_temp(), max_temp_nslave());
 }

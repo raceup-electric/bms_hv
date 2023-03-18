@@ -10,50 +10,96 @@ uint16_t parse_temp(uint16_t volt) {
   );
 }
 
-void minMaxAvg_Volts(uint16_t* voltsArray) {
+uint16_t min_volt() {
   uint16_t minVolt = 0xFFFF;
-  uint16_t maxVolt = 0x0;
-  uint32_t meanVolt = 0x0;
 
   for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
     for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex++) {
       uint16_t cellVolt = slaves[slaveIndex].volts[cellIndex];
-
       if(cellVolt < minVolt) minVolt = cellVolt;
-      if(cellVolt > maxVolt) maxVolt = cellVolt;
-
-      meanVolt += cellVolt;
     }
   }
 
-  voltsArray[0] = minVolt;
-  voltsArray[1] = maxVolt;
-  voltsArray[2] = meanVolt / (SLAVE_NUM * CELL_NUM);
+  return minVolt;
 }
 
-void minMaxAvg_Temps(uint16_t* tempsArray) {
-  uint16_t minTemp = 0xFFFF;
-  uint16_t maxTemp = 0x0;
-  uint8_t maxTempSlave = 0x0;
-
-  uint32_t meanTemp = 0x0;
+uint16_t max_volt() {
+  uint16_t maxVolt = 0x0;
 
   for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
     for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex++) {
-      uint16_t cellTemp = slaves[slaveIndex].temps[(int) cellIndex/3];
-
-      if(cellTemp < minTemp) minTemp = cellTemp;
-      if(cellTemp > maxTemp) {
-        maxTemp = cellTemp;
-        maxTempSlave = slaveIndex;
-      }
-
-      meanTemp += cellTemp;
+      uint16_t cellVolt = slaves[slaveIndex].volts[cellIndex];
+      if(cellVolt > maxVolt) maxVolt = cellVolt;
     }
   }
 
-  tempsArray[0] = minTemp;
-  tempsArray[1] = maxTemp;
-  tempsArray[2] = meanTemp / (SLAVE_NUM * CELL_NUM);
-  tempsArray[3] = maxTempSlave;
+  return maxVolt;
+}
+
+uint16_t avg_volt() {
+  uint32_t meanVolt = 0x0;
+
+  for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
+    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex++)
+      meanVolt += slaves[slaveIndex].volts[cellIndex];
+  }
+
+  return (meanVolt / (SLAVE_NUM * CELL_NUM));
+}
+
+uint16_t min_temp() {
+  uint16_t minTemp = 0xFFFF;
+
+  for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
+    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3) {
+      uint16_t cellTemp = slaves[slaveIndex].temps[cellIndex];
+
+      if(cellTemp < minTemp) minTemp = cellTemp;
+    }
+  }
+
+  return minTemp;
+}
+
+uint16_t max_temp() {
+  uint16_t maxTemp = 0x0;
+
+  for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
+    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3) {
+      uint16_t cellTemp = slaves[slaveIndex].temps[cellIndex];
+
+      if(cellTemp > maxTemp) maxTemp = cellTemp;
+    }
+  }
+
+  return maxTemp;
+}
+
+uint16_t avg_temp() {
+  uint32_t meanTemp = 0x0;
+
+  for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
+    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3)
+      meanTemp += slaves[slaveIndex].temps[cellIndex];
+  }
+
+  return (meanTemp / (SLAVE_NUM * (CELL_NUM / 3)));
+}
+
+uint8_t max_temp_nslave() {
+  uint16_t maxTemp = 0x0;
+  uint8_t maxTempSlaveNum = 0x0;
+
+  for(int slaveIndex = 0; slaveIndex < SLAVE_NUM; slaveIndex++) {
+    for (int cellIndex = 0; cellIndex < CELL_NUM; cellIndex = cellIndex + 3) {
+      uint16_t cellTemp = slaves[slaveIndex].temps[cellIndex];
+
+      if(cellTemp > maxTemp){ 
+        maxTemp = cellTemp;
+        maxTempSlaveNum = slaveIndex;
+      }
+    }
+  }
+
+  return maxTempSlaveNum;
 }
