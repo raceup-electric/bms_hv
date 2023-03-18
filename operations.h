@@ -19,8 +19,20 @@ struct Slave {
   bool err;
 };
 
+struct BMSData {
+  uint16_t max_volt;
+  uint16_t min_volt;
+  uint16_t avg_volt;
+  uint16_t max_temp;
+  uint16_t min_temp;
+  uint16_t avg_temp;
+  uint32_t fault_volt;
+  uint32_t fault_temp;
+};
+
 extern Slave slaves[SLAVE_NUM];
 extern Mode mode;
+extern BMSData bms_data;
 
 void init_bms();
 
@@ -39,6 +51,10 @@ void start_adax();
 void read_temps();
 
 void save_temps(int slave_idx, char reg, uint8_t* raw_temps);
+
+void update_data();
+
+void check_faults();
 
 void update_mode();
 
