@@ -1,5 +1,5 @@
-#ifndef SPI_CUST_H_
-#define SPI_CUST_H_
+#ifndef ISOSPI_H_
+#define ISOSPI_H_
 
 #include <Arduino.h>
 
@@ -12,4 +12,4 @@ void txrx(uint8_t* tx_data, int tx_bytes, uint8_t* rx_data, int rx_bytes);
 void wakeup_idle();
 void wakeup_sleep();
 
-#endif //SPI_CUST_H_
+#endif //ISOSPI_H_
