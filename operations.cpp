@@ -2,6 +2,7 @@
 #include "commands.h"
 #include "utils.h"
 #include "isospi.h"
+#include "sdc.h"
 #include "config.h"
 
 void init_bms() {
@@ -124,6 +125,38 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
     // three cell per measurement
     slaves[slave_idx].temps[2] = temp;
   }
+}
+
+void update_data() {
+  bms_data.max_volt = max_volt();
+  bms_data.min_volt = min_volt();
+  bms_data.avg_volt = avg_volt();
+  bms_data.max_temp = max_temp();
+  bms_data.min_temp = min_temp();
+  bms_data.avg_temp = avg_temp();
+  if (bms_data.max_volt < OV_THRESHOLD && bms_data.min_temp > UV_THRESHOLD) {
+    bms_data.fault_volt = 0;
+  }
+  else if (bms_data.fault_volt == 0) {
+    bms_data.fault_volt = millis();
+  }
+  if (bms_data.max_temp < TEMP_THRESHOLD) {
+    bms_data.fault_volt = 0;
+  }
+  else if (bms_data.fault_temp == 0) {
+    bms_data.fault_volt = millis();
+  }
+}
+
+void check_faults() {
+  if (
+    bms_data.fault_volt - millis() > T_FAULT_TIME ||
+    bms_data.fault_temp - millis() > T_FAULT_TIME ||
+    !is_lem_in_time()
+  ) {
+    sdc_open();
+  }
+
 }
 
 void update_mode() {

@@ -13,7 +13,6 @@ void setup() {
   init_spi();
   wakeup_sleep();
   init_bms();
-
   init_can();
 }
 
@@ -24,6 +23,8 @@ void loop() {
     read_volts();
     start_adax();
     read_temps();
+    update_data();
+    check_faults();
     print_slaves_bin();
     send_slaves_can();
   }

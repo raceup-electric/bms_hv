@@ -54,6 +54,8 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps);
 
 void update_data();
 
+void check_faults();
+
 void update_mode();
 
 Mode read_mode();

@@ -12,4 +12,6 @@ extern Precharge prech;
 
 void set_precharge(BytesUnion *data);
 
+void precharge_control();
+
 #endif // PRECHARGE_H_
