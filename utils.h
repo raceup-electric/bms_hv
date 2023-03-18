@@ -11,4 +11,8 @@ constexpr float TEMP_FIT_COEFF[3] = {
 
 uint16_t parse_temp(uint16_t volt);
 
+void minMaxAvg_Volts(uint16_t* voltsArray);
+
+void minMaxAvg_Temps(uint16_t* tempsArray);
+
 #endif // UTILS_H_

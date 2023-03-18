@@ -7,9 +7,6 @@ constexpr uint32_t LEM_CURRENT_ID = 0x3c2;
 constexpr uint32_t DATA_VOLTAGE_ID = 0x110;
 constexpr uint32_t DATA_TEMP_ID = 0x111;
 
-float dc_bus_voltage;
-bool prechViaCan;
-
 void init_can(){
     Can0.begin(CAN_COMMUNICATION_FREQUENCY);
     Can0.setNumTXBoxes(1);
