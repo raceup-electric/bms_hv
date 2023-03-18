@@ -1,6 +1,6 @@
 #include "commands.h"
 #include "pec.h"
-#include "spic.h"
+#include "isospi.h"
 
 void wrcfg(uint8_t *cfg_data) {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN;

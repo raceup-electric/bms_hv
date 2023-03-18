@@ -1,35 +1,27 @@
 #include "canc.h"
 
-constexpr uint32_t CAN_COMMUNICATION_FREQUENCY = 500000;
-
+constexpr uint32_t CAN_BAUD_RATE = 500000;
 constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
 constexpr uint32_t LEM_CURRENT_ID = 0x3c2;
 constexpr uint32_t DATA_VOLTAGE_ID = 0x110;
 constexpr uint32_t DATA_TEMP_ID = 0x111;
 
-float dc_bus_voltage;
-bool prechViaCan;
-
 void init_can(){
-    Can0.begin(CAN_COMMUNICATION_FREQUENCY);
+    Can0.begin(CAN_BAUD_RATE);
     Can0.setNumTXBoxes(1);
     int bus_arrived = Can0.setRXFilter(DC_BUS_VOLTAGE_ID, 0x7FF, false);
     int lem_arrived = Can0.setRXFilter(LEM_CURRENT_ID, 0x7FF, false);
     
     Can0.setCallback(lem_arrived, read_lem);
-    Can0.setCallback(bus_arrived, read_bus_voltage);
+    Can0.setCallback(bus_arrived, read_precharge);
 }
 
 void read_lem(CAN_FRAME *frame) {
-  set_LEM(frame);
+  set_lem(&(frame->data));
 }
 
-void read_bus_voltage(CAN_FRAME *frame) {
-  #ifdef DEBUG_BUS_DC
-      Serial.println("ARRIVATA TENSIONE");
-  #endif
-  dc_bus_voltage = (frame -> data.bytes[0] | frame -> data.bytes[1] << 8);
-  prechViaCan = 1;
+void read_precharge(CAN_FRAME *frame) {
+  set_precharge(&(frame->data));
 }
 
 void send_data_to_ECU(uint16_t max_volt, uint16_t mean_volt, uint16_t min_volt, uint16_t max_temp, uint16_t mean_temp, uint16_t min_temp, uint8_t max_temp_nslave) {

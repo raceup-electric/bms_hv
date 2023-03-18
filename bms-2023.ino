@@ -1,10 +1,12 @@
-#include "spic.h"
+#include "isospi.h"
 #include "operations.h"
 #include "canc.h"
 
 // globals
 Slave slaves[SLAVE_NUM] = {};
 Mode mode = Mode::NORMAL;
+LEM lem = { .curr = 0, .last_recv = millis()};
+Precharge prech = { .bus_volt = 0.0, .via_can = false };
 
 void setup() {
   Serial.begin(115200);

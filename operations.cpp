@@ -1,7 +1,7 @@
 #include "operations.h"
 #include "commands.h"
 #include "utils.h"
-#include "spic.h"
+#include "isospi.h"
 #include "config.h"
 
 void init_bms() {
