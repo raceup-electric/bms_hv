@@ -1,13 +1,12 @@
 #include "fan.h"
 
-using namespace arduino_due::pwm_lib;
-
-pwm<pwm_pin::PWMH0_PC3> pwm_pin35;
+constexpr uint8_t FAN_PIN = 32;
+constexpr uint32_t MAX_FAN_DUTY = 255; 
 
 void init_fan() {
-  pwm_pin35.start(DEFAULT_FAN_PERIOD, DEFAULT_FAN_PERIOD * 0.9);    // start at 10%
+  pinMode(FAN_PIN, OUTPUT);
   delay(10);
-  pwm_pin35.set_duty(DEFAULT_FAN_PERIOD * 0.9);                     // go to 10%
+  analogWrite(FAN_PIN, (uint32_t) MAX_FAN_DUTY * 0.1);        // go to 10%
 }
 
 void set_fan_dutycycle(uint16_t temp) {
@@ -16,7 +15,6 @@ void set_fan_dutycycle(uint16_t temp) {
     newDuty = (temp < MIN_TEMP_FAN) ? 0 : 1;
   else
     newDuty = (temp - MIN_TEMP_FAN) / (MAX_TEMP_FAN - MIN_TEMP_FAN);
-    
-  // logica invertita
-  pwm_pin35.set_duty(DEFAULT_FAN_PERIOD * (1 - newDuty));
+  
+  analogWrite(FAN_PIN, (uint32_t) MAX_FAN_DUTY * newDuty);
 }
