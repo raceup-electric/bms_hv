@@ -7,13 +7,13 @@ void set_lem(BytesUnion *data) {
   current |= ((uint32_t)(data->bytes[2]) << 8);
   current |= ((uint32_t)(data->bytes[3]) << 0);
   current ^= 1 << 31;
-  lem.curr = (int32_t)(current);
-  lem.last_recv = millis();
+  g_bms.lem.curr = (int32_t)(current);
+  g_bms.lem.last_recv = millis();
 }
 
 /*
  * If LEM message is not received after 500 ms, send fault
  */
 bool is_lem_in_time(){
-  return !((millis() - lem.last_recv) > LEM_TIMEOUT);
+  return !((millis() - g_bms.lem.last_recv) > LEM_TIMEOUT);
 }

@@ -6,33 +6,8 @@
 #include "config.h"
 #include "canc.h"
 
-enum class Mode {
-  NORMAL,
-  SLEEP,
-  BALANCE
-};
 
-struct Slave {
-  uint16_t volts[CELL_NUM];
-  uint16_t temps[3];
-  uint8_t addr;
-  bool err;
-};
-
-struct BMSData {
-  uint16_t max_volt;
-  uint16_t min_volt;
-  uint16_t avg_volt;
-  uint16_t max_temp;
-  uint16_t min_temp;
-  uint16_t avg_temp;
-  uint32_t fault_volt;
-  uint32_t fault_temp;
-};
-
-extern Slave slaves[SLAVE_NUM];
-extern Mode mode;
-extern BMSData bms_data;
+extern BMS g_bms;
 
 void init_bms();
 
@@ -52,8 +27,6 @@ void read_temps();
 
 void save_temps(int slave_idx, char reg, uint8_t* raw_temps);
 
-void update_data();
-
 void check_faults();
 
 void update_mode();
@@ -64,6 +37,8 @@ void print_slaves_hr();
 
 void print_slaves_bin();
 
-void send_slaves_can();
+void send_can();
+
+void reset_measures();
 
 #endif

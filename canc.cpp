@@ -1,11 +1,5 @@
 #include "canc.h"
 
-constexpr uint32_t CAN_BAUD_RATE = 1000000;
-constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
-constexpr uint32_t LEM_CURRENT_ID = 0x3c2;
-constexpr uint32_t DATA_VOLTAGE_ID = 0x110;
-constexpr uint32_t DATA_TEMP_ID = 0x111;
-
 void init_can(){
     Can0.begin(CAN_BAUD_RATE);
     Can0.setNumTXBoxes(1);

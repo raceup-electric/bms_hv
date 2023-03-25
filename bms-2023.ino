@@ -3,12 +3,8 @@
 #include "canc.h"
 #include "fan.h"
 
-// globals
-Slave slaves[SLAVE_NUM] = {};
-Mode mode = Mode::NORMAL;
-LEM lem = { .curr = 0, .last_recv = millis()};
-Precharge prech = { .bus_volt = 0.0, .via_can = false };
-BMSData bms_data = {};
+// global bms state
+BMS g_bms = {};
 
 void setup() {
   Serial.begin(115200);
@@ -21,15 +17,16 @@ void setup() {
 
 void loop() { 
   update_mode();
-  if (mode == Mode::NORMAL) {
+  if (g_bms.mode == Mode::NORMAL) {
+    precharge_control();
     start_adcv();
     read_volts();
     start_adax();
     read_temps();
-    update_data();
     set_fan_dutycycle(); 
     check_faults();
-    print_slaves_hr();
-    send_slaves_can();
+    print_slaves_bin();
+    send_can();
+    reset_measures();
   }
 }

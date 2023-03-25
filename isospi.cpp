@@ -1,7 +1,6 @@
-#include "isospi.h"
 #include <SPI.h>
-
-constexpr uint8_t SPI_CS_PIN = 5;
+#include "isospi.h"
+#include "config.h"
 
 void init_spi() {
   pinMode(SPI_CS_PIN, OUTPUT);

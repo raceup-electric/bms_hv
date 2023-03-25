@@ -1,9 +1,4 @@
 #include "fan.h"
-#include "utils.h"
-#include "operations.h"
-
-constexpr uint8_t FAN_PIN = 7;
-constexpr uint32_t MAX_FAN_DUTY = 255; 
 
 void init_fan() {
   pinMode(FAN_PIN, OUTPUT);
@@ -12,7 +7,7 @@ void init_fan() {
 }
 
 void set_fan_dutycycle() {
-  uint16_t temp = bms_data.min_temp;
+  uint16_t temp = g_bms.max_temp;
   float newDuty;
   if(temp < MIN_TEMP_FAN || temp > MAX_TEMP_FAN)
     newDuty = (temp < MIN_TEMP_FAN) ? 0 : 1;

@@ -5,12 +5,6 @@
 
 #include "config.h"
 
-constexpr uint8_t CMD_LEN = 2;
-constexpr uint8_t CFG_LEN = 6;
-constexpr uint8_t PWM_LEN = 6;
-constexpr uint8_t VREG_LEN = 6;
-constexpr uint8_t GREG_LEN = 6;
-
 enum class CommandCode {
   ADCV = 0b01001100000 | (ADC_CONVERSION_MODE << 7) | (ADC_DCP << 4) | (CELL_CHANNEL), 
   WRCFGA = 0x01,

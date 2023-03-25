@@ -6,9 +6,13 @@
 #include "config.h"
 
 void init_bms() {
+  pinMode(BMS_FAULT_PIN, OUTPUT);
+  pinMode(SDC_SENSE_PIN, INPUT);
+  pinMode(AIR_2_PIN, OUTPUT);
+  pinMode(LED_0_PIN, OUTPUT);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
-    slaves[i].addr = 0b1000;
-    slaves[i].err = false;
+    g_bms.slaves[i].addr = 0b1000;
+    g_bms.slaves[i].err = false;
   }
   init_cfg(Mode::NORMAL);
   init_pwm();
@@ -61,13 +65,13 @@ void read_volts() {
     // for each register
     for (char reg = 'A'; reg <= 'C'; reg++) {
       uint8_t raw_volts[VREG_LEN] = {};
-      if (rdcv(slaves[i].addr, reg, raw_volts) == 0) { 
+      if (rdcv(g_bms.slaves[i].addr, reg, raw_volts) == 0) { 
         delay(MEAS_DELAY);
         save_volts(i, reg, raw_volts);
-        slaves[i].err = false;
+        g_bms.slaves[i].err = false;
       }
       else {
-        slaves[i].err = true;
+        g_bms.slaves[i].err = true;
       }
     }
   }
@@ -79,7 +83,10 @@ void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   for (int i = 0; i < VREG_LEN; i += 2) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
-    slaves[slave_idx].volts[offset + (i / 2)] = voltage;
+    g_bms.slaves[slave_idx].volts[offset + (i / 2)] = voltage;
+    if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
+    if (voltage < g_bms.min_volt) g_bms.max_volt = voltage;
+    g_bms.tot_temp += voltage;
   }
 }
 
@@ -94,13 +101,13 @@ void read_temps() {
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
       uint8_t raw_temps[GREG_LEN] = {};
-      if (rdaux(slaves[i].addr, reg, raw_temps) == 0) {
+      if (rdaux(g_bms.slaves[i].addr, reg, raw_temps) == 0) {
         delay(MEAS_DELAY);
         save_temps(i, reg, raw_temps);
-        slaves[i].err = false;
+        g_bms.slaves[i].err = false;
       }
       else {
-        slaves[i].err = true;
+        g_bms.slaves[i].err = true;
       }
     }
   }
@@ -115,7 +122,10 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
     for (int i = 0; i < GREG_LEN - 2 ; i += 2) {
       uint16_t volt = (raw_temps[i + 1] << 8) | (raw_temps[i] & 0xFF);
       uint16_t temp = parse_temp(volt);
-      slaves[slave_idx].temps[i / 2] = temp; 
+      g_bms.slaves[slave_idx].temps[i / 2] = temp; 
+      if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
+      if (temp < g_bms.min_temp) g_bms.min_temp = temp;
+      g_bms.tot_temp += temp;
     }
   }
   if (reg == 'B') {
@@ -123,52 +133,43 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
     uint16_t volt = (raw_temps[1] << 8) | (raw_temps[0] & 0xFF);
     uint16_t temp = parse_temp(volt);
     // three cell per measurement
-    slaves[slave_idx].temps[2] = temp;
-  }
-}
-
-void update_data() {
-  bms_data.max_volt = max_volt();
-  bms_data.min_volt = min_volt();
-  bms_data.avg_volt = avg_volt();
-  bms_data.max_temp = max_temp();
-  bms_data.min_temp = min_temp();
-  bms_data.avg_temp = avg_temp();
-  if (bms_data.max_volt < OV_THRESHOLD && bms_data.min_temp > UV_THRESHOLD) {
-    bms_data.fault_volt = 0;
-  }
-  else if (bms_data.fault_volt == 0) {
-    bms_data.fault_volt = millis();
-  }
-  if (bms_data.max_temp < TEMP_THRESHOLD) {
-    bms_data.fault_temp = 0;
-  }
-  else if (bms_data.fault_temp == 0) {
-    bms_data.fault_temp = millis();
+    g_bms.slaves[slave_idx].temps[2] = temp;
+    if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
+    if (temp < g_bms.min_temp) g_bms.min_temp = temp;
+    g_bms.tot_temp += temp;
   }
 }
 
 void check_faults() {
-  if (bms_data.fault_volt - millis() > V_FAULT_TIME) {
-    Serial.println("FAULT VOLT!");
-    sdc_open();
+  if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_temp > UV_THRESHOLD) {
+    g_bms.fault_volt_tmstp = 0;
   }
-  if (bms_data.fault_temp - millis() > T_FAULT_TIME) {
-    Serial.println("FAULT TEMP!");
-    sdc_open();
+  else if (g_bms.fault_temp_tmstp == 0) {
+    g_bms.fault_temp_tmstp = millis();
   }
-  if (!is_lem_in_time()) {
-    Serial.println("FAULT LEM!");
+
+  if (g_bms.max_temp < TEMP_THRESHOLD) {
+    g_bms.fault_temp_tmstp = 0;
+  }
+  else if (g_bms.fault_temp_tmstp == 0) {
+    g_bms.fault_temp_tmstp = millis();
+  }
+
+  if (
+    g_bms.fault_volt_tmstp - millis() > V_FAULT_TIME ||
+    g_bms.fault_temp_tmstp - millis() > T_FAULT_TIME ||
+    !is_lem_in_time()
+  ) {
     sdc_open();
   }
 }
 
 void update_mode() {
   Mode new_mode = read_mode();
-  if (new_mode != mode) { 
-    mode = new_mode;
+  if (new_mode != g_bms.mode) { 
+    g_bms.mode = new_mode;
     wakeup_sleep();
-    init_cfg(mode);
+    init_cfg(g_bms.mode);
     init_pwm();
   }
 }
@@ -185,26 +186,26 @@ Mode read_mode() {
       case 'S': return Mode::SLEEP;
     }
   }
-  return mode;
+  return g_bms.mode;
 }
 
 void print_slaves_hr() {
   for (int i = 0; i < SLAVE_NUM; i++) {
-    Serial.print("Slave "); Serial.println(slaves[i].addr);
-    Serial.print("err: "); Serial.println(slaves[i].err);
-    if (!slaves[i].err) {
+    Serial.print("Slave "); Serial.println(g_bms.slaves[i].addr);
+    Serial.print("err: "); Serial.println(g_bms.slaves[i].err);
+    if (!g_bms.slaves[i].err) {
       for (int j = 0; j < CELL_NUM; j++) {
         Serial.print("\tCell ");
         Serial.print(j);
         Serial.print("\t");
-        Serial.print(slaves[i].volts[j] / 10000.0);
+        Serial.print(g_bms.slaves[i].volts[j] / 10000.0);
         Serial.println(" V\t");
       }
       for (int k = 0; k < TEMP_NUM; k++) {
         Serial.print("\tTemp ");
         Serial.print(k);
         Serial.print("\t");
-        Serial.print(slaves[i].temps[k]);
+        Serial.print(g_bms.slaves[i].temps[k]);
         Serial.println(" C ");
       }
     }
@@ -212,9 +213,26 @@ void print_slaves_hr() {
 }
 
 void print_slaves_bin() {
-  Serial.write((const char *) slaves, sizeof(slaves));
+  Serial.write((const char *) g_bms.slaves, sizeof(g_bms.slaves));
 }
 
-void send_slaves_can() {
-  send_data_to_ECU(max_volt(), avg_volt(), min_volt(), max_temp(), avg_temp(), min_temp(), max_temp_nslave());
+void send_can() {
+  send_data_to_ECU(
+    g_bms.max_volt,
+    g_bms.tot_volt / (SLAVE_NUM * CELL_NUM),
+    g_bms.min_volt,
+    g_bms.max_temp,
+    g_bms.tot_temp / (SLAVE_NUM * TEMP_NUM),
+    g_bms.min_temp,
+    g_bms.max_temp_slave
+  );
+}
+
+void reset_measures() {
+  g_bms.max_volt = 0;
+  g_bms.min_volt = 0;
+  g_bms.tot_volt = 0;
+  g_bms.max_temp = 0;
+  g_bms.min_temp = 0;
+  g_bms.tot_temp = 0;
 }

@@ -3,12 +3,7 @@
 
 #include "canc.h"
 
-struct Precharge {
-  float bus_volt;
-  bool via_can;
-};
-
-extern Precharge prech;
+extern BMS g_bms;
 
 void set_precharge(BytesUnion *data);
 
