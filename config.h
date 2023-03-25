@@ -38,13 +38,13 @@ constexpr uint8_t PWM_LEN = 6;
 constexpr uint8_t VREG_LEN = 6;
 constexpr uint8_t GREG_LEN = 6;
 // precharge config
-constexpr uint16_t PRECH_MIN_WAIT = 5000; // ms
+constexpr uint32_t PRECH_MIN_WAIT = 5000; // ms
 // pins config
 constexpr uint8_t SPI_CS_PIN = 5;
-constexpr uint8_t FAN_PIN = 7;
+constexpr uint8_t FAN_PIN = 8;
 constexpr uint8_t BMS_FAULT_PIN = 4;
 constexpr uint8_t SDC_SENSE_PIN = 6;
-constexpr uint8_t AIR_2_PIN = 5;
+constexpr uint8_t AIR_2_PIN = 7;
 constexpr uint8_t LED_0_PIN = 3;
 
 #endif

@@ -24,7 +24,7 @@ void loop() {
     start_adax();
     read_temps();
     set_fan_dutycycle(); 
-    check_faults();
+    //check_faults();
     //print_slaves_hr();
     send_can();
     reset_measures();
