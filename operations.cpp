@@ -85,8 +85,8 @@ void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
     g_bms.slaves[slave_idx].volts[offset + (i / 2)] = voltage;
     if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
-    if (voltage < g_bms.min_volt) g_bms.max_volt = voltage;
-    g_bms.tot_temp += voltage;
+    if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
+    g_bms.tot_volt += voltage;
   }
 }
 
@@ -115,7 +115,6 @@ void read_temps() {
 
 
 void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
-  constexpr uint8_t CELLS_PER_MEAS = 3;
   // grazie tronici -_-
   if (reg == 'A') {
     // gpio 1 and 2
@@ -142,22 +141,16 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
 
 void check_faults() {
   if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_temp > UV_THRESHOLD) {
-    g_bms.fault_volt_tmstp = 0;
-  }
-  else if (g_bms.fault_temp_tmstp == 0) {
-    g_bms.fault_temp_tmstp = millis();
+    g_bms.fault_volt_tmstp = millis();
   }
 
   if (g_bms.max_temp < TEMP_THRESHOLD) {
-    g_bms.fault_temp_tmstp = 0;
-  }
-  else if (g_bms.fault_temp_tmstp == 0) {
     g_bms.fault_temp_tmstp = millis();
   }
 
   if (
-    g_bms.fault_volt_tmstp - millis() > V_FAULT_TIME ||
-    g_bms.fault_temp_tmstp - millis() > T_FAULT_TIME ||
+    millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
+    millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
     !is_lem_in_time()
   ) {
     sdc_open();
@@ -190,6 +183,19 @@ Mode read_mode() {
 }
 
 void print_slaves_hr() {
+  Serial.println("Battery pack:");
+  Serial.print("Max V: ");
+  Serial.print(g_bms.max_volt);
+  Serial.print("\tMin V: ");
+  Serial.print(g_bms.min_volt);
+  Serial.print("\tTot V: ");
+  Serial.println(g_bms.tot_volt);
+  Serial.print("Max T: ");
+  Serial.print(g_bms.max_temp);
+  Serial.print("\tMin T: ");
+  Serial.print(g_bms.min_temp);
+  Serial.print("\tTot T: ");
+  Serial.println(g_bms.tot_temp);
   for (int i = 0; i < SLAVE_NUM; i++) {
     Serial.print("Slave "); Serial.println(g_bms.slaves[i].addr);
     Serial.print("err: "); Serial.println(g_bms.slaves[i].err);
@@ -230,9 +236,9 @@ void send_can() {
 
 void reset_measures() {
   g_bms.max_volt = 0;
-  g_bms.min_volt = 0;
+  g_bms.min_volt = 0xFFFF;
   g_bms.tot_volt = 0;
   g_bms.max_temp = 0;
-  g_bms.min_temp = 0;
+  g_bms.min_temp = 0xFFFF;
   g_bms.tot_temp = 0;
 }

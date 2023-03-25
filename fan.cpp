@@ -13,7 +13,5 @@ void set_fan_dutycycle() {
     newDuty = (temp < MIN_TEMP_FAN) ? 0 : 1;
   else
     newDuty = (temp - MIN_TEMP_FAN) / (float)(MAX_TEMP_FAN - MIN_TEMP_FAN);
-  Serial.print("Duty: ");
-  Serial.println(newDuty);
   analogWrite(FAN_PIN, newDuty * MAX_FAN_DUTY);
 }

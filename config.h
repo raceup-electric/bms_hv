@@ -14,10 +14,10 @@ constexpr uint8_t GPIO_CHANNEL = 0;
 // threshold faults
 constexpr uint16_t UV_THRESHOLD = 33000;
 constexpr uint16_t OV_THRESHOLD = 42000;
-constexpr uint16_t TEMP_THRESHOLD = 60;
+constexpr uint16_t TEMP_THRESHOLD = 1000;
 constexpr uint32_t V_FAULT_TIME = 500;
 constexpr uint32_t T_FAULT_TIME = 1000;
-constexpr uint16_t MEAS_DELAY = 100;
+constexpr uint16_t MEAS_DELAY = 6;
 // balancing discharge config
 constexpr uint8_t DCTO = 0x3;
 constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
@@ -26,9 +26,9 @@ constexpr uint16_t MIN_TEMP_FAN = 25;
 constexpr uint16_t MAX_TEMP_FAN = 45;
 constexpr uint32_t MAX_FAN_DUTY = 255; 
 // can config
-constexpr uint32_t CAN_BAUD_RATE = 1000000;
+constexpr uint32_t CAN_BAUD_RATE = 500000;
 constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
-constexpr uint32_t LEM_CURRENT_ID = 0x3c2;
+constexpr uint32_t LEM_CURRENT_ID = 0x3C2;
 constexpr uint32_t DATA_VOLTAGE_ID = 0x110;
 constexpr uint32_t DATA_TEMP_ID = 0x111;
 // commands consts (do not edit unless bug)

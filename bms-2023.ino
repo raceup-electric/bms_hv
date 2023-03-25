@@ -25,7 +25,7 @@ void loop() {
     read_temps();
     set_fan_dutycycle(); 
     check_faults();
-    print_slaves_bin();
+    //print_slaves_hr();
     send_can();
     reset_measures();
   }
