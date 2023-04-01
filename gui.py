@@ -18,9 +18,12 @@ MAX_VOLT = 4.2
 MIN_VOLT = 3.3
 
 # H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int
-STR_FORMAT = "H" * (N_VS + N_TS) + "c?"+"H"*2+"I"+"H"*3
-size_struct = struct.calcsize(STR_FORMAT)
-#print(size_struct)
+FORMAT_BMS = "H" * (N_VS + N_TS) + "c?"
+FORMAT_PAYLOAD = FORMAT_BMS * N_SLAVES + "H" * 2 + "I" + "H" * 3 + "I"
+size_bms = struct.calcsize(FORMAT_BMS)
+size_payload = struct.calcsize(FORMAT_PAYLOAD)
+
+# print(size_struct)
 
 ser = serial.Serial(timeout=0.1)
 
@@ -66,7 +69,6 @@ class App(ctk.CTk):
         balancing = ctk.CTkRadioButton(master=mode_frame, variable=self.mode, value="Balancing Mode", text="Balancing Mode", command=self.set_mode)
         balancing.grid(row=3, column=0, pady=(5, 10))
 
-
         refresh = ctk.CTkButton(tabview.tab("CONFIGURATION"), fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Refresh Serial",
                                 command=self.get_COM)
         refresh.grid(row=4, column=0, padx=(20, 20), pady=(15, 5), sticky="nwse")
@@ -86,7 +88,7 @@ class App(ctk.CTk):
     def information_frame(self):
 
         box1 = ctk.CTkFrame(master=self)
-        box1.grid(row=0, column=1, padx=(10, 10), pady=(20,20), sticky="nsew", rowspan=2, ipadx=3)
+        box1.grid(row=0, column=1, padx=(10, 10), pady=(20, 20), sticky="nsew", rowspan=2, ipadx=3)
 
         for i in range(N_VS):
             label = ctk.CTkLabel(box1, text="Cell " + str(i + 1), fg_color=("gray70", "gray25"), corner_radius=4, width=50)
@@ -115,7 +117,7 @@ class App(ctk.CTk):
 
         # min_volt, max_volt, tot_volt, min_temp, max_temp, tot_temp
 
-        list_num = ["MIN VOLT", "MAX VOLT", "AVG VOLT", "TOT VOLT", "MIN TEMP", "MAX TEMP", "AVG TEMP", "SoC", "TOT POWER", "CURRENT"]
+        list_num = ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]  # "SoC"
         self.list_info = []
 
         for i in range(len(list_num)):
@@ -169,7 +171,7 @@ class App(ctk.CTk):
             mode = "B"
 
         ser.write(bytes(mode, 'utf-8'))
-        ser.flush()         # todo pulire buffer invio host
+        ser.flush()  # todo pulire buffer invio host
 
         mustend = time.time() + 2
         while time.time() < mustend:
@@ -210,16 +212,15 @@ class App(ctk.CTk):
                     self.get_COM()
                     self.textbox.configure(text="Select a correct Serial Port")
 
-
     def update_gui_normal(self):
 
         try:
             ser.flush()
 
-            while ser.in_waiting < size_struct * N_SLAVES:
+            while ser.in_waiting < size_struct:
                 pass
 
-            resp = ser.read(size_struct * N_SLAVES)
+            resp = ser.read(size_struct)
 
         except Exception:
             self.get_COM()
@@ -228,27 +229,17 @@ class App(ctk.CTk):
                 self.textbox.configure(text="Error Unpacking")
             else:
                 ser.close()
-
             return 0
 
-        # min_volt, max_volt, avg_volt, tot_volt,  min_temp, max_temp, tot_temp
-        add_infos = [0] * 7
-        add_infos[0] = MAX_VOLT * 10
-        add_infos[4] = MAX_TEMP * 10
-
         for i in range(N_SLAVES):
-            cell_value = unpack(STR_FORMAT, resp[i * size_struct: (i + 1) * size_struct])
+            cell_value = unpack(FORMAT_BMS, resp[i * size_bms: (i + 1) * size_bms])
 
             for j in range(N_VS):
-                if cell_value[N_VS+N_TS+1]:
+                if cell_value[N_VS + N_TS + 1]:
                     self.total_pack_labels[i][j].configure(text="💀", fg_color="gray")
                 else:
                     value = round(cell_value[j] / 10000, 2)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_VOLT, MAX_VOLT))
-                    # add_infos[0] = min(add_infos[0], value)
-                    # add_infos[1] = max(add_infos[1], value)
-                    # add_infos[2] += value
-                    # add_infos[3] += value
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1]:
@@ -256,19 +247,27 @@ class App(ctk.CTk):
                 else:
                     value = round(cell_value[j], 2)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_TEMP, MAX_TEMP))
-                    # add_infos[4] = min(add_infos[4], value)
-                    # add_infos[5] = max(add_infos[5], value)
-                    # add_infos[6] += value
-        #
-        # add_infos[2] /= (N_SLAVES*N_VS)
-        # add_infos[6] /= (N_SLAVES*N_TS)
-        #
-        # for i in range(len(add_infos)):
-        #     self.list_info[i].configure(text=str(round(add_infos[i],2)))
-        #     if i < 3:
-        #         self.list_info[i].configure(fg_color=rgb(add_infos[i], MIN_VOLT, MAX_VOLT))
-        #     if 3 < i < 7:
-        #         self.list_info[i].configure(fg_color=rgb(add_infos[i], MIN_TEMP, MAX_TEMP))
+
+        # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
+        # add_infos: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "MAX TEMP", "MIN TEMP", "TOT TEMP", "CURRENT"]
+        add_infos = list(unpack(FORMAT_PAYLOAD, resp[size_bms * N_SLAVES : size_struct]))
+
+        for i in range(2):
+            self.list_info[i].configure(text=str(round(add_infos[i], 2)))
+            self.list_info[i].configure(fg_color=rgb(add_infos[i], MIN_VOLT, MAX_VOLT))
+
+        avg_volt = list_infos[2]/N_VS
+        self.list_info[3].configure(text=str(round(avg_volt, 2)))
+        self.list_info[3].configure(fg_color=rgb(avg_volt, MIN_VOLT, MAX_VOLT))
+
+        add_infos[5] = add_infos[5]/N_TS  #calculate avg temp
+        for i in range(3, 6):
+            self.list_info[i+1].configure(text=str(round(add_infos[i], 2)))
+            self.list_info[i+1].configure(fg_color=rgb(add_infos[i], MIN_TEMP, MAX_TEMP))
+
+        self.list_info[7].configure(text=str(round(add_infos[5], 2)))
+        self.list_info[8].configure(text=str(round(add_infos[5]*add_infos[2], 2)))
+
 
     def update_silent(self):
         print("silent")
