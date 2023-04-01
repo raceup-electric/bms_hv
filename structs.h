@@ -25,6 +25,7 @@ struct Precharge {
   float bus_volt;
   bool via_can;
   uint32_t start_tmstp;
+  uint8_t cycle_counter;
   bool done;
 };
 
@@ -37,11 +38,11 @@ struct BMS {
   uint16_t min_temp;
   uint16_t tot_temp;
   uint8_t max_temp_slave;
+  LEM lem;
   bool sdc_closed;
   uint32_t fault_volt_tmstp;
   uint32_t fault_temp_tmstp;
   Mode mode;
-  LEM lem;
   Precharge precharge;
 };
 

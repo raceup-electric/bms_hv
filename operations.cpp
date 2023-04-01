@@ -219,7 +219,7 @@ void print_slaves_hr() {
 }
 
 void print_slaves_bin() {
-  Serial.write((const char *) g_bms.slaves, sizeof(g_bms.slaves) + 14);
+  Serial.write((const char *) g_bms.slaves, sizeof(g_bms.slaves) + 18);
 }
 
 void send_can() {
