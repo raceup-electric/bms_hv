@@ -17,10 +17,10 @@ MIN_TEMP = 20
 MAX_VOLT = 4.2
 MIN_VOLT = 3.3
 
-# H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte)
-STR_FORMAT = "H" * (N_VS + N_TS) + "c?"
+# H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int
+STR_FORMAT = "H" * (N_VS + N_TS) + "c?"+"H"*2+"I"+"H"*3
 size_struct = struct.calcsize(STR_FORMAT)
-print(size_struct)
+#print(size_struct)
 
 ser = serial.Serial(timeout=0.1)
 

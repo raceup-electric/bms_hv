@@ -29,6 +29,7 @@ struct Precharge {
 };
 
 struct BMS {
+  Slave slaves[SLAVE_NUM];
   uint16_t max_volt;
   uint16_t min_volt;
   uint32_t tot_volt;
@@ -39,7 +40,6 @@ struct BMS {
   bool sdc_closed;
   uint32_t fault_volt_tmstp;
   uint32_t fault_temp_tmstp;
-  Slave slaves[SLAVE_NUM];
   Mode mode;
   LEM lem;
   Precharge precharge;
