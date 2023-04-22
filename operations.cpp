@@ -8,7 +8,7 @@
 void init_bms() {
   pinMode(BMS_FAULT_PIN, OUTPUT);
   pinMode(SDC_SENSE_PIN, INPUT);
-  pinMode(AIR_2_PIN, OUTPUT);
+  pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
     g_bms.slaves[i].addr = 0b1000;

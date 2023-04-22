@@ -26,7 +26,7 @@ void precharge_control() {
       (g_bms.precharge.bus_volt > g_bms.tot_volt * 0.95) &&
       ((millis() - g_bms.precharge.start_tmstp) > PRECH_MIN_WAIT)
     ) {
-      digitalWrite(AIR_2_PIN, HIGH);
+      digitalWrite(AIR_2_EN_PIN, HIGH);
       g_bms.precharge.done = true;
     }
   }
