@@ -74,6 +74,13 @@ void read_volts() {
         g_bms.slaves[i].err = true;
       }
     }
+    
+    // Dannati elettronici
+    uint16_t tmp = g_bms.slaves[i].volts[5];
+    g_bms.slaves[i].volts[5] = g_bms.slaves[i].volts[6];
+    g_bms.slaves[i].volts[6] = g_bms.slaves[i].volts[7];
+    g_bms.slaves[i].volts[7] = g_bms.slaves[i].volts[8];
+    g_bms.slaves[i].volts[8] = tmp;
   }
 }
 

@@ -13,7 +13,7 @@ void render() {
   }
   ui.writeStr("mode.txt", mode);
   ui.writeNum("temp.val", g_bms.tot_temp / (SLAVE_NUM * TEMP_NUM));
-  ui.writeNum("volt.val", g_bms.tot_volt / 1000);
+  ui.writeNum("volt.val", g_bms.tot_volt / 10000);
   Serial.print("Page Id: ");
   Serial.println(ui.currentPageId);
   switch (ui.currentPageId) {
@@ -21,7 +21,7 @@ void render() {
       ui.writeNum("Home.maxVolt.val", g_bms.max_volt / 10);
       ui.writeNum("Home.minVolt.val", g_bms.min_volt / 10);
       ui.writeNum("Home.avgVolt.val", g_bms.tot_volt / (SLAVE_NUM * CELL_NUM * 10));
-      ui.writeNum("Home.totVolt.val", g_bms.tot_volt / 1000);
+      ui.writeNum("Home.totVolt.val", g_bms.tot_volt / 10000);
       ui.writeNum("Home.maxTemp.val", g_bms.max_temp);
       ui.writeNum("Home.minTemp.val", g_bms.min_temp);
       ui.writeNum("Home.avgTemp.val", g_bms.tot_temp / (SLAVE_NUM * TEMP_NUM));
