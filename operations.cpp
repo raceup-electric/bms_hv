@@ -63,7 +63,7 @@ void read_volts() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
     // for each register
-    for (char reg = 'A'; reg <= 'C'; reg++) {
+    for (char reg = 'A'; reg <= 'D'; reg++) {
       uint8_t raw_volts[VREG_LEN] = {};
       if (rdcv(g_bms.slaves[i].addr, reg, raw_volts) == 0) { 
         delay(MEAS_DELAY);
@@ -79,6 +79,16 @@ void read_volts() {
 
 void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   constexpr uint8_t CELLS_PER_REG = 3;
+  // Ancora elettronici bastardi
+  if (reg == 'D') {
+    uint16_t voltage = (raw_volts[1] << 8) | (raw_volts[0] & 0xFF);
+    uint16_t offset = (reg - 'D') * CELLS_PER_REG;
+    g_bms.slaves[slave_idx].volts[5] = voltage;
+    if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
+    if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
+    g_bms.tot_volt += voltage;
+    return;
+  }
   // for each measure (2 bytes)
   for (int i = 0; i < VREG_LEN; i += 2) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
