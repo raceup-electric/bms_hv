@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-constexpr uint8_t SLAVE_NUM = 1;
+constexpr uint8_t SLAVE_NUM = 2;
 constexpr uint8_t CELL_NUM = 9;
 constexpr uint8_t TEMP_NUM = 3;
 constexpr uint8_t ADC_OPT = 0;

@@ -32,7 +32,7 @@ void precharge_control() {
   } else {
     g_bms.precharge.cycle_counter++;
     if(g_bms.precharge.cycle_counter > 20) {
-        digitalWrite(AIR_2_PIN, HIGH);
+        digitalWrite(AIR_2_EN_PIN, HIGH);
         g_bms.precharge.done = true;
     }
   }

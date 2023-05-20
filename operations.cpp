@@ -11,7 +11,7 @@ void init_bms() {
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
-    g_bms.slaves[i].addr = 0b1000;
+    g_bms.slaves[i].addr = i;
     g_bms.slaves[i].err = false;
   }
   init_cfg(Mode::NORMAL);

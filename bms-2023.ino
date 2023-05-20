@@ -9,7 +9,7 @@ BMS g_bms = {};
 EasyNex ui(Serial3);
 
 void setup() {
-  Serial.begin(115200);
+  //Serial.begin(115200);
   init_nextion();
   init_spi();
   wakeup_sleep();
@@ -30,8 +30,8 @@ void loop() {
     //set_fan_dutycycle(); 
     //check_faults();
     //send_can();
+    //print_slaves_hr();
   }
-  print_slaves_hr();
   render();
   reset_measures();
 }
