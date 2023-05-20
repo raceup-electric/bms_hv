@@ -9,7 +9,7 @@ BMS g_bms = {};
 EasyNex ui(Serial3);
 
 void setup() {
-  //Serial.begin(115200);
+  Serial.begin(115200);
   init_nextion();
   init_spi();
   wakeup_sleep();
@@ -20,7 +20,7 @@ void setup() {
 
 void loop() { 
   ui.NextionListen();
-  //update_mode();
+  update_mode();
   if (g_bms.mode == Mode::NORMAL) {
     //precharge_control();
     start_adcv();

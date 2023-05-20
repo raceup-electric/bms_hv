@@ -1,7 +1,7 @@
 #include "ui.h"
 
 void init_nextion() {
-  ui.begin(115200);
+  ui.begin(9600);
 }
 
 void render() {
@@ -28,6 +28,7 @@ void render() {
       ui.writeNum("Home.slaveMaxTemp.val", g_bms.max_temp_slave);
       break;
     default:
+      if (ui.currentPageId > SLAVE_NUM) return;
       String slave = String("Slave" + String(ui.currentPageId));
       for (int i = 0; i < CELL_NUM; i++) {
         String volt = String(".volt" + String(i + 1));
