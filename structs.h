@@ -12,7 +12,7 @@ enum class Mode {
 
 struct Slave {
   uint16_t volts[CELL_NUM];
-  uint16_t temps[3];
+  uint16_t temps[TEMP_NUM];
   uint8_t addr;
   bool err;
 };
@@ -36,6 +36,7 @@ struct BMS {
   uint16_t min_volt;
   uint32_t tot_volt;
   uint16_t max_temp;
+  uint16_t prev_max_temp;
   uint16_t min_temp;
   uint16_t tot_temp;
   uint8_t max_temp_slave;

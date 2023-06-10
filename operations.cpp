@@ -14,7 +14,8 @@ void init_bms() {
     g_bms.slaves[i].addr = i;
     g_bms.slaves[i].err = false;
   }
-  init_cfg(Mode::NORMAL);
+  g_bms.mode = Mode::NORMAL;
+  init_cfg(g_bms.mode);
   init_pwm();
 };
 
@@ -134,8 +135,8 @@ void read_temps() {
 void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
   // grazie tronici -_-
   if (reg == 'A') {
-    // gpio 1 and 2
-    for (int i = 0; i < GREG_LEN - 2 ; i += 2) {
+    // gpio 1, 2, 3
+    for (int i = 0; i < GREG_LEN; i += 2) {
       uint16_t volt = (raw_temps[i + 1] << 8) | (raw_temps[i] & 0xFF);
       uint16_t temp = parse_temp(volt);
       g_bms.slaves[slave_idx].temps[i / 2] = temp; 
@@ -144,16 +145,16 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
       g_bms.tot_temp += temp;
     }
   }
-  if (reg == 'B') {
-    // gpio 4
-    uint16_t volt = (raw_temps[1] << 8) | (raw_temps[0] & 0xFF);
-    uint16_t temp = parse_temp(volt);
-    // three cell per measurement
-    g_bms.slaves[slave_idx].temps[2] = temp;
-    if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
-    if (temp < g_bms.min_temp) g_bms.min_temp = temp;
-    g_bms.tot_temp += temp;
-  }
+  // if (reg == 'B') {
+  //   // gpio 4
+  //   uint16_t volt = (raw_temps[1] << 8) | (raw_temps[0] & 0xFF);
+  //   uint16_t temp = parse_temp(volt);
+  //   // three cell per measurement
+  //   g_bms.slaves[slave_idx].temps[2] = temp;
+  //   if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
+  //   if (temp < g_bms.min_temp) g_bms.min_temp = temp;
+  //   g_bms.tot_temp += temp;
+  // }
 }
 
 void check_faults() {

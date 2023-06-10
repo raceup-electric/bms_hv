@@ -9,29 +9,39 @@ BMS g_bms = {};
 EasyNex ui(Serial3);
 
 void setup() {
-  Serial.begin(115200);
-  init_nextion();
+  if (DEBUG) {
+    Serial.begin(115200);
+  }
+  if (SCREEN_ENABLE) {
+    init_nextion();
+  }
   init_spi();
   wakeup_sleep();
   init_bms();
-  //init_can();
-  //init_fan();
+  init_can();
+  init_fan();
 }
 
 void loop() { 
-  ui.NextionListen();
   update_mode();
   if (g_bms.mode == Mode::NORMAL) {
-    //precharge_control();
+    precharge_control();
     start_adcv();
     read_volts();
     start_adax();
     read_temps();
-    //set_fan_dutycycle(); 
-    //check_faults();
-    //send_can();
-    //print_slaves_hr();
+    set_fan_dutycycle(); 
+    if (FAULT_ENABLE) {
+      check_faults();
+    }
+    send_can();
   }
-  render();
+  if (DEBUG) {
+    print_slaves_hr();
+  }
+  if (SCREEN_ENABLE) {
+    render();
+    ui.NextionListen();
+  }
   reset_measures();
 }

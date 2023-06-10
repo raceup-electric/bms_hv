@@ -12,16 +12,12 @@ void precharge_control() {
   // if sdc has closed
   if (g_bms.precharge.done) return;
   if (digitalRead(SDC_SENSE_PIN) == HIGH) {
-    Serial.println("SDC sense HIGH");
     if (!g_bms.sdc_closed) {
-      Serial.println("Starting precharge");
       g_bms.sdc_closed = true;
       g_bms.precharge.start_tmstp = millis();
       return;
     }
-    Serial.print("Precharging: ");
-    Serial.println(millis() - g_bms.precharge.start_tmstp);
-    if (
+    else if (
       (g_bms.precharge.via_can) &&
       (g_bms.precharge.bus_volt > g_bms.tot_volt * 0.95) &&
       ((millis() - g_bms.precharge.start_tmstp) > PRECH_MIN_WAIT)
@@ -29,9 +25,10 @@ void precharge_control() {
       digitalWrite(AIR_2_EN_PIN, HIGH);
       g_bms.precharge.done = true;
     }
-  } else {
+  }
+  else {
     g_bms.precharge.cycle_counter++;
-    if(g_bms.precharge.cycle_counter > 20) {
+    if (g_bms.precharge.cycle_counter > PRECH_MIN_CYCLE) {
         digitalWrite(AIR_2_EN_PIN, HIGH);
         g_bms.precharge.done = true;
     }
