@@ -8,22 +8,43 @@ from time import gmtime
 
 N_VS = 9
 N_TS = 3
-N_SLAVES = 1
+N_SLAVES = 16
 
-UPDATE_FREQ = 200
+UPDATE_FREQ = 450
 
 MAX_TEMP = 60
 MIN_TEMP = 20
 MAX_VOLT = 4.2
 MIN_VOLT = 3.3
 
-# H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int
-FORMAT_BMS = "H" * (N_VS + N_TS) + "c?"
-FORMAT_PAYLOAD = FORMAT_BMS * N_SLAVES + "H" * 2 + "I" + "H" * 3 + "I"
-size_bms = struct.calcsize(FORMAT_BMS)
-size_payload = struct.calcsize(FORMAT_PAYLOAD)
+# H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int  B -> uint8, x -> pad byte
+# https://docs.python.org/3/library/struct.html
 
-# print(size_struct)
+# uint16_t volts[]; int16_t temps[];  uint8_t addr;  bool err;
+FORMAT_SLAVE = "H" * (N_VS + N_TS) + "B?"
+
+# uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
+FORMAT_MIN_MAX = "H" * 2 + "I" + "H" * 4 + "B"
+size_minmax = struct.calcsize(FORMAT_MIN_MAX)
+
+# uint32_t curr;  uint32_t last_recv;
+FORMAT_LEM = "I" * 2
+size_lem = struct.calcsize(FORMAT_LEM)
+
+#   bool sdc_closed;  uint32_t fault_volt_tmstp;  uint32_t fault_temp_tmstp;  Mode mode (int 32 bit);
+FORMAT_ADDITIONAL_INFO = "?" + "I" * 2 + "i"
+
+#   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
+FORMAT_PRECHARGE = "f?IB?xx"
+
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE
+size_slave = struct.calcsize(FORMAT_SLAVE)
+size_payload = struct.calcsize(FORMAT_PAYLOAD)
+# print("SLAVE:" + str(size_slave))
+# print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
+# print("LEM:" + str(size_lem))
+# print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
+# print("TOT:" + str(size_payload))
 
 ser = serial.Serial(timeout=0.1)
 
@@ -163,36 +184,39 @@ class App(ctk.CTk):
         if self.switch.get() == 0:
             return
 
-        if self.mode.get() == "Normal Mode":
-            mode = "N"
-        elif self.mode.get() == "Sleep Mode":
-            mode = "S"
-        else:
-            mode = "B"
+        # if self.mode.get() == "Normal Mode":
+        #     mode = "N"
+        # elif self.mode.get() == "Sleep Mode":
+        #     mode = "S"
+        # else:
+        #     mode = "B"
 
-        ser.write(bytes(mode, 'utf-8'))
-        ser.flush()  # todo pulire buffer invio host
-
-        mustend = time.time() + 2
-        while time.time() < mustend:
-            if ser.in_waiting:
-                break
-        else:
-            self.textbox.configure(text="No ACK received")
-            raise Exception
-
-        ack = ser.readline().decode("ascii")
-
-        if ack != mode:
-            self.textbox.configure(text="Received wrong ACK")
-            raise Exception
-
+        ser.write(bytes("C", 'utf-8'))
         ser.flush()
-        time.sleep(UPDATE_FREQ / 1000)
+
+        #mustend = time.time() + 2
+        #while time.time() < mustend:
+        #    if ser.in_waiting:
+        #        break
+        #else:
+        #    self.textbox.configure(text="No ACK received")
+        #    raise Exception
+#
+        #ack = ser.read().decode('ASCII')
+        #print(ack)
+#
+        #if ack != mode:
+        #    self.textbox.configure(text="Received wrong ACK")
+        #    raise Exception
+
+        #ser.flush()
+        self.update()
+        # time.sleep(UPDATE_FREQ / 1000)
 
     def switch_event(self):
         global ser
         if self.switch.get() == 0:
+            ser.write(bytes("D", 'utf-8'))
             ser.close()
         else:
             if self.option_COM.get() == "No Device Found":
@@ -215,12 +239,22 @@ class App(ctk.CTk):
     def update_gui_normal(self):
 
         try:
-            ser.flush()
+            # ser.flush()
+            # read = 0
+            #
+            # while(read<2):
+            #     while(ser.in_waiting<1):
+            #         pass
+            #     byte = ser.read(1)
+            #     print(byte.hex())
+            #     #print((b'\xAA').hex())
+            #     if(byte.hex() == (b'\xAA').hex()):
+            #         read+=1
 
-            while ser.in_waiting < size_struct:
+            while ser.in_waiting < size_payload:
                 pass
 
-            resp = ser.read(size_struct)
+            resp = ser.read(size_payload)
 
         except Exception:
             self.get_COM()
@@ -232,7 +266,7 @@ class App(ctk.CTk):
             return 0
 
         for i in range(N_SLAVES):
-            cell_value = unpack(FORMAT_BMS, resp[i * size_bms: (i + 1) * size_bms])
+            cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
 
             for j in range(N_VS):
                 if cell_value[N_VS + N_TS + 1]:
@@ -248,32 +282,54 @@ class App(ctk.CTk):
                     value = round(cell_value[j], 2)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_TEMP, MAX_TEMP))
 
+        # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
+        minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
+        lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax: size_slave * N_SLAVES + size_minmax + size_lem]))
+
+        del minmax[4]
+        minmax.pop()   # remove which slave has the max temp
+        minmax[5] /= N_TS  # from tot temp to avg temp
+        minmax.append(lem[0])  # add current
+        minmax.append(lem[0]*minmax[2])  # add power
+        minmax.insert(3, minmax[2] / N_VS)  # add avg voltage
+        print(minmax)
+
         # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
-        # add_infos: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "MAX TEMP", "MIN TEMP", "TOT TEMP", "CURRENT"]
-        add_infos = list(unpack(FORMAT_PAYLOAD, resp[size_bms * N_SLAVES : size_struct]))
+        for index, value in enumerate(minmax):
+            self.list_info[index].configure(text=str(round(value, 2)))
 
-        for i in range(2):
-            self.list_info[i].configure(text=str(round(add_infos[i], 2)))
-            self.list_info[i].configure(fg_color=rgb(add_infos[i], MIN_VOLT, MAX_VOLT))
 
-        avg_volt = list_infos[2]/N_VS
-        self.list_info[3].configure(text=str(round(avg_volt, 2)))
-        self.list_info[3].configure(fg_color=rgb(avg_volt, MIN_VOLT, MAX_VOLT))
-
-        add_infos[5] = add_infos[5]/N_TS  #calculate avg temp
-        for i in range(3, 6):
-            self.list_info[i+1].configure(text=str(round(add_infos[i], 2)))
-            self.list_info[i+1].configure(fg_color=rgb(add_infos[i], MIN_TEMP, MAX_TEMP))
-
-        self.list_info[7].configure(text=str(round(add_infos[5], 2)))
-        self.list_info[8].configure(text=str(round(add_infos[5]*add_infos[2], 2)))
-
+        # # add_infos: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "MAX TEMP", "MIN TEMP", "TOT TEMP", "CURRENT"]
+        # add_infos = list(unpack(FORMAT_PAYLOAD, resp[size_bms * N_SLAVES : size_struct]))
+        #
+        # for i in range(2):
+        #     self.list_info[i].configure(text=str(round(add_infos[i], 2)))
+        #     self.list_info[i].configure(fg_color=rgb(add_infos[i], MIN_VOLT, MAX_VOLT))
+        #
+        # avg_volt = list_infos[2]/N_VS
+        # self.list_info[3].configure(text=str(round(avg_volt, 2)))
+        # self.list_info[3].configure(fg_color=rgb(avg_volt, MIN_VOLT, MAX_VOLT))
+        #
+        # add_infos[5] = add_infos[5]/N_TS  #calculate avg temp
+        # for i in range(3, 6):
+        #     self.list_info[i+1].configure(text=str(round(add_infos[i], 2)))
+        #     self.list_info[i+1].configure(fg_color=rgb(add_infos[i], MIN_TEMP, MAX_TEMP))
+        #
+        # self.list_info[7].configure(text=str(round(add_infos[5], 2)))
+        # self.list_info[8].configure(text=str(round(add_infos[5]*add_infos[2], 2)))
 
     def update_silent(self):
-        print("silent")
+        for i in range(N_SLAVES):
+            for j in range(N_VS):
+                    self.total_pack_labels[i][j].configure(text="0", fg_color="gray")
+            for j in range(N_VS, N_VS + N_TS):
+                    self.total_pack_labels[i][j].configure(text="0", fg_color="gray")
+        for j in range(len(self.list_info)):
+            self.list_info[j].configure(text="0", fg_color="gray")
+
 
     def update_bilancing(self):
-        print("bilance")
+        self.update_gui_normal()
 
     def update(self):
         if self.switch.get() == 0:
@@ -289,17 +345,26 @@ class App(ctk.CTk):
             else:
                 self.update_bilancing()
 
-        self.after(60, self.update)
+        self.after(UPDATE_FREQ, self.update)
 
 
-def rgb(val, min_val, max_val, a=0.6):
-    x = int((val - min_val) / (max_val - min_val) * 256)
-    r = x * 2 if x < 128 else 255
-    g = 255 if x < 128 else 255 - (x - 128) * 2
-    newColor = tuple(int(x + (1 - x) * (1 - a)) for x in [r, g, 0])
-    newColor = [min(max(x, 0), 255) for x in newColor]
-    return "#%s%s%s" % tuple([hex(c)[2:].rjust(2, "0") for c in newColor])
-    # return "gray"
+def rgb(val, min_val, max_val):
+    if min_val < val < (max_val / 3):
+        return "green"
+    elif (max_val / 3) <= val < (2 * max_val / 3):
+        return "yellow"
+    elif (2 * max_val / 3) <= val < max_val:
+        return "red"
+    else:
+        return "gray"
+
+    # x = int((val - min_val) / (max_val - min_val) * 256)
+    # r = x * 2 if x < 128 else 255
+    # g = 255 if x < 128 else 255 - (x - 128) * 2
+    # newColor = tuple(int(x + (1 - x) * (1 - a)) for x in [r, g, 0])
+    # newColor = [min(max(x, 0), 255) for x in newColor]
+    # return "#%s%s%s" % tuple([hex(c)[2:].rjust(2, "0") for c in newColor])
+    # # return "gray"
 
 
 if __name__ == "__main__":
