@@ -25,7 +25,7 @@ void setup() {
 void loop() { 
   update_mode();
   if (g_bms.mode == Mode::NORMAL) {
-    precharge_control();
+    //precharge_control();
     start_adcv();
     read_volts();
     start_adax();
@@ -35,6 +35,9 @@ void loop() {
       check_faults();
     }
     send_can();
+  }
+  if (g_bms.gui_conn) {
+    print_slaves_bin();
   }
   if (DEBUG) {
     print_slaves_hr();

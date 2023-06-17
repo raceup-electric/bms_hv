@@ -195,6 +195,8 @@ Mode read_mode() {
       case 'N': return Mode::NORMAL;
       case 'B': return Mode::BALANCE;
       case 'S': return Mode::SLEEP;
+      case 'C': g_bms.gui_conn = true; break;
+      case 'D': g_bms.gui_conn = false; break;
     }
   }
   return g_bms.mode;
