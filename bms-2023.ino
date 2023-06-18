@@ -9,9 +9,7 @@ BMS g_bms = {};
 EasyNex ui(Serial3);
 
 void setup() {
-  if (DEBUG) {
-    Serial.begin(115200);
-  }
+  Serial.begin(115200);
   if (SCREEN_ENABLE) {
     init_nextion();
   }
@@ -21,6 +19,8 @@ void setup() {
   init_can();
   init_fan();
 }
+uint8_t cycle_count = 0;
+
 
 void loop() { 
   update_mode();
@@ -36,9 +36,10 @@ void loop() {
     }
     send_can();
   }
-  if (g_bms.gui_conn) {
+  if (g_bms.gui_conn && cycle_count % 5 == 0) {
     print_slaves_bin();
   }
+  cycle_count++;
   if (DEBUG) {
     print_slaves_hr();
   }

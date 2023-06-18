@@ -239,6 +239,11 @@ void print_slaves_hr() {
 }
 
 void print_slaves_bin() {
+  Serial.write(0xFF);
+  Serial.write(0xFF);
+  Serial.write(0xFF);
+  Serial.write(0xFF);
+
   Serial.write((const char *) &g_bms, sizeof(g_bms));
 }
 

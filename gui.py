@@ -10,7 +10,7 @@ N_VS = 9
 N_TS = 3
 N_SLAVES = 16
 
-UPDATE_FREQ = 450
+UPDATE_FREQ = 300
 
 MAX_TEMP = 60
 MIN_TEMP = 20
@@ -37,14 +37,14 @@ FORMAT_ADDITIONAL_INFO = "?" + "I" * 2 + "i"
 #   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
 FORMAT_PRECHARGE = "f?IB?xx"
 
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "I"
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
 # print("SLAVE:" + str(size_slave))
 # print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
 # print("LEM:" + str(size_lem))
 # print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
-# print("TOT:" + str(size_payload))
+#print("TOT:" + str(size_payload))
 
 ser = serial.Serial(timeout=0.1)
 
@@ -112,7 +112,7 @@ class App(ctk.CTk):
         box1.grid(row=0, column=1, padx=(10, 10), pady=(20, 20), sticky="nsew", rowspan=2, ipadx=3)
 
         for i in range(N_VS):
-            label = ctk.CTkLabel(box1, text="Cell " + str(i + 1), fg_color=("gray70", "gray25"), corner_radius=4, width=50)
+            label = ctk.CTkLabel(box1, text="Cell " + str(i + 1), fg_color=("gray70", "gray25"), corner_radius=4, width=52)
             label.grid(column=0, row=i + 1, sticky="nsew", pady=(5, 5), padx=(5, 5))
 
         for i in range(N_VS, N_VS + N_TS):
@@ -121,12 +121,12 @@ class App(ctk.CTk):
 
         for i in range(1, N_SLAVES + 1):
 
-            label = ctk.CTkLabel(box1, text="Slv " + str(i), fg_color=("gray70", "gray25"), corner_radius=4, width=49)
+            label = ctk.CTkLabel(box1, text="Slv " + str(i), fg_color=("gray70", "gray25"), corner_radius=4, width=52)
             label.grid(column=i, row=0, sticky="nsew", padx=(5, 5), pady=(20, 5))
 
             s = list()
             for j in range(1, N_VS + N_TS + 1):
-                label = ctk.CTkLabel(box1, text="0", fg_color=("gray80", "gray15"), corner_radius=4, text_color="black", width=49)
+                label = ctk.CTkLabel(box1, text="0", fg_color=("gray80", "gray15"), corner_radius=4, text_color="black", width=52)
                 label.grid(column=i, row=j, sticky="nsew", padx=(2, 2), pady=(2, 2))
                 s.append(label)
 
@@ -184,14 +184,14 @@ class App(ctk.CTk):
         if self.switch.get() == 0:
             return
 
-        # if self.mode.get() == "Normal Mode":
-        #     mode = "N"
-        # elif self.mode.get() == "Sleep Mode":
-        #     mode = "S"
-        # else:
-        #     mode = "B"
+        if self.mode.get() == "Normal Mode":
+             mode = "N"
+        elif self.mode.get() == "Sleep Mode":
+             mode = "S"
+        else:
+            mode = "B"
 
-        ser.write(bytes("C", 'utf-8'))
+        ser.write(bytes(mode, 'utf-8'))
         ser.flush()
 
         #mustend = time.time() + 2
@@ -210,7 +210,7 @@ class App(ctk.CTk):
         #    raise Exception
 
         #ser.flush()
-        self.update()
+        #self.update()
         # time.sleep(UPDATE_FREQ / 1000)
 
     def switch_event(self):
@@ -228,7 +228,9 @@ class App(ctk.CTk):
                     ser.port = self.option_COM.get()
                     ser.open()
                     time.sleep(0.4)
-                    self.set_mode()
+                    ser.write(bytes("C", 'utf-8'))
+                    ser.flush()
+                    #self.set_mode()
 
                 except Exception as e:
                     print(e)
@@ -240,21 +242,36 @@ class App(ctk.CTk):
 
         try:
             # ser.flush()
-            # read = 0
+            read = False
             #
-            # while(read<2):
-            #     while(ser.in_waiting<1):
-            #         pass
-            #     byte = ser.read(1)
-            #     print(byte.hex())
-            #     #print((b'\xAA').hex())
-            #     if(byte.hex() == (b'\xAA').hex()):
-            #         read+=1
+
+            byte1 = 0
+            byte2 = 0
+            byte3 = 0
+            byte4 = 0
+
+            while(not read):
+
+                byte1 = byte2
+                byte2 = byte3
+                byte3 = byte4
+
+                while(ser.in_waiting < 1):
+                    pass
+
+                byte4 = ser.read(1)
+
+                if(byte1 == b'\xff' and byte2 == b'\xff' and byte3 == b'\xff' and byte4 == b'\xff'):
+                    read = True
 
             while ser.in_waiting < size_payload:
                 pass
 
             resp = ser.read(size_payload)
+
+            ser.reset_input_buffer()
+            ser.reset_output_buffer()
+
 
         except Exception:
             self.get_COM()
@@ -292,8 +309,10 @@ class App(ctk.CTk):
         minmax.append(lem[0])  # add current
         minmax.append(lem[0]*minmax[2])  # add power
         minmax.insert(3, minmax[2] / N_VS)  # add avg voltage
-        print(minmax)
 
+        for i in range(4):
+            minmax[i] /= 10000
+        
         # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
         for index, value in enumerate(minmax):
             self.list_info[index].configure(text=str(round(value, 2)))
