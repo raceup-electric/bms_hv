@@ -36,7 +36,7 @@ FORMAT_ADDITIONAL_INFO = "?" + "I" * 2 + "i"
 #   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
 FORMAT_PRECHARGE = "f?IB?xx"
 
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "I" #+computer connected
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "I"  # +computer connected
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
 # print("SLAVE:" + str(size_slave))
@@ -46,7 +46,6 @@ size_payload = struct.calcsize(FORMAT_PAYLOAD)
 # print("TOT:" + str(size_payload))
 
 ser = serial.Serial(timeout=0.1)
-
 
 def chg_appearance(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
@@ -118,15 +117,23 @@ class App(ctk.CTk):
             label = ctk.CTkLabel(box1, text="Tmp " + str(i - N_VS + 1), fg_color=("gray70", "gray25"), corner_radius=4)
             label.grid(column=0, row=i + 1, sticky="nsew", pady=(5, 5), padx=(5, 5))
 
-        for i in range(1, N_SLAVES + 1):
+        for i in range(0, N_SLAVES):
 
-            label = ctk.CTkLabel(box1, text="Slv " + str(i), fg_color=("gray70", "gray25"), corner_radius=4, width=52)
-            label.grid(column=i, row=0, sticky="nsew", padx=(5, 5), pady=(20, 5))
+            label = ctk.CTkCheckBox(box1, text="Slv " + str(i), fg_color=("gray70", "gray25"), corner_radius=4, width=52, command=self.deselect_slave)
+            label.configure(command=lambda button=label: self.deselect_slave(button))
+
+            # if not slave_enabled[i]:
+            #     label.deselect()
+            #     continue
+
+            label.select()
+
+            label.grid(column=i+1, row=0, sticky="nsew", padx=(5, 5), pady=(20, 5))
 
             s = list()
             for j in range(1, N_VS + N_TS + 1):
                 label = ctk.CTkLabel(box1, text="0", fg_color=("gray80", "gray15"), corner_radius=4, text_color="black", width=52)
-                label.grid(column=i, row=j, sticky="nsew", padx=(2, 2), pady=(2, 2))
+                label.grid(column=i+1, row=j, sticky="nsew", padx=(2, 2), pady=(2, 2))
                 s.append(label)
 
             self.total_pack_labels.append(s)
@@ -148,6 +155,17 @@ class App(ctk.CTk):
             label2 = ctk.CTkLabel(box2, text="0", fg_color=("gray80", "gray15"), corner_radius=4)
             label2.grid(column=i, row=1, sticky="nsew", pady=(5, 5), padx=(5, 5))
             self.list_info.append(label2)
+
+    def deselect_slave(self, button):
+
+        text = button.cget("text")[4:]
+
+        if button.get() == 0:
+            for e in self.total_pack_labels[int(text)]:
+                e.grid_forget()
+        else:
+            for i, e in enumerate(self.total_pack_labels[int(text)]):
+                e.grid(column=int(text)+1, row=i+1, sticky="nsew", padx=(2, 2), pady=(2, 2))
 
     def __init__(self):
         super().__init__()
@@ -264,7 +282,7 @@ class App(ctk.CTk):
                 if byte1 == b'\xff' and byte2 == b'\xff' and byte3 == b'\xff' and byte4 == b'\xff':
                     read = True
 
-            if time.time() < mustend:
+            if time.time() > mustend:
                 self.textbox.configure(text="Device not responding")
                 self.switch.deselect()
                 return
@@ -397,5 +415,7 @@ def rgb(val, min_val, max_val):
 
 if __name__ == "__main__":
     app = App()
+    # app.geometry("1800x800")
+
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
