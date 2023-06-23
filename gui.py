@@ -4,7 +4,6 @@ import customtkinter as ctk
 import serial.tools.list_ports
 import time
 from struct import *
-from time import gmtime
 
 N_VS = 9
 N_TS = 3
@@ -37,14 +36,14 @@ FORMAT_ADDITIONAL_INFO = "?" + "I" * 2 + "i"
 #   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
 FORMAT_PRECHARGE = "f?IB?xx"
 
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "I"
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "I" #+computer connected
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
 # print("SLAVE:" + str(size_slave))
 # print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
 # print("LEM:" + str(size_lem))
 # print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
-#print("TOT:" + str(size_payload))
+# print("TOT:" + str(size_payload))
 
 ser = serial.Serial(timeout=0.1)
 
@@ -185,33 +184,34 @@ class App(ctk.CTk):
             return
 
         if self.mode.get() == "Normal Mode":
-             mode = "N"
+            mode = "N"
         elif self.mode.get() == "Sleep Mode":
-             mode = "S"
+            mode = "S"
         else:
             mode = "B"
 
         ser.write(bytes(mode, 'utf-8'))
         ser.flush()
 
-        #mustend = time.time() + 2
-        #while time.time() < mustend:
+        # mustend = time.time() + 2
+        # while time.time() < mustend:
         #    if ser.in_waiting:
         #        break
-        #else:
+        # else:
         #    self.textbox.configure(text="No ACK received")
         #    raise Exception
-#
-        #ack = ser.read().decode('ASCII')
-        #print(ack)
-#
-        #if ack != mode:
-        #    self.textbox.configure(text="Received wrong ACK")
-        #    raise Exception
 
-        #ser.flush()
-        #self.update()
-        # time.sleep(UPDATE_FREQ / 1000)
+    #
+    # ack = ser.read().decode('ASCII')
+    # print(ack)
+    #
+    # if ack != mode:
+    #    self.textbox.configure(text="Received wrong ACK")
+    #    raise Exception
+
+    # ser.flush()
+    # self.update()
+    # time.sleep(UPDATE_FREQ / 1000)
 
     def switch_event(self):
         global ser
@@ -230,7 +230,7 @@ class App(ctk.CTk):
                     time.sleep(0.4)
                     ser.write(bytes("C", 'utf-8'))
                     ser.flush()
-                    #self.set_mode()
+                    # self.set_mode()
 
                 except Exception as e:
                     print(e)
@@ -241,28 +241,33 @@ class App(ctk.CTk):
     def update_gui_normal(self):
 
         try:
-            # ser.flush()
             read = False
-            #
 
             byte1 = 0
             byte2 = 0
             byte3 = 0
             byte4 = 0
 
-            while(not read):
+            mustend = time.time() + 2
+
+            while not read and time.time() < mustend:
 
                 byte1 = byte2
                 byte2 = byte3
                 byte3 = byte4
 
-                while(ser.in_waiting < 1):
+                while ser.in_waiting < 1:
                     pass
 
                 byte4 = ser.read(1)
 
-                if(byte1 == b'\xff' and byte2 == b'\xff' and byte3 == b'\xff' and byte4 == b'\xff'):
+                if byte1 == b'\xff' and byte2 == b'\xff' and byte3 == b'\xff' and byte4 == b'\xff':
                     read = True
+
+            if time.time() < mustend:
+                self.textbox.configure(text="Device not responding")
+                self.switch.deselect()
+                return
 
             while ser.in_waiting < size_payload:
                 pass
@@ -304,19 +309,18 @@ class App(ctk.CTk):
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax: size_slave * N_SLAVES + size_minmax + size_lem]))
 
         del minmax[4]
-        minmax.pop()   # remove which slave has the max temp
+        minmax.pop()  # remove which slave has the max temp
         minmax[5] /= N_TS  # from tot temp to avg temp
         minmax.append(lem[0])  # add current
-        minmax.append(lem[0]*minmax[2])  # add power
+        minmax.append(lem[0] * minmax[2])  # add power
         minmax.insert(3, minmax[2] / N_VS)  # add avg voltage
 
         for i in range(4):
             minmax[i] /= 10000
-        
+
         # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
         for index, value in enumerate(minmax):
             self.list_info[index].configure(text=str(round(value, 2)))
-
 
         # # add_infos: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "MAX TEMP", "MIN TEMP", "TOT TEMP", "CURRENT"]
         # add_infos = list(unpack(FORMAT_PAYLOAD, resp[size_bms * N_SLAVES : size_struct]))
@@ -340,12 +344,11 @@ class App(ctk.CTk):
     def update_silent(self):
         for i in range(N_SLAVES):
             for j in range(N_VS):
-                    self.total_pack_labels[i][j].configure(text="0", fg_color="gray")
+                self.total_pack_labels[i][j].configure(text="0", fg_color="gray")
             for j in range(N_VS, N_VS + N_TS):
-                    self.total_pack_labels[i][j].configure(text="0", fg_color="gray")
+                self.total_pack_labels[i][j].configure(text="0", fg_color="gray")
         for j in range(len(self.list_info)):
             self.list_info[j].configure(text="0", fg_color="gray")
-
 
     def update_bilancing(self):
         self.update_gui_normal()
@@ -365,6 +368,12 @@ class App(ctk.CTk):
                 self.update_bilancing()
 
         self.after(UPDATE_FREQ, self.update)
+
+    def on_closing(self):
+        if self.switch.get() == 1:
+            ser.write(bytes("D", 'utf-8'))
+            ser.close()
+        self.destroy()
 
 
 def rgb(val, min_val, max_val):
@@ -388,4 +397,5 @@ def rgb(val, min_val, max_val):
 
 if __name__ == "__main__":
     app = App()
+    app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
