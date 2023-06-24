@@ -5,6 +5,9 @@ import serial.tools.list_ports
 import time
 from struct import *
 
+
+count = 0
+
 N_VS = 9
 N_TS = 3
 N_SLAVES = 16
@@ -305,7 +308,10 @@ class App(ctk.CTk):
                 ser.close()
             return 0
 
+        count = 0
+
         for i in range(N_SLAVES):
+
             cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
 
             for j in range(N_VS):
@@ -313,14 +319,14 @@ class App(ctk.CTk):
                     self.total_pack_labels[i][j].configure(text="💀", fg_color="gray")
                 else:
                     value = round(cell_value[j] / 10000, 2)
-                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_VOLT, MAX_VOLT))
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"))
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1]:
                     self.total_pack_labels[i][j].configure(text="💀", fg_color="gray")
                 else:
                     value = round(cell_value[j], 2)
-                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, MIN_TEMP, MAX_TEMP))
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"))
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
@@ -328,7 +334,9 @@ class App(ctk.CTk):
 
         del minmax[4]
         minmax.pop()  # remove which slave has the max temp
-        minmax[5] /= N_TS  # from tot temp to avg temp
+        if count != 0:
+            minmax[5] /= count  # from tot temp to avg temp
+
         minmax.append(lem[0])  # add current
         minmax.append(lem[0] * minmax[2])  # add power
         minmax.insert(3, minmax[2] / N_VS)  # add avg voltage
@@ -394,13 +402,33 @@ class App(ctk.CTk):
         self.destroy()
 
 
-def rgb(val, min_val, max_val):
-    if min_val < val < (min_val + (max_val - min_val) / 2):
-        return "green"
-    elif (min_val + (max_val - min_val) / 2) <= val < max_val:
-        return "yellow"
-    else:
-        return "red"
+# def rgb(val, min_val, max_val):
+#     if min_val < val < (min_val + (max_val - min_val) / 2):
+#         return "green"
+#     elif (min_val + (max_val - min_val) / 2) <= val < max_val:
+#         return "yellow"
+#     else:
+#         return "red"
+
+
+def rgb(value, type):
+
+    if type == "temp":
+        if 20 <= value < 50:
+            return "green"
+        elif 50 <= value < 60:
+            return "yellow"
+        else:
+            return "red"
+
+    if type == "volt":
+        if 3.5 <= value < 4:
+            return "green"
+        elif 3.4 <= value < 3.5:
+            return "yellow"
+        else:
+            return "red"
+
 
     # x = int((val - min_val) / (max_val - min_val) * 256)
     # r = x * 2 if x < 128 else 255
