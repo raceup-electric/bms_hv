@@ -10,11 +10,16 @@ void init_bms() {
   pinMode(SDC_SENSE_PIN, INPUT);
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
+  g_bms.slaves[0].addr = 0;
+  g_bms.slaves[1].addr = 2;
+  g_bms.slaves[2].addr = 3;
+  g_bms.slaves[3].addr = 4;
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
-    g_bms.slaves[i].addr = i;
+    //g_bms.slaves[i].addr = i;
     g_bms.slaves[i].err = false;
   }
   g_bms.mode = Mode::NORMAL;
+  g_bms.gui_conn = false;
   init_cfg(g_bms.mode);
   init_pwm();
 };

@@ -327,6 +327,7 @@ class App(ctk.CTk):
                 else:
                     value = round(cell_value[j], 2)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"))
+                    count += 1
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
