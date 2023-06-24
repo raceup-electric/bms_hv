@@ -10,12 +10,8 @@ void init_bms() {
   pinMode(SDC_SENSE_PIN, INPUT);
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
-  g_bms.slaves[0].addr = 0;
-  g_bms.slaves[1].addr = 2;
-  g_bms.slaves[2].addr = 3;
-  g_bms.slaves[3].addr = 4;
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
-    //g_bms.slaves[i].addr = i;
+    g_bms.slaves[i].addr = i;
     g_bms.slaves[i].err = false;
   }
   g_bms.mode = Mode::NORMAL;
@@ -68,11 +64,15 @@ void start_adcv() {
 void read_volts() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
+    if (i % (SLAVE_NUM / 4) == 0) {
+      delay(100);
+    }
     // for each register
+    delay(6);
     for (char reg = 'A'; reg <= 'D'; reg++) {
       uint8_t raw_volts[VREG_LEN] = {};
       if (rdcv(g_bms.slaves[i].addr, reg, raw_volts) == 0) { 
-        delay(MEAS_DELAY);
+        delay(6);
         save_volts(i, reg, raw_volts);
         g_bms.slaves[i].err = false;
       }
@@ -121,11 +121,15 @@ void start_adax() {
 void read_temps() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
+    if (i % (SLAVE_NUM / 4) == 0) {
+      delay(100);
+    }
+    delay(6);
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
       uint8_t raw_temps[GREG_LEN] = {};
       if (rdaux(g_bms.slaves[i].addr, reg, raw_temps) == 0) {
-        delay(MEAS_DELAY);
+        delay(6);
         save_temps(i, reg, raw_temps);
         g_bms.slaves[i].err = false;
       }

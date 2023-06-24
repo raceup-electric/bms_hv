@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-constexpr uint8_t SLAVE_NUM = 4;
+constexpr uint8_t SLAVE_NUM = 16;
 constexpr uint8_t CELL_NUM = 9;
 constexpr uint8_t TEMP_NUM = 3;
 constexpr uint8_t ADC_OPT = 0;
@@ -17,7 +17,7 @@ constexpr uint16_t OV_THRESHOLD = 42000;
 constexpr uint16_t TEMP_THRESHOLD = 1000;
 constexpr uint32_t V_FAULT_TIME = 500;
 constexpr uint32_t T_FAULT_TIME = 1000;
-constexpr uint16_t MEAS_DELAY = 6;
+constexpr uint16_t MEAS_DELAY = 10;
 // balancing discharge config
 constexpr uint8_t DCTO = 0x3;
 constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;

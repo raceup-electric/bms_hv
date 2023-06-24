@@ -36,9 +36,9 @@ void loop() {
     }
     send_can();
   }
-  //if (g_bms.gui_conn && cycle_count % 5 == 0) {
+  // if (g_bms.gui_conn && cycle_count % 5 == 0) {
   //  print_slaves_bin();
-  //}
+  // }
   cycle_count++;
   if (DEBUG) {
     print_slaves_hr();
