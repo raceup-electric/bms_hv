@@ -395,14 +395,12 @@ class App(ctk.CTk):
 
 
 def rgb(val, min_val, max_val):
-    if min_val < val < (max_val / 3):
+    if min_val < val < (min_val + (max_val - min_val) / 2):
         return "green"
-    elif (max_val / 3) <= val < (2 * max_val / 3):
+    elif (min_val + (max_val - min_val) / 2) <= val < max_val:
         return "yellow"
-    elif (2 * max_val / 3) <= val < max_val:
-        return "red"
     else:
-        return "gray"
+        return "red"
 
     # x = int((val - min_val) / (max_val - min_val) * 256)
     # r = x * 2 if x < 128 else 255
