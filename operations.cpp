@@ -10,6 +10,9 @@ void init_bms() {
   pinMode(SDC_SENSE_PIN, INPUT);
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
+  digitalWrite(BMS_FAULT_PIN, HIGH);
+  digitalWrite(AIR_2_EN_PIN, LOW);
+  digitalWrite(LED_0_PIN, LOW);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
     g_bms.slaves[i].addr = i;
     g_bms.slaves[i].err = false;
@@ -64,9 +67,6 @@ void start_adcv() {
 void read_volts() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
-    if (i % (SLAVE_NUM / 4) == 0) {
-      delay(100);
-    }
     // for each register
     delay(6);
     for (char reg = 'A'; reg <= 'D'; reg++) {
@@ -121,9 +121,6 @@ void start_adax() {
 void read_temps() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
-    if (i % (SLAVE_NUM / 4) == 0) {
-      delay(100);
-    }
     delay(6);
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {

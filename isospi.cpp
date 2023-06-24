@@ -8,7 +8,7 @@ void init_spi() {
   SPI.begin();
   SPI.setDataMode(SPI_MODE3);
   SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(84); // 1 MHz
+  SPI.setClockDivider(168); // 1 MHz
 }
 
 void tx(uint8_t* tx_data, int tx_bytes) {

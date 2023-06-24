@@ -42,7 +42,7 @@ constexpr uint8_t GREG_LEN = 6;
 // precharge config
 constexpr uint32_t PRECH_MIN_WAIT = 5000; // ms
 constexpr uint8_t PRECH_MIN_CYCLE = 20;
-// pins config
+// pins config (new host board!!)
 constexpr uint8_t SPI_CS_PIN = 5;
 constexpr uint8_t FAN_EN_PIN = 4;
 constexpr uint8_t BMS_FAULT_PIN = 3;

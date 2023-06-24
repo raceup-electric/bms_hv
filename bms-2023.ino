@@ -25,7 +25,7 @@ uint8_t cycle_count = 0;
 void loop() { 
   update_mode();
   if (g_bms.mode == Mode::NORMAL) {
-    //precharge_control();
+    precharge_control();
     start_adcv();
     read_volts();
     start_adax();
@@ -36,11 +36,11 @@ void loop() {
     }
     send_can();
   }
-  // if (g_bms.gui_conn && cycle_count % 5 == 0) {
-  //  print_slaves_bin();
-  // }
+  if (g_bms.gui_conn && cycle_count % 5 == 0) {
+   print_slaves_bin();
+  }
   cycle_count++;
-  if (DEBUG) {
+  if (DEBUG && !g_bms.gui_conn) {
     print_slaves_hr();
   }
   if (SCREEN_ENABLE) {
