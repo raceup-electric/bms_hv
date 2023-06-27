@@ -104,7 +104,7 @@ class App(ctk.CTk):
         appearence_frame.grid_columnconfigure(0, weight=1)
         appearence_frame.grid_rowconfigure(0, weight=1)
 
-        option = ctk.CTkOptionMenu(appearence_frame, values=["System", "Light", "Dark"], command=chg_appearance)
+        option = ctk.CTkOptionMenu(appearence_frame, values=["Dark", "Light", "System"], command=chg_appearance)
         option.grid(row=0, column=0, pady=(8, 8))
 
     def information_frame(self):
@@ -248,6 +248,7 @@ class App(ctk.CTk):
                     ser.baudrate = self.baud_var.get()
                     ser.port = self.option_COM.get()
                     ser.open()
+
                     time.sleep(0.4)
                     ser.write(bytes("C", 'utf-8'))
                     ser.flush()
@@ -277,7 +278,7 @@ class App(ctk.CTk):
                 byte2 = byte3
                 byte3 = byte4
 
-                while ser.in_waiting < 1:
+                while ser.in_waiting < 1 and time.time() < mustend:
                     pass
 
                 byte4 = ser.read(1)
@@ -288,6 +289,7 @@ class App(ctk.CTk):
             if time.time() > mustend:
                 self.textbox.configure(text="Device not responding")
                 self.switch.deselect()
+                ser.close()
                 return
 
             while ser.in_waiting < size_payload:
