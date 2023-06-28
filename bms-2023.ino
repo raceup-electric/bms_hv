@@ -18,9 +18,8 @@ void setup() {
   init_bms();
   init_can();
   init_fan();
+  reset_measures();
 }
-uint8_t cycle_count = 0;
-
 
 void loop() { 
   update_mode();
@@ -36,10 +35,9 @@ void loop() {
     }
     send_can();
   }
-  if (g_bms.gui_conn && cycle_count % 5 == 0) {
+  if (g_bms.gui_conn) {
    print_slaves_bin();
   }
-  cycle_count++;
   if (DEBUG && !g_bms.gui_conn) {
     print_slaves_hr();
   }

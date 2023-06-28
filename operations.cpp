@@ -95,7 +95,6 @@ void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   // Ancora elettronici bastardi
   if (reg == 'D') {
     uint16_t voltage = (raw_volts[1] << 8) | (raw_volts[0] & 0xFF);
-    uint16_t offset = (reg - 'D') * CELLS_PER_REG;
     g_bms.slaves[slave_idx].volts[5] = voltage;
     if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
     if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
@@ -106,6 +105,8 @@ void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   for (int i = 0; i < VREG_LEN; i += 2) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
+    // don't read last cell in reg B because it is not connected (elettronici vi odio)
+    if (reg == 'B' && i == VREG_LEN - 2) continue;
     g_bms.slaves[slave_idx].volts[offset + (i / 2)] = voltage;
     if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
     if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
@@ -194,8 +195,6 @@ void update_mode() {
 Mode read_mode() {
   if(Serial.available() > 0) {
     char input = (char) Serial.read();
-    Serial.write(input);
-    delay(100);
     Serial.flush();
     switch(input) {
       case 'N': return Mode::NORMAL;

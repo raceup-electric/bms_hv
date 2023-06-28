@@ -3,8 +3,6 @@
 
 void set_precharge(BytesUnion* data) {
   g_bms.precharge.bus_volt = (data->bytes[0] | data->bytes[1] << 8);
-  Serial.print("Precharge volt: ");
-  Serial.println(g_bms.precharge.bus_volt);
   g_bms.precharge.via_can = true;
 }
 

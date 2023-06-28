@@ -417,6 +417,8 @@ class App(ctk.CTk):
 def rgb(value, type):
 
     if type == "temp":
+        if 0 <= value < 20:
+            return "blue"
         if 20 <= value < 50:
             return "green"
         elif 50 <= value < 60:
@@ -425,9 +427,9 @@ def rgb(value, type):
             return "red"
 
     if type == "volt":
-        if 3.5 <= value < 4:
+        if 3.5 <= value < 4.1:
             return "green"
-        elif 3.4 <= value < 3.5:
+        elif 3.4 <= value < 3.5 or 4.1 <= value < 4.2 :
             return "yellow"
         else:
             return "red"
