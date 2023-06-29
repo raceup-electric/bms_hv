@@ -51,3 +51,10 @@ Thumbs.db
 .vscode
 build
 docs
+
+# pyinstaller spec
+*.spec
+
+# gui artifacts
+guibuild/
+guidist/

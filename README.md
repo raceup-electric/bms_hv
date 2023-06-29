@@ -107,6 +107,16 @@ Quando watchdog timer va in timout (2 secondi di inattività):
 
 Quando la scheda va in sleep la configurazione `CFGA` viene resettato e va re-inizializzato al prossimo comando.
 
-## Sviluppo
+### Creazione applicazione
 
-- [ ] La soluzione finale sarà sostituire l'Arduino 2 con l'Aurix.
+Per produrre un eseguibile (solo per la piattaforma in uso) installare PyPackage:
+```
+pip3 install pypackage
+```
+
+Poi eseguire il seguente comando:
+```
+pyinstaller -F -w -i resources/icon.png --workpath guibuild --distpath guidist -n BMS gui.py
+```
+
+L'eseguibile si troverà nella directory _guidist_
