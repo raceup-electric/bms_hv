@@ -310,26 +310,31 @@ class App(ctk.CTk):
                 ser.close()
             return 0
 
-        count = 0
+        alive_slaves = N_SLAVES
 
         for i in range(N_SLAVES):
 
             cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
 
+            if cell_value[N_VS + N_TS + 1] > 10:
+                alive_slaves -= 1
+                for j in range(N_VS + N_TS):
+                    self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", bg_color="white")
+                continue
+
             for j in range(N_VS):
-                if cell_value[N_VS + N_TS + 1]:
-                    self.total_pack_labels[i][j].configure(text="💀", fg_color="gray")
-                else:
-                    value = round(cell_value[j] / 10000, 2)
+                if cell_value[N_VS + N_TS + 1] == 0:
+                    value = round(cell_value[j] / 10000, 3)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"))
+                else:
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
 
             for j in range(N_VS, N_VS + N_TS):
-                if cell_value[N_VS + N_TS + 1]:
-                    self.total_pack_labels[i][j].configure(text="💀", fg_color="gray")
-                else:
+                if cell_value[N_VS + N_TS + 1] == 0:
                     value = round(cell_value[j], 2)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"))
-                    count += 1
+                else:
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
@@ -337,12 +342,12 @@ class App(ctk.CTk):
 
         del minmax[4]
         minmax.pop()  # remove which slave has the max temp
-        if count != 0:
-            minmax[5] /= count  # from tot temp to avg temp
+        if alive_slaves != 0:
+            minmax[5] /= (alive_slaves * N_TS)  # from tot temp to avg temp
 
         minmax.append(lem[0])  # add current
         minmax.append(lem[0] * minmax[2])  # add power
-        minmax.insert(3, minmax[2] / N_VS)  # add avg voltage
+        minmax.insert(3, minmax[2] / (alive_slaves * N_VS))  # add avg voltage
 
         for i in range(4):
             minmax[i] /= 10000
@@ -427,9 +432,9 @@ def rgb(value, type):
             return "red"
 
     if type == "volt":
-        if 3.5 <= value < 4.1:
+        if 3.5 <= value < 4.2:
             return "green"
-        elif 3.4 <= value < 3.5 or 4.1 <= value < 4.2 :
+        elif 3.4 <= value < 3.5:
             return "yellow"
         else:
             return "red"
