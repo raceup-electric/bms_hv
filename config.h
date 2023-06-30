@@ -15,6 +15,7 @@ constexpr uint8_t GPIO_CHANNEL = 0;
 constexpr uint16_t UV_THRESHOLD = 33000;
 constexpr uint16_t OV_THRESHOLD = 42000;
 constexpr uint16_t TEMP_THRESHOLD = 1000;
+constexpr uint8_t MIN_ERR_THRESHOLD = 10;
 constexpr uint32_t V_FAULT_TIME = 500;
 constexpr uint32_t T_FAULT_TIME = 1000;
 constexpr uint16_t MEAS_DELAY = 10;

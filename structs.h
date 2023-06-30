@@ -14,7 +14,7 @@ struct Slave {
   uint16_t volts[CELL_NUM];
   uint16_t temps[TEMP_NUM];
   uint8_t addr;
-  bool err;
+  uint8_t err;
 };
 
 struct LEM {

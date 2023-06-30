@@ -15,7 +15,7 @@ void init_bms() {
   digitalWrite(LED_0_PIN, LOW);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
     g_bms.slaves[i].addr = i;
-    g_bms.slaves[i].err = false;
+    g_bms.slaves[i].err = 0;
   }
   g_bms.mode = Mode::NORMAL;
   g_bms.gui_conn = false;
@@ -67,6 +67,8 @@ void start_adcv() {
 void read_volts() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
+    // slave is dead skip reading
+    if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
     // for each register
     delay(6);
     for (char reg = 'A'; reg <= 'D'; reg++) {
@@ -74,10 +76,10 @@ void read_volts() {
       if (rdcv(g_bms.slaves[i].addr, reg, raw_volts) == 0) { 
         delay(6);
         save_volts(i, reg, raw_volts);
-        g_bms.slaves[i].err = false;
+        g_bms.slaves[i].err = 0;
       }
       else {
-        g_bms.slaves[i].err = true;
+        g_bms.slaves[i].err += 1;
       }
     }
     
@@ -122,6 +124,8 @@ void start_adax() {
 void read_temps() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
+    // slave is dead skip reading
+    if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
     delay(6);
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
@@ -129,10 +133,10 @@ void read_temps() {
       if (rdaux(g_bms.slaves[i].addr, reg, raw_temps) == 0) {
         delay(6);
         save_temps(i, reg, raw_temps);
-        g_bms.slaves[i].err = false;
+        g_bms.slaves[i].err = 0;
       }
       else {
-        g_bms.slaves[i].err = true;
+        g_bms.slaves[i].err += 1;
       }
     }
   }
@@ -173,10 +177,19 @@ void check_faults() {
     g_bms.fault_temp_tmstp = millis();
   }
 
+  bool dead_slave = false;
+  for (int i = 0; i < SLAVE_NUM; i++) {
+    if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) {
+      dead_slave = true;
+      break;
+    }
+  }
+
   if (
     millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
     millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
-    !is_lem_in_time()
+    !is_lem_in_time() ||
+    dead_slave
   ) {
     sdc_open();
   }
@@ -224,7 +237,7 @@ void print_slaves_hr() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     Serial.print("Slave "); Serial.println(g_bms.slaves[i].addr);
     Serial.print("err: "); Serial.println(g_bms.slaves[i].err);
-    if (!g_bms.slaves[i].err) {
+    if (g_bms.slaves[i].err < 1) {
       for (int j = 0; j < CELL_NUM; j++) {
         Serial.print("\tCell ");
         Serial.print(j);

@@ -29,6 +29,7 @@ void precharge_control() {
       g_bms.precharge.done = true;
     }
   }
+  // cycle counter serves as debouncer for sdc sense signal (wait at least PRECH_MIN_CYCLE of LOW sdc sense to open AIR 2)
   else {
     g_bms.precharge.cycle_counter++;
     if (g_bms.precharge.cycle_counter > PRECH_MIN_CYCLE) {

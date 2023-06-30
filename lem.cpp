@@ -15,5 +15,5 @@ void set_lem(BytesUnion *data) {
  * If LEM message is not received after LEM_TIMEOUT ms, send fault
  */
 bool is_lem_in_time(){
-  return !((millis() - g_bms.lem.last_recv) > LEM_TIMEOUT);
+  return ((millis() - g_bms.lem.last_recv) < LEM_TIMEOUT);
 }
