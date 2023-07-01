@@ -9,4 +9,6 @@ extern BMS g_bms;
 
 void sdc_open();
 
+void sdc_close();
+
 #endif // SDC_H_

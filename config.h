@@ -15,7 +15,7 @@ constexpr uint8_t GPIO_CHANNEL = 0;
 constexpr uint16_t UV_THRESHOLD = 33000;
 constexpr uint16_t OV_THRESHOLD = 42000;
 constexpr uint16_t TEMP_THRESHOLD = 1000;
-constexpr uint8_t MIN_ERR_THRESHOLD = 10;
+constexpr uint8_t MIN_ERR_THRESHOLD = 30;
 constexpr uint32_t V_FAULT_TIME = 500;
 constexpr uint32_t T_FAULT_TIME = 1000;
 constexpr uint16_t MEAS_DELAY = 10;
@@ -34,6 +34,7 @@ constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
 constexpr uint32_t LEM_CURRENT_ID = 0x3C2;
 constexpr uint32_t DATA_VOLTAGE_ID = 0x110;
 constexpr uint32_t DATA_TEMP_ID = 0x111;
+constexpr uint32_t FAN_TOGGLE_ID = 0x90;
 // commands consts (do not edit unless bug)
 constexpr uint8_t CMD_LEN = 2;
 constexpr uint8_t CFG_LEN = 6;
@@ -53,6 +54,6 @@ constexpr uint8_t LED_0_PIN = 2;
 // operations config
 constexpr bool SCREEN_ENABLE = false;
 constexpr bool DEBUG = true;
-constexpr bool FAULT_ENABLE = false;
+constexpr bool FAULT_ENABLE = true;
 
 #endif

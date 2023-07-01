@@ -18,35 +18,40 @@ MAX_TEMP = 60
 MIN_TEMP = 20
 MAX_VOLT = 4.2
 MIN_VOLT = 3.3
+MIN_ERR = 30
 
 # H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int  B -> uint8, x -> pad byte
 # https://docs.python.org/3/library/struct.html
 
-# uint16_t volts[]; int16_t temps[];  uint8_t addr;  bool err;
-FORMAT_SLAVE = "H" * (N_VS + N_TS) + "B?"
+# uint16_t volts[]; int16_t temps[];  uint8_t addr;  uint8_t err;
+FORMAT_SLAVE = "H" * (N_VS + N_TS) + "BB"
 
-# uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
-FORMAT_MIN_MAX = "H" * 2 + "I" + "H" * 4 + "B"
+# uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
+FORMAT_MIN_MAX = "H" * 2 + "I" + "H" * 3 + "Bx"
 size_minmax = struct.calcsize(FORMAT_MIN_MAX)
+
+# uint16_t prev_temp; bool on;
+FORMAT_FAN = "H?x"
+size_fan = struct.calcsize(FORMAT_FAN)
 
 # uint32_t curr;  uint32_t last_recv;
 FORMAT_LEM = "I" * 2
 size_lem = struct.calcsize(FORMAT_LEM)
 
 #   bool sdc_closed;  uint32_t fault_volt_tmstp;  uint32_t fault_temp_tmstp;  Mode mode (int 32 bit);
-FORMAT_ADDITIONAL_INFO = "?" + "I" * 2 + "i"
+FORMAT_ADDITIONAL_INFO = "?xxx" + "I" * 2 + "i"
 
 #   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
-FORMAT_PRECHARGE = "f?IB?xx"
+FORMAT_PRECHARGE = "f?xxxIB?xx"
 
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "I"  # +computer connected
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "?xxx"  # +computer connected
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
-# print("SLAVE:" + str(size_slave))
-# print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
-# print("LEM:" + str(size_lem))
-# print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
-# print("TOT:" + str(size_payload))
+print("SLAVE:" + str(size_slave))
+print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
+print("LEM:" + str(size_lem))
+print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
+print("TOT:" + str(size_payload))
 
 ser = serial.Serial(timeout=0.1)
 
@@ -311,21 +316,31 @@ class App(ctk.CTk):
             return 0
 
         alive_slaves = N_SLAVES
+        # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
+        minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
 
         for i in range(N_SLAVES):
 
             cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
 
-            if cell_value[N_VS + N_TS + 1] > 10:
+            if cell_value[N_VS + N_TS + 1] > MIN_ERR:
                 alive_slaves -= 1
                 for j in range(N_VS + N_TS):
-                    self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", bg_color="white")
+                    self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white")
                 continue
 
             for j in range(N_VS):
                 if cell_value[N_VS + N_TS + 1] == 0:
+                    font = ("sans-serif", 14)
+                    color = "black"
+                    if cell_value[j] == minmax[0]:
+                        font = ("sans-serif", 14, "bold") 
+                        color = "blue"
+                    if cell_value[j] == minmax[1]:
+                        font = ("sans-serif", 14, "bold")
+                        color = "cyan"
                     value = round(cell_value[j] / 10000, 3)
-                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"))
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
                 else:
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
 
@@ -337,10 +352,8 @@ class App(ctk.CTk):
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
-        minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax: size_slave * N_SLAVES + size_minmax + size_lem]))
 
-        del minmax[4]
         minmax.pop()  # remove which slave has the max temp
         if alive_slaves != 0:
             minmax[5] /= (alive_slaves * N_TS)  # from tot temp to avg temp
@@ -354,7 +367,7 @@ class App(ctk.CTk):
 
         # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
         for index, value in enumerate(minmax):
-            self.list_info[index].configure(text=str(round(value, 2)))
+            self.list_info[index].configure(text=str(round(value, 3)))
 
         # # add_infos: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "MAX TEMP", "MIN TEMP", "TOT TEMP", "CURRENT"]
         # add_infos = list(unpack(FORMAT_PAYLOAD, resp[size_bms * N_SLAVES : size_struct]))
@@ -438,7 +451,6 @@ def rgb(value, type):
             return "yellow"
         else:
             return "red"
-
 
     # x = int((val - min_val) / (max_val - min_val) * 256)
     # r = x * 2 if x < 128 else 255

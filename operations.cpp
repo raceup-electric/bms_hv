@@ -67,8 +67,8 @@ void start_adcv() {
 void read_volts() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
-    // slave is dead skip reading
-    if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
+    // // slave is dead skip reading
+    // if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
     // for each register
     delay(6);
     for (char reg = 'A'; reg <= 'D'; reg++) {
@@ -124,8 +124,8 @@ void start_adax() {
 void read_temps() {
   // for each slave
   for (int i = 0; i < SLAVE_NUM; i++) {
-    // slave is dead skip reading
-    if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
+    // // slave is dead skip reading
+    // if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
     delay(6);
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
@@ -169,29 +169,26 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
 }
 
 void check_faults() {
-  if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_temp > UV_THRESHOLD) {
-    g_bms.fault_volt_tmstp = millis();
-  }
+  // if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_temp > UV_THRESHOLD) {
+  //   g_bms.fault_volt_tmstp = millis();
+  // }
 
-  if (g_bms.max_temp < TEMP_THRESHOLD) {
-    g_bms.fault_temp_tmstp = millis();
-  }
+  // if (g_bms.max_temp < TEMP_THRESHOLD) {
+  //   g_bms.fault_temp_tmstp = millis();
+  // }
 
-  bool dead_slave = false;
-  for (int i = 0; i < SLAVE_NUM; i++) {
-    if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) {
-      dead_slave = true;
-      break;
-    }
-  }
+  // uint16_t alives = alive_slaves();
 
   if (
-    millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
-    millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
-    !is_lem_in_time() ||
-    dead_slave
+    // millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
+    // millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
+    !is_lem_in_time()
+    // alives < 0xFF
   ) {
     sdc_open();
+  }
+  else {
+    sdc_close();
   }
 }
 

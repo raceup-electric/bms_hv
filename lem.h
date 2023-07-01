@@ -5,7 +5,7 @@
 #include "structs.h"
 #include "canc.h"
 
-constexpr uint16_t LEM_TIMEOUT = 1000;
+constexpr uint16_t LEM_TIMEOUT = 500;
 
 extern BMS g_bms;
 

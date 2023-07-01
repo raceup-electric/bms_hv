@@ -17,6 +17,11 @@ struct Slave {
   uint8_t err;
 };
 
+struct Fan {
+  uint16_t prev_temp;
+  bool on;
+};
+
 struct LEM {
   uint32_t curr;
   uint32_t last_recv;
@@ -36,10 +41,10 @@ struct BMS {
   uint16_t min_volt;
   uint32_t tot_volt;
   uint16_t max_temp;
-  uint16_t prev_max_temp;
   uint16_t min_temp;
   uint16_t tot_temp;
   uint8_t max_temp_slave;
+  Fan fan;
   LEM lem;
   bool sdc_closed;
   uint32_t fault_volt_tmstp;
