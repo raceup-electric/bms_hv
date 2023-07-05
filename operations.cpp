@@ -10,8 +10,9 @@ void init_bms() {
   pinMode(SDC_SENSE_PIN, INPUT);
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
+  // bms fault have inverted logic (HIGH off, LOW on)
   digitalWrite(BMS_FAULT_PIN, HIGH);
-  digitalWrite(AIR_2_EN_PIN, HIGH);
+  digitalWrite(AIR_2_EN_PIN, LOW);
   digitalWrite(LED_0_PIN, LOW);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
     g_bms.slaves[i].addr = i;
@@ -171,21 +172,21 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
 }
 
 void check_faults() {
-  // if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_temp > UV_THRESHOLD) {
-  //   g_bms.fault_volt_tmstp = millis();
-  // }
+  if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_temp > UV_THRESHOLD) {
+    g_bms.fault_volt_tmstp = millis();
+  }
 
-  // if (g_bms.max_temp < TEMP_THRESHOLD) {
-  //   g_bms.fault_temp_tmstp = millis();
-  // }
+  if (g_bms.max_temp < TEMP_THRESHOLD) {
+    g_bms.fault_temp_tmstp = millis();
+  }
 
-  // uint16_t alives = alive_slaves();
+  uint16_t alives = alive_slaves();
 
   if (
-    // millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
-    // millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
-    !is_lem_in_time()
-    // alives < 0xFF
+    millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
+    millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
+    !is_lem_in_time() ||
+    alives < 0xFF
   ) {
     sdc_open();
   }
