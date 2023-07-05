@@ -11,7 +11,7 @@ void init_bms() {
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
   digitalWrite(BMS_FAULT_PIN, HIGH);
-  digitalWrite(AIR_2_EN_PIN, LOW);
+  digitalWrite(AIR_2_EN_PIN, HIGH);
   digitalWrite(LED_0_PIN, LOW);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
     g_bms.slaves[i].addr = i;
@@ -19,6 +19,8 @@ void init_bms() {
   }
   g_bms.mode = Mode::NORMAL;
   g_bms.gui_conn = false;
+  g_bms.sdc_closed = false;
+  g_bms.precharge.done = false;
   init_cfg(g_bms.mode);
   init_pwm();
 };

@@ -21,11 +21,11 @@ void precharge_control() {
       (g_bms.precharge.bus_volt > 600 * 0.80) &&
       ((millis() - g_bms.precharge.start_tmstp) > PRECH_MIN_WAIT)
     ) {
-      digitalWrite(AIR_2_EN_PIN, HIGH);
+      digitalWrite(AIR_2_EN_PIN, LOW);
       g_bms.precharge.done = true;
     }
     else if ((millis() - g_bms.precharge.start_tmstp) > PRECH_MIN_WAIT) {
-      digitalWrite(AIR_2_EN_PIN, HIGH);
+      digitalWrite(AIR_2_EN_PIN, LOW);
       g_bms.precharge.done = true;
     }
   }
@@ -33,7 +33,7 @@ void precharge_control() {
   else {
     g_bms.precharge.cycle_counter++;
     if (g_bms.precharge.cycle_counter > PRECH_MIN_CYCLE) {
-        digitalWrite(AIR_2_EN_PIN, LOW);
+        digitalWrite(AIR_2_EN_PIN, HIGH);
         g_bms.precharge.done = false;
     }
   }

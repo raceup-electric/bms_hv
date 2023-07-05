@@ -53,7 +53,7 @@ constexpr uint8_t AIR_2_EN_PIN = 6;
 constexpr uint8_t LED_0_PIN = 2;
 // operations config
 constexpr bool SCREEN_ENABLE = false;
-constexpr bool DEBUG = true;
+constexpr bool DEBUG = false;
 constexpr bool FAULT_ENABLE = true;
 
 #endif
