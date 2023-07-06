@@ -58,7 +58,6 @@ ser = serial.Serial(timeout=0.1)
 def chg_appearance(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
 
-
 class App(ctk.CTk):
 
     def configuration_frame(self):
@@ -109,7 +108,7 @@ class App(ctk.CTk):
         appearence_frame.grid_columnconfigure(0, weight=1)
         appearence_frame.grid_rowconfigure(0, weight=1)
 
-        option = ctk.CTkOptionMenu(appearence_frame, values=["Dark", "Light", "System"], command=chg_appearance)
+        option = ctk.CTkOptionMenu(appearence_frame, values=["System", "Dark", "Light"], command=chg_appearance)
         option.grid(row=0, column=0, pady=(8, 8))
 
     def information_frame(self):
@@ -343,6 +342,7 @@ class App(ctk.CTk):
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
                 else:
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
+                    alive_slaves -= 1
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1] == 0:
@@ -352,15 +352,18 @@ class App(ctk.CTk):
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
-        lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax: size_slave * N_SLAVES + size_minmax + size_lem]))
+        lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
 
         minmax.pop()  # remove which slave has the max temp
         if alive_slaves != 0:
             minmax[5] /= (alive_slaves * N_TS)  # from tot temp to avg temp
+            minmax.insert(3, minmax[2] / (alive_slaves * N_VS))  # add avg voltage
+        else:
+            minmax[5] = 0
+            minmax.insert(3, 0)
 
         minmax.append((lem[0]) / 1000.0)  # add current
-        minmax.append((lem[0]) / 1000.0 * minmax[2])  # add power
-        minmax.insert(3, minmax[2] / (alive_slaves * N_VS))  # add avg voltage
+        minmax.append((lem[0] / 1000.0) * minmax[2])  # add power
 
         for i in range(4):
             minmax[i] /= 10000
