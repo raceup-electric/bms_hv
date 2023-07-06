@@ -14,6 +14,8 @@ constexpr float TEMP_FIT_COEFF[3] = {
 
 uint16_t parse_temp(uint16_t volt);
 
-uint16_t alive_slaves();
+uint16_t bitmap_alive_slaves();
+
+uint8_t n_alive_slaves();
 
 #endif // UTILS_H_

@@ -23,7 +23,7 @@ struct Fan {
 };
 
 struct LEM {
-  uint32_t curr;
+  int32_t curr;
   uint32_t last_recv;
 };
 

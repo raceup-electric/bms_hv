@@ -159,16 +159,6 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
       g_bms.tot_temp += temp;
     }
   }
-  // if (reg == 'B') {
-  //   // gpio 4
-  //   uint16_t volt = (raw_temps[1] << 8) | (raw_temps[0] & 0xFF);
-  //   uint16_t temp = parse_temp(volt);
-  //   // three cell per measurement
-  //   g_bms.slaves[slave_idx].temps[2] = temp;
-  //   if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
-  //   if (temp < g_bms.min_temp) g_bms.min_temp = temp;
-  //   g_bms.tot_temp += temp;
-  // }
 }
 
 void check_faults() {
@@ -180,13 +170,13 @@ void check_faults() {
     g_bms.fault_temp_tmstp = millis();
   }
 
-  uint16_t alives = alive_slaves();
+  uint16_t alives = n_alive_slaves();
 
   if (
     millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
     millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
     !is_lem_in_time() ||
-    alives < 0xFF
+    alives < SLAVE_NUM
   ) {
     sdc_open();
   }
@@ -266,12 +256,17 @@ void print_slaves_bin() {
 }
 
 void send_can() {
+  int responses = 0;
+  for (int i = 0; i < SLAVE_NUM; i++) {
+    if (g_bms.slaves[i].err == 0) responses++;
+  }
   send_data_to_ECU(
     g_bms.max_volt,
-    g_bms.tot_volt / (SLAVE_NUM * CELL_NUM),
+    g_bms.tot_volt / (responses * CELL_NUM),
     g_bms.min_volt,
+    bitmap_alive_slaves(), 
     g_bms.max_temp,
-    g_bms.tot_temp / (SLAVE_NUM * TEMP_NUM),
+    g_bms.tot_temp / (responses * TEMP_NUM),
     g_bms.min_temp,
     g_bms.max_temp_slave
   );

@@ -18,7 +18,7 @@ MAX_TEMP = 60
 MIN_TEMP = 20
 MAX_VOLT = 4.2
 MIN_VOLT = 3.3
-MIN_ERR = 30
+MIN_ERR = 10
 
 # H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int  B -> uint8, x -> pad byte
 # https://docs.python.org/3/library/struct.html
@@ -34,8 +34,8 @@ size_minmax = struct.calcsize(FORMAT_MIN_MAX)
 FORMAT_FAN = "H?x"
 size_fan = struct.calcsize(FORMAT_FAN)
 
-# uint32_t curr;  uint32_t last_recv;
-FORMAT_LEM = "I" * 2
+# int32_t curr;  uint32_t last_recv;
+FORMAT_LEM = "iI"
 size_lem = struct.calcsize(FORMAT_LEM)
 
 #   bool sdc_closed;  uint32_t fault_volt_tmstp;  uint32_t fault_temp_tmstp;  Mode mode (int 32 bit);
@@ -47,11 +47,11 @@ FORMAT_PRECHARGE = "f?xxxIB?xx"
 FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "?xxx"  # +computer connected
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
-print("SLAVE:" + str(size_slave))
-print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
-print("LEM:" + str(size_lem))
-print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
-print("TOT:" + str(size_payload))
+# print("SLAVE:" + str(size_slave))
+# print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
+# print("LEM:" + str(size_lem))
+# print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
+# print("TOT:" + str(size_payload))
 
 ser = serial.Serial(timeout=0.1)
 
@@ -358,8 +358,8 @@ class App(ctk.CTk):
         if alive_slaves != 0:
             minmax[5] /= (alive_slaves * N_TS)  # from tot temp to avg temp
 
-        minmax.append(lem[0])  # add current
-        minmax.append(lem[0] * minmax[2])  # add power
+        minmax.append((lem[0]) / 1000.0)  # add current
+        minmax.append((lem[0]) / 1000.0 * minmax[2])  # add power
         minmax.insert(3, minmax[2] / (alive_slaves * N_VS))  # add avg voltage
 
         for i in range(4):

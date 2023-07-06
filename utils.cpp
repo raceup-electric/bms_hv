@@ -8,10 +8,17 @@ uint16_t parse_temp(uint16_t volt) {
   );
 }
 
-uint16_t alive_slaves() {
+uint16_t bitmap_alive_slaves() {
   uint16_t bitmap = 0;
   for (int i = 0; i < SLAVE_NUM; i++) {
-    if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) bitmap |= (1 << i);
+    if (g_bms.slaves[i].err >= MIN_ERR_THRESHOLD) bitmap |= (1 << i);
   }
   return ~bitmap;
+}
+
+uint8_t n_alive_slaves() {
+  uint8_t alives = 0;
+  for (int i = 0; i < SLAVE_NUM; i++) {
+    if (g_bms.slaves[i].err < MIN_ERR_THRESHOLD) alives++;
+  }
 }
