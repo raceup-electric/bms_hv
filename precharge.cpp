@@ -11,13 +11,9 @@ void precharge_control() {
   if (digitalRead(SDC_SENSE_PIN) == HIGH) {
     if (g_bms.precharge.done) return;
     g_bms.precharge.cycle_counter = 0;
-    Serial.print("Time since sdc closed: ");
-    Serial.println(millis() - g_bms.precharge.start_tmstp);
     if (!g_bms.sdc_closed) {
       g_bms.sdc_closed = true;
       g_bms.precharge.start_tmstp = millis();
-      Serial.print("Precharge started at: ");
-      Serial.println(g_bms.precharge.start_tmstp);
       return;
     }
     else if (
