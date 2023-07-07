@@ -5,7 +5,6 @@ import serial.tools.list_ports
 import time
 from struct import *
 
-
 count = 0
 
 N_VS = 9
@@ -55,8 +54,10 @@ size_payload = struct.calcsize(FORMAT_PAYLOAD)
 
 ser = serial.Serial(timeout=0.1)
 
+
 def chg_appearance(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
+
 
 class App(ctk.CTk):
 
@@ -129,18 +130,13 @@ class App(ctk.CTk):
             label = ctk.CTkCheckBox(box1, text="Slv " + str(i), fg_color=("gray70", "gray25"), corner_radius=4, width=52, command=self.deselect_slave)
             label.configure(command=lambda button=label: self.deselect_slave(button))
 
-            # if not slave_enabled[i]:
-            #     label.deselect()
-            #     continue
-
             label.select()
-
-            label.grid(column=i+1, row=0, sticky="nsew", padx=(5, 5), pady=(20, 5))
+            label.grid(column=i + 1, row=0, sticky="nsew", padx=(5, 5), pady=(20, 5))
 
             s = list()
             for j in range(1, N_VS + N_TS + 1):
                 label = ctk.CTkLabel(box1, text="0", fg_color=("gray80", "gray15"), corner_radius=4, text_color="black", width=52)
-                label.grid(column=i+1, row=j, sticky="nsew", padx=(2, 2), pady=(2, 2))
+                label.grid(column=i + 1, row=j, sticky="nsew", padx=(2, 2), pady=(2, 2))
                 s.append(label)
 
             self.total_pack_labels.append(s)
@@ -151,7 +147,7 @@ class App(ctk.CTk):
 
         # min_volt, max_volt, tot_volt, min_temp, max_temp, tot_temp
 
-        list_num = ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]  # "SoC"
+        list_num = ["MAX VOLT", "MIN VOLT", "BALANCING", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]  # "SoC"
         self.list_info = []
 
         for i in range(len(list_num)):
@@ -172,7 +168,7 @@ class App(ctk.CTk):
                 e.grid_forget()
         else:
             for i, e in enumerate(self.total_pack_labels[int(text)]):
-                e.grid(column=int(text)+1, row=i+1, sticky="nsew", padx=(2, 2), pady=(2, 2))
+                e.grid(column=int(text) + 1, row=i + 1, sticky="nsew", padx=(2, 2), pady=(2, 2))
 
     def __init__(self):
         super().__init__()
@@ -217,26 +213,6 @@ class App(ctk.CTk):
 
         ser.write(bytes(mode, 'utf-8'))
         ser.flush()
-
-        # mustend = time.time() + 2
-        # while time.time() < mustend:
-        #    if ser.in_waiting:
-        #        break
-        # else:
-        #    self.textbox.configure(text="No ACK received")
-        #    raise Exception
-
-    #
-    # ack = ser.read().decode('ASCII')
-    # print(ack)
-    #
-    # if ack != mode:
-    #    self.textbox.configure(text="Received wrong ACK")
-    #    raise Exception
-
-    # ser.flush()
-    # self.update()
-    # time.sleep(UPDATE_FREQ / 1000)
 
     def switch_event(self):
         global ser
@@ -330,11 +306,11 @@ class App(ctk.CTk):
 
             for j in range(N_VS):
                 if cell_value[N_VS + N_TS + 1] == 0:
-                    font = ("sans-serif", 14)
+                    font = ("sans-serif", 14, "normal")
                     color = "black"
                     if cell_value[j] == minmax[0]:
-                        font = ("sans-serif", 14, "bold") 
-                        color = "blue"
+                        font = ("sans-serif", 14, "bold")
+                        color = "magenta"
                     if cell_value[j] == minmax[1]:
                         font = ("sans-serif", 14, "bold")
                         color = "cyan"
@@ -347,9 +323,9 @@ class App(ctk.CTk):
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1] == 0:
                     value = round(cell_value[j], 2)
-                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"))
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black")
                 else:
-                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black")
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
@@ -362,34 +338,19 @@ class App(ctk.CTk):
             minmax[5] = 0
             minmax.insert(3, 0)
 
-        minmax.append((lem[0]) / 1000.0)  # add current
-        minmax.append((lem[0] / 1000.0) * minmax[2])  # add power
-
         for i in range(4):
             minmax[i] /= 10000
 
-        # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
-        for index, value in enumerate(minmax):
-            self.list_info[index].configure(text=str(round(value, 3)))
+        current_ampere = abs((lem[0]) / 1000.0)
+        minmax.append(current_ampere)  # add current
+        minmax.append(current_ampere * minmax[2])  # add power
+        minmax.insert(2, minmax[0]-minmax[1])   # add balancing
 
-        # # add_infos: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "MAX TEMP", "MIN TEMP", "TOT TEMP", "CURRENT"]
-        # add_infos = list(unpack(FORMAT_PAYLOAD, resp[size_bms * N_SLAVES : size_struct]))
-        #
-        # for i in range(2):
-        #     self.list_info[i].configure(text=str(round(add_infos[i], 2)))
-        #     self.list_info[i].configure(fg_color=rgb(add_infos[i], MIN_VOLT, MAX_VOLT))
-        #
-        # avg_volt = list_infos[2]/N_VS
-        # self.list_info[3].configure(text=str(round(avg_volt, 2)))
-        # self.list_info[3].configure(fg_color=rgb(avg_volt, MIN_VOLT, MAX_VOLT))
-        #
-        # add_infos[5] = add_infos[5]/N_TS  #calculate avg temp
-        # for i in range(3, 6):
-        #     self.list_info[i+1].configure(text=str(round(add_infos[i], 2)))
-        #     self.list_info[i+1].configure(fg_color=rgb(add_infos[i], MIN_TEMP, MAX_TEMP))
-        #
-        # self.list_info[7].configure(text=str(round(add_infos[5], 2)))
-        # self.list_info[8].configure(text=str(round(add_infos[5]*add_infos[2], 2)))
+        color = ("magenta", "cyan", "yellow", "white", "white", "white", "white", "white", "white", "white")
+
+        # list_info: ["MAX VOLT", "MIN VOLT", "BALANCING","TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
+        for index, value in enumerate(minmax):
+            self.list_info[index].configure(text=str(round(value, 3)), text_color=color[index])
 
     def update_silent(self):
         for i in range(N_SLAVES):
@@ -425,18 +386,7 @@ class App(ctk.CTk):
             ser.close()
         self.destroy()
 
-
-# def rgb(val, min_val, max_val):
-#     if min_val < val < (min_val + (max_val - min_val) / 2):
-#         return "green"
-#     elif (min_val + (max_val - min_val) / 2) <= val < max_val:
-#         return "yellow"
-#     else:
-#         return "red"
-
-
 def rgb(value, type):
-
     if type == "temp":
         if 0 <= value < 20:
             return "blue"
@@ -448,20 +398,12 @@ def rgb(value, type):
             return "red"
 
     if type == "volt":
-        if 3.5 <= value < 4.2:
+        if 3.5 <= value < 4.1:
             return "green"
-        elif 3.4 <= value < 3.5:
+        elif 3.4 <= value < 3.5 and 4.1 <= value < 4.2:
             return "yellow"
         else:
             return "red"
-
-    # x = int((val - min_val) / (max_val - min_val) * 256)
-    # r = x * 2 if x < 128 else 255
-    # g = 255 if x < 128 else 255 - (x - 128) * 2
-    # newColor = tuple(int(x + (1 - x) * (1 - a)) for x in [r, g, 0])
-    # newColor = [min(max(x, 0), 255) for x in newColor]
-    # return "#%s%s%s" % tuple([hex(c)[2:].rjust(2, "0") for c in newColor])
-    # # return "gray"
 
 
 if __name__ == "__main__":
