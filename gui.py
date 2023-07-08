@@ -6,17 +6,11 @@ import time
 from struct import *
 
 count = 0
-
 N_VS = 9
 N_TS = 3
 N_SLAVES = 16
 
 UPDATE_FREQ = 300
-
-MAX_TEMP = 60
-MIN_TEMP = 20
-MAX_VOLT = 4.2
-MIN_VOLT = 3.3
 MIN_ERR = 10
 
 # H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int  B -> uint8, x -> pad byte
@@ -292,14 +286,12 @@ class App(ctk.CTk):
             ser.reset_input_buffer()
             ser.reset_output_buffer()
 
-
         except Exception:
             self.get_COM()
-            # if switch is still on:
-            if self.switch.get() == 1:
-                self.textbox.configure(text="Error Unpacking")
-            else:
-                ser.close()
+            self.textbox.configure(text="USB Disconnected!")
+            self.switch.deselect()
+            self.update_silent()
+            ser.close()
             return 0
 
         alive_slaves = N_SLAVES
