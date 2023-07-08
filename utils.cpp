@@ -21,4 +21,5 @@ uint8_t n_alive_slaves() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     if (g_bms.slaves[i].err < MIN_ERR_THRESHOLD) alives++;
   }
+  return alives;
 }

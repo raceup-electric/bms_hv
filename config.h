@@ -18,7 +18,8 @@ constexpr uint16_t TEMP_THRESHOLD = 1000;
 constexpr uint8_t MIN_ERR_THRESHOLD = 10;
 constexpr uint32_t V_FAULT_TIME = 500;
 constexpr uint32_t T_FAULT_TIME = 1000;
-constexpr uint16_t MEAS_DELAY = 10;
+constexpr uint16_t MEAS_DELAY = 6;
+constexpr uint8_t READ_DELAY = 2;
 // balancing discharge config
 constexpr uint8_t DCTO = 0x3;
 constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
@@ -54,6 +55,6 @@ constexpr uint8_t LED_0_PIN = 2;
 // operations config
 constexpr bool SCREEN_ENABLE = false;
 constexpr bool DEBUG = false;
-constexpr bool FAULT_ENABLE = false;
+constexpr bool FAULT_ENABLE = true;
 
 #endif

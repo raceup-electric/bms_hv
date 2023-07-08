@@ -73,11 +73,11 @@ void read_volts() {
     // // slave is dead skip reading
     // if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
     // for each register
-    delay(6);
+    delay(READ_DELAY);
     for (char reg = 'A'; reg <= 'D'; reg++) {
       uint8_t raw_volts[VREG_LEN] = {};
       if (rdcv(g_bms.slaves[i].addr, reg, raw_volts) == 0) { 
-        delay(6);
+        delay(READ_DELAY);
         save_volts(i, reg, raw_volts);
         g_bms.slaves[i].err = 0;
       }
@@ -129,12 +129,12 @@ void read_temps() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     // // slave is dead skip reading
     // if (g_bms.slaves[i].err > MIN_ERR_THRESHOLD) continue;
-    delay(6);
+    delay(READ_DELAY);
     // for each register
     for (char reg = 'A'; reg <= 'B'; reg++) {
       uint8_t raw_temps[GREG_LEN] = {};
       if (rdaux(g_bms.slaves[i].addr, reg, raw_temps) == 0) {
-        delay(6);
+        delay(READ_DELAY);
         save_temps(i, reg, raw_temps);
         g_bms.slaves[i].err = 0;
       }
@@ -162,7 +162,7 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
 }
 
 void check_faults() {
-  if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_temp > UV_THRESHOLD) {
+  if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_volt > UV_THRESHOLD) {
     g_bms.fault_volt_tmstp = millis();
   }
 
