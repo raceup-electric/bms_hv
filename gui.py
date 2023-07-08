@@ -6,17 +6,11 @@ import time
 from struct import *
 
 count = 0
-
 N_VS = 9
 N_TS = 3
 N_SLAVES = 16
 
 UPDATE_FREQ = 300
-
-MAX_TEMP = 60
-MIN_TEMP = 20
-MAX_VOLT = 4.2
-MIN_VOLT = 3.3
 MIN_ERR = 10
 
 # H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int  B -> uint8, x -> pad byte
@@ -62,19 +56,19 @@ def chg_appearance(new_appearance_mode: str):
 class App(ctk.CTk):
 
     def configuration_frame(self):
-        tabview = ctk.CTkTabview(self, state="disable", segmented_button_selected_color="chartreuse4", width=240)
-        tabview.grid(row=0, column=0, padx=(20, 0))
-        tabview.add("CONFIGURATION")
-        tabview.tab("CONFIGURATION").grid_columnconfigure(0, weight=1)
+        self.tabview = ctk.CTkTabview(self, state="disable", segmented_button_selected_color="chartreuse4", width=240)
+        self.tabview.grid(row=0, column=0, padx=(20, 0))
+        self.tabview.add("CONFIGURATION")
+        self.tabview.tab("CONFIGURATION").grid_columnconfigure(0, weight=1)
 
-        self.switch = ctk.CTkSwitch(tabview.tab("CONFIGURATION"), text=f"OFF/ON", command=self.switch_event, switch_width=60, switch_height=30)
+        self.switch = ctk.CTkSwitch(self.tabview.tab("CONFIGURATION"), text=f"OFF/ON", command=self.switch_event, switch_width=60, switch_height=30)
         self.switch.grid(row=3, column=0, padx=20, pady=(30, 10))
 
-        self.option_COM = ctk.CTkOptionMenu(tabview.tab("CONFIGURATION"))
+        self.option_COM = ctk.CTkOptionMenu(self.tabview.tab("CONFIGURATION"))
         self.get_COM()
         self.option_COM.grid(row=0, column=0, padx=20, pady=(15, 5))
 
-        baud_frame = ctk.CTkFrame(tabview.tab("CONFIGURATION"))
+        baud_frame = ctk.CTkFrame(self.tabview.tab("CONFIGURATION"))
         baud_frame.grid(row=1, column=0, padx=(20, 20), pady=(5, 0), sticky="nwse")
         baud_frame.grid_columnconfigure(0, weight=1)
 
@@ -84,7 +78,7 @@ class App(ctk.CTk):
         button2 = ctk.CTkRadioButton(baud_frame, variable=self.baud_var, value=9600, text="9600  bit/s    ")
         button2.grid(row=2, column=0, pady=(5, 10))
 
-        mode_frame = ctk.CTkFrame(tabview.tab("CONFIGURATION"))
+        mode_frame = ctk.CTkFrame(self.tabview.tab("CONFIGURATION"))
         mode_frame.grid(row=2, column=0, padx=(20, 20), pady=(5, 0), sticky="nwse")
         mode_frame.grid_columnconfigure(0, weight=1)
 
@@ -96,10 +90,11 @@ class App(ctk.CTk):
         balancing = ctk.CTkRadioButton(master=mode_frame, variable=self.mode, value="Balancing Mode", text="Balancing Mode", command=self.set_mode)
         balancing.grid(row=3, column=0, pady=(5, 10))
 
-        refresh = ctk.CTkButton(tabview.tab("CONFIGURATION"), fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Refresh Serial",
+        refresh = ctk.CTkButton(self.tabview.tab("CONFIGURATION"), fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"),
+                                text="Refresh Serial",
                                 command=self.get_COM)
         refresh.grid(row=4, column=0, padx=(20, 20), pady=(15, 5), sticky="nwse")
-        reset = ctk.CTkButton(tabview.tab("CONFIGURATION"), fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Reset Serial",
+        reset = ctk.CTkButton(self.tabview.tab("CONFIGURATION"), fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Reset Serial",
                               command=self.on_reset)
         reset.grid(row=5, column=0, padx=(20, 20), pady=(5, 15), sticky="nwse")
 
@@ -170,6 +165,15 @@ class App(ctk.CTk):
             for i, e in enumerate(self.total_pack_labels[int(text)]):
                 e.grid(column=int(text) + 1, row=i + 1, sticky="nsew", padx=(2, 2), pady=(2, 2))
 
+    def on_off_faking(self, event):
+
+        self.faking = not self.faking
+
+        if self.faking:
+            self.tabview.configure(segmented_button_selected_color="orange")
+        else:
+            self.tabview.configure(segmented_button_selected_color="chartreuse4")
+
     def __init__(self):
         super().__init__()
 
@@ -185,6 +189,8 @@ class App(ctk.CTk):
 
         self.appearence_frame()
         self.information_frame()
+        self.bind('<Control-t>', self.on_off_faking)
+        self.faking = False
 
         self.update()
 
@@ -280,19 +286,20 @@ class App(ctk.CTk):
             ser.reset_input_buffer()
             ser.reset_output_buffer()
 
-
         except Exception:
             self.get_COM()
-            # if switch is still on:
-            if self.switch.get() == 1:
-                self.textbox.configure(text="Error Unpacking")
-            else:
-                ser.close()
+            self.textbox.configure(text="USB Disconnected!")
+            self.switch.deselect()
+            self.update_silent()
+            ser.close()
             return 0
 
         alive_slaves = N_SLAVES
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
+
+        error_temperature = []
+        error_cell = []
 
         for i in range(N_SLAVES):
 
@@ -301,7 +308,7 @@ class App(ctk.CTk):
             if cell_value[N_VS + N_TS + 1] > MIN_ERR:
                 alive_slaves -= 1
                 for j in range(N_VS + N_TS):
-                    self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white")
+                    self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white", font=("sans-serif", 14, "normal"))
                 continue
 
             for j in range(N_VS):
@@ -315,17 +322,27 @@ class App(ctk.CTk):
                         font = ("sans-serif", 14, "bold")
                         color = "cyan"
                     value = round(cell_value[j] / 10000, 3)
-                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
+
+                    if self.faking and rgb(value, "volt") == "red":
+                        error_cell.append(self.total_pack_labels[i][j])
+                    else:
+                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
+
                 else:
-                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray")
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
                     alive_slaves -= 1
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1] == 0:
                     value = round(cell_value[j], 2)
-                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black")
+
+                    if self.faking and rgb(value, "temp") == "red":
+                        error_temperature.append(self.total_pack_labels[i][j])
+                    else:
+                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black", font=("sans-serif", 14, "normal"))
+
                 else:
-                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black")
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
@@ -344,7 +361,13 @@ class App(ctk.CTk):
         current_ampere = abs((lem[0]) / 1000.0)
         minmax.append(current_ampere)  # add current
         minmax.append(current_ampere * minmax[2])  # add power
-        minmax.insert(2, minmax[0]-minmax[1])   # add balancing
+        minmax.insert(2, minmax[0] - minmax[1])  # add balancing
+
+        for label in error_cell:
+            label.configure(text=str(round(minmax[4], 3)), fg_color=rgb(minmax[4], "volt"), font=("sans-serif", 14, "normal"), text_color="black")
+
+        for label in error_temperature:
+            label.configure(text=str(round(int(minmax[7]) + 1, 2)), fg_color=rgb(int(minmax[7]) + 1, "temp"), font=("sans-serif", 14, "normal"), text_color="black")
 
         color = ("magenta", "cyan", "yellow", "white", "white", "white", "white", "white", "white", "white")
 
@@ -386,24 +409,32 @@ class App(ctk.CTk):
             ser.close()
         self.destroy()
 
+
 def rgb(value, type):
     if type == "temp":
-        if 0 <= value < 20:
-            return "blue"
-        if 20 <= value < 50:
-            return "green"
-        elif 50 <= value < 60:
-            return "yellow"
-        else:
-            return "red"
-
+        return rgb_temp(value)
     if type == "volt":
-        if 3.5 <= value < 4.1:
-            return "green"
-        elif 3.4 <= value < 3.5 and 4.1 <= value < 4.2:
-            return "yellow"
-        else:
-            return "red"
+        return rgb_volt(value)
+
+
+def rgb_temp(value):
+    if 0 <= value < 20:
+        return "blue"
+    if 20 <= value < 50:
+        return "green"
+    elif 50 <= value < 60:
+        return "yellow"
+    else:
+        return "red"
+
+
+def rgb_volt(value):
+    if 3.5 <= value < 4.1:
+        return "green"
+    elif 3.3 <= value < 3.5 and 4.1 <= value < 4.2:
+        return "yellow"
+    else:
+        return "red"
 
 
 if __name__ == "__main__":
@@ -411,4 +442,5 @@ if __name__ == "__main__":
     # app.geometry("1800x800")
 
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
+
     app.mainloop()
