@@ -301,6 +301,11 @@ class App(ctk.CTk):
         error_temperature = []
         error_cell = []
 
+        min_volt = 100
+        max_volt = 0
+        min_temp = 120
+        max_temp = 0
+
         for i in range(N_SLAVES):
 
             cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
@@ -327,6 +332,8 @@ class App(ctk.CTk):
                         error_cell.append(self.total_pack_labels[i][j])
                     else:
                         self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
+                        min_volt = min(min_volt, value)
+                        max_volt = max(min_volt, value)
 
                 else:
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
@@ -340,6 +347,8 @@ class App(ctk.CTk):
                         error_temperature.append(self.total_pack_labels[i][j])
                     else:
                         self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black", font=("sans-serif", 14, "normal"))
+                        min_temp = min(min_temp, value)
+                        max_temp = max(max_temp, value)
 
                 else:
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
@@ -368,6 +377,13 @@ class App(ctk.CTk):
 
         for label in error_temperature:
             label.configure(text=str(round(int(minmax[7]) + 1, 2)), fg_color=rgb(int(minmax[7]) + 1, "temp"), font=("sans-serif", 14, "normal"), text_color="black")
+
+        if self.faking:
+            minmax[0] = max_volt
+            minmax[1] = min_volt
+            minmax[2] = max_volt - min_volt
+            minmax[5] = max_temp
+            minmax[6] = min_temp
 
         color = ("magenta", "cyan", "yellow", "white", "white", "white", "white", "white", "white", "white")
 
