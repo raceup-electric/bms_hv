@@ -204,6 +204,7 @@ class App(ctk.CTk):
 
     def on_reset(self):
         self.switch.deselect()
+        self.clear_values()
         self.switch_event()
 
     def set_mode(self):
@@ -224,6 +225,7 @@ class App(ctk.CTk):
         global ser
         if self.switch.get() == 0:
             ser.write(bytes("D", 'utf-8'))
+            self.clear_values()
             ser.close()
         else:
             if self.option_COM.get() == "No Device Found":
@@ -243,6 +245,7 @@ class App(ctk.CTk):
                 except Exception as e:
                     print(e)
                     self.switch.deselect()
+                    self.clear_values()
                     self.get_COM()
                     self.textbox.configure(text="Select a correct Serial Port")
 
@@ -275,6 +278,7 @@ class App(ctk.CTk):
             if time.time() > mustend:
                 self.textbox.configure(text="Device not responding")
                 self.switch.deselect()
+                self.clear_values()
                 ser.close()
                 return
 
@@ -291,6 +295,7 @@ class App(ctk.CTk):
             self.textbox.configure(text="USB Disconnected!")
             self.switch.deselect()
             self.update_silent()
+            self.clear_values()
             ser.close()
             return 0
 
@@ -419,6 +424,19 @@ class App(ctk.CTk):
 
         self.after(UPDATE_FREQ, self.update)
 
+    def clear_values(self):
+        for i in range(N_SLAVES):
+            font = ("sans-serif", 14, "normal")
+            color = "black"
+            value = 0
+            for j in range(N_VS):
+                self.total_pack_labels[i][j].configure(text=str(value), fg_color=("gray80", "gray15"), text_color=color, font=font)
+            for j in range(N_VS, N_VS + N_TS):
+                self.total_pack_labels[i][j].configure(text=str(value), fg_color=("gray80", "gray15"), text_color=color, font=font)
+            # list_info: ["MAX VOLT", "MIN VOLT", "BALANCING","TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
+        for i in range(10):
+            self.list_info[i].configure(text=str(0), text_color="black")
+
     def on_closing(self):
         if self.switch.get() == 1:
             ser.write(bytes("D", 'utf-8'))
@@ -451,6 +469,9 @@ def rgb_volt(value):
         return "yellow"
     else:
         return "red"
+
+
+
 
 
 if __name__ == "__main__":
