@@ -82,6 +82,7 @@ void read_volts() {
         g_bms.slaves[i].err = 0;
       }
       else {
+        if (g_bms.slaves[i].err >= 255) return;
         g_bms.slaves[i].err += 1;
       }
     }
@@ -139,6 +140,7 @@ void read_temps() {
         g_bms.slaves[i].err = 0;
       }
       else {
+        if (g_bms.slaves[i].err >= 255) return;
         g_bms.slaves[i].err += 1;
       }
     }

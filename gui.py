@@ -3,6 +3,7 @@ import tkinter
 import customtkinter as ctk
 import serial.tools.list_ports
 import time
+import random
 from struct import *
 
 count = 0
@@ -319,6 +320,10 @@ class App(ctk.CTk):
                 alive_slaves -= 1
                 for j in range(N_VS + N_TS):
                     self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white", font=("sans-serif", 14, "normal"))
+                    if self.faking and j < N_VS:
+                        error_cell.append(self.total_pack_labels[i][j])
+                    elif self.faking and j >= N_TS:
+                        error_temperature.append(self.total_pack_labels[i][j])
                 continue
 
             for j in range(N_VS):
@@ -341,8 +346,11 @@ class App(ctk.CTk):
                         max_volt = max(min_volt, value)
 
                 else:
-                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                    alive_slaves -= 1
+                    if not self.faking:
+                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
+                    if self.faking:
+                        error_cell.append(self.total_pack_labels[i][j])
+                        alive_slaves -= 1
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1] == 0:
@@ -356,7 +364,10 @@ class App(ctk.CTk):
                         max_temp = max(max_temp, value)
 
                 else:
-                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
+                    if not self.faking:
+                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
+                    if self.faking:
+                        error_temperature.append(self.total_pack_labels[i][j])
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
@@ -378,10 +389,12 @@ class App(ctk.CTk):
         minmax.insert(2, minmax[0] - minmax[1])  # add balancing
 
         for label in error_cell:
-            label.configure(text=str(round(minmax[4], 3)), fg_color=rgb(minmax[4], "volt"), font=("sans-serif", 14, "normal"), text_color="black")
+            value = random.uniform(minmax[4] - 0.002, minmax[4] + 0.002)
+            label.configure(text=str(round(value, 3)), fg_color=rgb(value, "volt"), font=("sans-serif", 14, "normal"), text_color="black")
 
         for label in error_temperature:
-            label.configure(text=str(round(int(minmax[7]) + 1, 2)), fg_color=rgb(int(minmax[7]) + 1, "temp"), font=("sans-serif", 14, "normal"), text_color="black")
+            value = int(minmax[7])
+            label.configure(text=str(round(value , 0)), fg_color=rgb(value, "temp"), font=("sans-serif", 14, "normal"), text_color="black")
 
         if self.faking:
             minmax[0] = max_volt
