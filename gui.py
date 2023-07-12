@@ -389,7 +389,7 @@ class App(ctk.CTk):
         minmax.insert(2, minmax[0] - minmax[1])  # add balancing
 
         for label in error_cell:
-            value = random.uniform(minmax[4] - 0.002, minmax[4] + 0.002)
+            value = random.gauss(minmax[4], 0.003)
             label.configure(text=str(round(value, 3)), fg_color=rgb(value, "volt"), font=("sans-serif", 14, "normal"), text_color="black")
 
         for label in error_temperature:
