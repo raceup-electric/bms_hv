@@ -55,6 +55,6 @@ constexpr uint8_t LED_0_PIN = 2;
 // operations config
 constexpr bool SCREEN_ENABLE = false;
 constexpr bool DEBUG = false;
-constexpr bool FAULT_ENABLE = true;
+constexpr bool FAULT_ENABLE = false;
 
 #endif

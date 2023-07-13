@@ -338,7 +338,7 @@ class App(ctk.CTk):
                         color = "cyan"
                     value = round(cell_value[j] / 10000, 3)
 
-                    if self.faking and rgb(value, "volt") == "red":
+                    if self.faking and not rgb(value, "volt") == "green":
                         error_cell.append(self.total_pack_labels[i][j])
                     else:
                         self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
@@ -356,7 +356,7 @@ class App(ctk.CTk):
                 if cell_value[N_VS + N_TS + 1] == 0:
                     value = round(cell_value[j], 2)
 
-                    if self.faking and rgb(value, "temp") == "red":
+                    if self.faking and not rgb(value, "temp") == "green":
                         error_temperature.append(self.total_pack_labels[i][j])
                     else:
                         self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black", font=("sans-serif", 14, "normal"))
