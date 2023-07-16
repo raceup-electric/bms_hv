@@ -26,7 +26,7 @@ constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
 // fan config
 constexpr uint8_t MIN_TEMP_FAN = 20;
 constexpr uint8_t MAX_TEMP_FAN = 50;
-constexpr float MIN_FAN_SPEED = 0.2;
+constexpr float MIN_FAN_SPEED = 0.7;
 constexpr float MAX_FAN_SPEED = 1.0;
 constexpr float VAR_MIN = 0.2;
 // can config
