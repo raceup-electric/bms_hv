@@ -27,6 +27,7 @@ void read_fan(CAN_FRAME *frame) {
 }
 
 void send_data_to_ECU(uint16_t max_volt, uint16_t mean_volt, uint16_t min_volt, uint16_t alive_slaves, uint16_t max_temp, uint16_t mean_temp, uint16_t min_temp, uint8_t max_temp_nslave) {
+  delay(50);
   unsigned char voltageMsg[8];
   unsigned char temperatureMsg[8];
 
