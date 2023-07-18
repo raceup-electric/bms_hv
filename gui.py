@@ -478,7 +478,7 @@ def rgb_temp(value):
 def rgb_volt(value):
     if 3.5 <= value < 4.1:
         return "green"
-    elif 3.3 <= value < 3.5 and 4.1 <= value < 4.2:
+    elif 3.3 <= value < 3.5 or 4.1 <= value < 4.2:
         return "yellow"
     else:
         return "red"
