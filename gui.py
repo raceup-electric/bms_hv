@@ -34,11 +34,13 @@ size_lem = struct.calcsize(FORMAT_LEM)
 
 #   bool sdc_closed;  uint32_t fault_volt_tmstp;  uint32_t fault_temp_tmstp;  Mode mode (int 32 bit);
 FORMAT_ADDITIONAL_INFO = "?xxx" + "I" * 2 + "i"
+size_add_info = struct.calcsize(FORMAT_ADDITIONAL_INFO)
 
 #   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
 FORMAT_PRECHARGE = "f?xxxIB?xx"
+size_precharge = struct.calcsize(FORMAT_PRECHARGE)
 
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "?xxx"  # +computer connected
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "B?xx"  # +computer connected
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
 # print("SLAVE:" + str(size_slave))
@@ -300,12 +302,17 @@ class App(ctk.CTk):
             ser.close()
             return 0
 
-        alive_slaves = N_SLAVES
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
 
+        alive_slaves = list(unpack("B", resp[size_slave * N_SLAVES + size_minmax + size_fan + size_lem + size_add_info + size_precharge: size_slave * N_SLAVES + size_minmax + size_fan + size_lem + size_add_info + size_precharge + 1]))[0]
+        
+        mean = 0
+        if alive_slaves != 0:
+            mean = minmax[2]/(alive_slaves*N_VS*10000)
+        else: alive_slaves = N_SLAVES
+
         error_temperature = []
-        error_cell = []
 
         min_volt = 100
         max_volt = 0
@@ -317,13 +324,9 @@ class App(ctk.CTk):
             cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
 
             if cell_value[N_VS + N_TS + 1] > MIN_ERR:
-                alive_slaves -= 1
+                # alive_slaves -= 1
                 for j in range(N_VS + N_TS):
                     self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white", font=("sans-serif", 14, "normal"))
-                    if self.faking and j < N_VS:
-                        error_cell.append(self.total_pack_labels[i][j])
-                    elif self.faking and j >= N_TS:
-                        error_temperature.append(self.total_pack_labels[i][j])
                 continue
 
             for j in range(N_VS):
@@ -338,19 +341,16 @@ class App(ctk.CTk):
                         color = "cyan"
                     value = round(cell_value[j] / 10000, 3)
 
-                    if self.faking and not rgb(value, "volt") == "green":
-                        error_cell.append(self.total_pack_labels[i][j])
-                    else:
-                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
-                        min_volt = min(min_volt, value)
-                        max_volt = max(min_volt, value)
+                    if self.faking and not mean-0.150 <= value <= mean+0.150:
+                        value = round(mean + random.uniform(-0.150, 0.150), 3)
+                    
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
+                    min_volt = min(min_volt, value)
+                    max_volt = max(min_volt, value)
 
                 else:
-                    if not self.faking:
-                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                    if self.faking:
-                        error_cell.append(self.total_pack_labels[i][j])
-                        alive_slaves -= 1
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
+                  
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1] == 0:
@@ -364,10 +364,8 @@ class App(ctk.CTk):
                         max_temp = max(max_temp, value)
 
                 else:
-                    if not self.faking:
-                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                    if self.faking:
-                        error_temperature.append(self.total_pack_labels[i][j])
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
+                    
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
@@ -387,10 +385,6 @@ class App(ctk.CTk):
         minmax.append(current_ampere)  # add current
         minmax.append(current_ampere * minmax[2])  # add power
         minmax.insert(2, minmax[0] - minmax[1])  # add balancing
-
-        for label in error_cell:
-            value = random.gauss(minmax[4], 0.003)
-            label.configure(text=str(round(value, 3)), fg_color=rgb(value, "volt"), font=("sans-serif", 14, "normal"), text_color="black")
 
         for label in error_temperature:
             value = int(minmax[7])

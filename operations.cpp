@@ -172,7 +172,8 @@ void check_faults() {
     g_bms.fault_temp_tmstp = millis();
   }
 
-  uint16_t alives = n_alive_slaves();
+  uint8_t alives = n_alive_slaves();
+  g_bms.alive_slaves = alives;
 
   if (
     millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
