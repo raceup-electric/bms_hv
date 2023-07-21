@@ -347,7 +347,7 @@ class App(ctk.CTk):
                     value = round(cell_value[j] / 10000, 3)
 
                     if self.faking and not mean - 0.150 <= value <= mean + 0.150:
-                        value = round(mean + random.gauss(mean, 0.015), 3)
+                        value = round(random.gauss(mean, 0.015), 3)
 
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
                     min_volt = min(min_volt, value)
