@@ -29,5 +29,5 @@ void set_fan_dutycycle() {
 }
 
 void toggle_fan(BytesUnion* data) {
-  if (data->byte[0] == 0x10) g_bms.fan.on = !g_bms.fan.on; 
+  if (data->byte[0] == 0x1) g_bms.fan.on = !g_bms.fan.on; 
 }

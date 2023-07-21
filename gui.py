@@ -305,13 +305,18 @@ class App(ctk.CTk):
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
 
-        alive_slaves = list(unpack("B", resp[size_slave * N_SLAVES + size_minmax + size_fan + size_lem + size_add_info + size_precharge: size_slave * N_SLAVES + size_minmax + size_fan + size_lem + size_add_info + size_precharge + 1]))[0]
-        
-        mean = 0
-        if alive_slaves != 0:
-            mean = minmax[2]/(alive_slaves*N_VS*10000)
-        else: alive_slaves = N_SLAVES
+        alive_slaves = list(unpack("B", resp[
+                                        size_slave * N_SLAVES + size_minmax + size_fan + size_lem + size_add_info + size_precharge: size_slave * N_SLAVES + size_minmax + size_fan + size_lem + size_add_info + size_precharge + 1]))[
+            0]
 
+        if alive_slaves == 0:
+            alive_slaves = N_SLAVES
+            for i in range(N_SLAVES):
+                cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
+                if cell_value[N_VS + N_TS + 1] != 0:
+                    alive_slaves -= 1
+
+        mean = minmax[2] / (alive_slaves * N_VS * 10000)
         error_temperature = []
 
         min_volt = 100
@@ -341,16 +346,15 @@ class App(ctk.CTk):
                         color = "cyan"
                     value = round(cell_value[j] / 10000, 3)
 
-                    if self.faking and not mean-0.150 <= value <= mean+0.150:
-                        value = round(mean + random.uniform(-0.150, 0.150), 3)
-                    
+                    if self.faking and not mean - 0.150 <= value <= mean + 0.150:
+                        value = round(mean + random.gauss(mean, 0.015), 3)
+
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
                     min_volt = min(min_volt, value)
                     max_volt = max(min_volt, value)
 
                 else:
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                  
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1] == 0:
@@ -359,13 +363,13 @@ class App(ctk.CTk):
                     if self.faking and not rgb(value, "temp") == "green":
                         error_temperature.append(self.total_pack_labels[i][j])
                     else:
-                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black", font=("sans-serif", 14, "normal"))
+                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black",
+                                                               font=("sans-serif", 14, "normal"))
                         min_temp = min(min_temp, value)
                         max_temp = max(max_temp, value)
 
                 else:
                     self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                    
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
@@ -382,13 +386,17 @@ class App(ctk.CTk):
             minmax[i] /= 10000
 
         current_ampere = abs((lem[0]) / 1000.0)
+
+        if current_ampere > 1000:
+            current_ampere = 0
+
         minmax.append(current_ampere)  # add current
         minmax.append(current_ampere * minmax[2])  # add power
         minmax.insert(2, minmax[0] - minmax[1])  # add balancing
 
         for label in error_temperature:
             value = int(minmax[7])
-            label.configure(text=str(round(value , 0)), fg_color=rgb(value, "temp"), font=("sans-serif", 14, "normal"), text_color="black")
+            label.configure(text=str(round(value, 0)), fg_color=rgb(value, "temp"), font=("sans-serif", 14, "normal"), text_color="black")
 
         if self.faking:
             minmax[0] = max_volt
@@ -476,9 +484,6 @@ def rgb_volt(value):
         return "yellow"
     else:
         return "red"
-
-
-
 
 
 if __name__ == "__main__":
