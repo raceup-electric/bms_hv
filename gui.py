@@ -34,11 +34,13 @@ size_lem = struct.calcsize(FORMAT_LEM)
 
 #   bool sdc_closed;  uint32_t fault_volt_tmstp;  uint32_t fault_temp_tmstp;  Mode mode (int 32 bit);
 FORMAT_ADDITIONAL_INFO = "?xxx" + "I" * 2 + "i"
+size_add_info = struct.calcsize(FORMAT_ADDITIONAL_INFO)
 
 #   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
 FORMAT_PRECHARGE = "f?xxxIB?xx"
+size_precharge = struct.calcsize(FORMAT_PRECHARGE)
 
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "?xxx"  # +computer connected
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "B?xx"  # +computer connected
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
 # print("SLAVE:" + str(size_slave))
@@ -483,9 +485,6 @@ def rgb_volt(value):
         return "yellow"
     else:
         return "red"
-
-
-
 
 
 if __name__ == "__main__":
