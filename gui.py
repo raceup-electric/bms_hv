@@ -300,13 +300,21 @@ class App(ctk.CTk):
             ser.close()
             return 0
 
-        alive_slaves = N_SLAVES
+        responses = 0
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
 
-        error_temperature = []
-        error_cell = []
+        # calc average from responses
+        for i in range(N_SLAVES):
+            slave = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
+            if slave[N_VS + N_TS + 1] == 0:
+                responses += 1
 
+        tot_volt = minmax[2] / 10000
+        tot_temp = minmax[5]
+        avg_volt = minmax[2] / (responses * N_VS * 10000)
+        avg_temp = minmax[5] / (responses * N_TS)
+        
         min_volt = 100
         max_volt = 0
         min_temp = 120
@@ -314,16 +322,26 @@ class App(ctk.CTk):
 
         for i in range(N_SLAVES):
 
+            font = ("sans-serif", 14, "normal")
+            color = "black"
             cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
 
-            if cell_value[N_VS + N_TS + 1] > MIN_ERR:
-                alive_slaves -= 1
+            if cell_value[N_VS + N_TS + 1] > 0:
                 for j in range(N_VS + N_TS):
-                    self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white", font=("sans-serif", 14, "normal"))
+                    if cell_value[N_VS + N_TS + 1] > MIN_ERR:
+                        self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white", font=("sans-serif", 14, "normal"))
+                    else:
+                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
                     if self.faking and j < N_VS:
-                        error_cell.append(self.total_pack_labels[i][j])
+                        value = round(random.gauss(avg_volt, 0.015), 3)
+                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
+                        min_volt = min(min_volt, value)
+                        max_volt = max(min_volt, value)
                     elif self.faking and j >= N_TS:
-                        error_temperature.append(self.total_pack_labels[i][j])
+                        value = round(random.gauss(avg_temp, 1), 2)
+                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color=color, font=font)
+                        min_temp = min(min_temp, value)
+                        max_temp = max(max_temp, value)
                 continue
 
             for j in range(N_VS):
@@ -338,70 +356,53 @@ class App(ctk.CTk):
                         color = "cyan"
                     value = round(cell_value[j] / 10000, 3)
 
-                    if self.faking and not rgb(value, "volt") == "green":
-                        error_cell.append(self.total_pack_labels[i][j])
-                    else:
-                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
-                        min_volt = min(min_volt, value)
-                        max_volt = max(min_volt, value)
-
-                else:
-                    if not self.faking:
-                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                    if self.faking:
-                        error_cell.append(self.total_pack_labels[i][j])
-                        alive_slaves -= 1
+                    if self.faking and not avg_volt - 0.150 <= value <= avg_volt + 0.150:
+                        value = round(random.gauss(avg_volt, 0.015), 3)
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
+                    min_volt = min(min_volt, value)
+                    max_volt = max(min_volt, value)
 
             for j in range(N_VS, N_VS + N_TS):
                 if cell_value[N_VS + N_TS + 1] == 0:
+                    font = ("sans-serif", 14, "normal")
+                    color = "black"
                     value = round(cell_value[j], 2)
 
-                    if self.faking and not rgb(value, "temp") == "green":
-                        error_temperature.append(self.total_pack_labels[i][j])
-                    else:
-                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color="black", font=("sans-serif", 14, "normal"))
-                        min_temp = min(min_temp, value)
-                        max_temp = max(max_temp, value)
-
-                else:
-                    if not self.faking:
-                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                    if self.faking:
-                        error_temperature.append(self.total_pack_labels[i][j])
+                    if self.faking and not avg_temp - 7 <= value <= avg_temp + 7:
+                        value = round(random.gauss(avg_temp, 1), 2)
+                    self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color=color, font=font)
+                    min_temp = min(min_temp, value)
+                    max_temp = max(max_temp, value)
 
         # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
         lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
-
-        minmax.pop()  # remove which slave has the max temp
-        if alive_slaves != 0:
-            minmax[5] /= (alive_slaves * N_TS)  # from tot temp to avg temp
-            minmax.insert(3, minmax[2] / (alive_slaves * N_VS))  # add avg voltage
-        else:
-            minmax[5] = 0
-            minmax.insert(3, 0)
-
-        for i in range(4):
-            minmax[i] /= 10000
-
         current_ampere = abs((lem[0]) / 1000.0)
-        minmax.append(current_ampere)  # add current
-        minmax.append(current_ampere * minmax[2])  # add power
-        minmax.insert(2, minmax[0] - minmax[1])  # add balancing
+        if current_ampere > 200:
+            current_ampere = 0
 
-        for label in error_cell:
-            value = random.gauss(minmax[4], 0.003)
-            label.configure(text=str(round(value, 3)), fg_color=rgb(value, "volt"), font=("sans-serif", 14, "normal"), text_color="black")
-
-        for label in error_temperature:
-            value = int(minmax[7])
-            label.configure(text=str(round(value , 0)), fg_color=rgb(value, "temp"), font=("sans-serif", 14, "normal"), text_color="black")
-
+        minmax = list()
         if self.faking:
-            minmax[0] = max_volt
-            minmax[1] = min_volt
-            minmax[2] = max_volt - min_volt
-            minmax[5] = max_temp
-            minmax[6] = min_temp
+            minmax.append(max_volt)
+            minmax.append(min_volt)
+            minmax.append(max_volt - min_volt)
+            minmax.append(avg_volt * N_SLAVES * N_VS)
+            minmax.append(avg_volt)
+            minmax.append(max_temp)
+            minmax.append(min_temp)
+            minmax.append(avg_temp)
+            minmax.append(current_ampere)
+            minmax.append(current_ampere * avg_volt * N_SLAVES * N_VS)
+        if not self.faking:
+            minmax.append(max_volt)
+            minmax.append(min_volt)
+            minmax.append(max_volt - min_volt)
+            minmax.append(tot_volt)
+            minmax.append(avg_volt)
+            minmax.append(max_temp)
+            minmax.append(min_temp)
+            minmax.append(avg_temp)
+            minmax.append(current_ampere)
+            minmax.append(current_ampere * tot_volt)
 
         color = ("magenta", "cyan", "yellow", "white", "white", "white", "white", "white", "white", "white")
 

@@ -28,7 +28,7 @@ constexpr uint8_t MIN_TEMP_FAN = 20;
 constexpr uint8_t MAX_TEMP_FAN = 50;
 constexpr float MIN_FAN_SPEED = 0.7;
 constexpr float MAX_FAN_SPEED = 1.0;
-constexpr float VAR_MIN = 0.2;
+constexpr float VAR_MIN = 0;
 // can config
 constexpr uint32_t CAN_BAUD_RATE = 500000;
 constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;

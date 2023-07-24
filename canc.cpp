@@ -3,7 +3,7 @@
 
 void init_can(){
     Can0.begin(CAN_BAUD_RATE);
-    Can0.setNumTXBoxes(1);
+    Can0.setNumTXBoxes(2);
     // Can1.begin(CAN_BAUD_RATE);
     int bus_arrived = Can0.setRXFilter(DC_BUS_VOLTAGE_ID, 0x7FF, false);
     int lem_arrived = Can0.setRXFilter(LEM_CURRENT_ID, 0x7FF, false);
