@@ -40,7 +40,7 @@ size_add_info = struct.calcsize(FORMAT_ADDITIONAL_INFO)
 FORMAT_PRECHARGE = "f?xxxIB?xx"
 size_precharge = struct.calcsize(FORMAT_PRECHARGE)
 
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "B?xx"  # +computer connected
+FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "?xx"  # +computer connected
 size_slave = struct.calcsize(FORMAT_SLAVE)
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
 # print("SLAVE:" + str(size_slave))

@@ -51,7 +51,6 @@ struct BMS {
   uint32_t fault_temp_tmstp;
   Mode mode;
   Precharge precharge;
-  uint8_t alive_slaves;
   bool gui_conn;
 };
 
