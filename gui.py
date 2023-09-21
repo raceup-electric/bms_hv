@@ -1,53 +1,16 @@
-import struct
+import json
 import tkinter
 import customtkinter as ctk
 import serial.tools.list_ports
 import time
 import random
-from struct import *
 
-count = 0
 N_VS = 9
 N_TS = 3
 N_SLAVES = 16
-
-UPDATE_FREQ = 300
 MIN_ERR = 10
-
-# H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int  B -> uint8, x -> pad byte
-# https://docs.python.org/3/library/struct.html
-
-# uint16_t volts[]; int16_t temps[];  uint8_t addr;  uint8_t err;
-FORMAT_SLAVE = "H" * (N_VS + N_TS) + "BB"
-
-# uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
-FORMAT_MIN_MAX = "H" * 2 + "I" + "H" * 3 + "Bx"
-size_minmax = struct.calcsize(FORMAT_MIN_MAX)
-
-# uint16_t prev_temp; bool on;
-FORMAT_FAN = "H?x"
-size_fan = struct.calcsize(FORMAT_FAN)
-
-# int32_t curr;  uint32_t last_recv;
-FORMAT_LEM = "iI"
-size_lem = struct.calcsize(FORMAT_LEM)
-
-#   bool sdc_closed;  uint32_t fault_volt_tmstp;  uint32_t fault_temp_tmstp;  Mode mode (int 32 bit);
-FORMAT_ADDITIONAL_INFO = "?xxx" + "I" * 2 + "i"
-size_add_info = struct.calcsize(FORMAT_ADDITIONAL_INFO)
-
-#   float bus_volt;  bool via_can;  uint32_t start_tmstp;  uint8_t cycle_counter;  bool done;
-FORMAT_PRECHARGE = "f?xxxIB?xx"
-size_precharge = struct.calcsize(FORMAT_PRECHARGE)
-
-FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "?xx"  # +computer connected
-size_slave = struct.calcsize(FORMAT_SLAVE)
-size_payload = struct.calcsize(FORMAT_PAYLOAD)
-# print("SLAVE:" + str(size_slave))
-# print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
-# print("LEM:" + str(size_lem))
-# print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
-# print("TOT:" + str(size_payload))
+SIZE_PAYLOAD: int = 99
+UPDATE_FREQ = 300
 
 ser = serial.Serial(timeout=0.1)
 
@@ -243,7 +206,6 @@ class App(ctk.CTk):
                     time.sleep(0.4)
                     ser.write(bytes("C", 'utf-8'))
                     ser.flush()
-                    # self.set_mode()
 
                 except Exception as e:
                     print(e)
@@ -285,10 +247,10 @@ class App(ctk.CTk):
                 ser.close()
                 return
 
-            while ser.in_waiting < size_payload:
+            while ser.in_waiting < SIZE_PAYLOAD:
                 pass
 
-            resp = ser.read(size_payload)
+            serial_data = ser.read(SIZE_PAYLOAD).decode('utf-8')
 
             ser.reset_input_buffer()
             ser.reset_output_buffer()
@@ -302,114 +264,49 @@ class App(ctk.CTk):
             ser.close()
             return 0
 
-        responses = 0
-        # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
-        minmax = list(unpack(FORMAT_MIN_MAX, resp[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
+        data_dict = parse_serial_data(serial_data)
 
-        # calc average from responses
-        for i in range(N_SLAVES):
-            slave = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
-            if slave[N_VS + N_TS + 1] == 0:
-                responses += 1
+        for i, slave in enumerate(data_dict["slaves"]):
 
-        tot_volt = minmax[2] / 10000
-        tot_temp = minmax[5]
-        avg_volt = minmax[2] / (responses * N_VS * 10000)
-        avg_temp = minmax[5] / (responses * N_TS)
-        
-        min_volt = 100
-        max_volt = 0
-        min_temp = 120
-        max_temp = 0
+            if slave["error_count"] == 0:  # healthy
 
-        for i in range(N_SLAVES):
+                for j, volt in enumerate(slave["voltages"]):
 
-            font = ("sans-serif", 14, "normal")
-            color = "black"
-            cell_value = unpack(FORMAT_SLAVE, resp[i * size_slave: (i + 1) * size_slave])
-
-            if cell_value[N_VS + N_TS + 1] > 0:
-                for j in range(N_VS + N_TS):
-                    if cell_value[N_VS + N_TS + 1] > MIN_ERR:
-                        self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white", font=("sans-serif", 14, "normal"))
-                    else:
-                        self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
-                    if self.faking and j < N_VS:
-                        value = round(random.gauss(avg_volt, 0.015), 3)
-                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
-                        min_volt = min(min_volt, value)
-                        max_volt = max(min_volt, value)
-                    elif self.faking and j >= N_TS:
-                        value = round(random.gauss(avg_temp, 1), 2)
-                        self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color=color, font=font)
-                        min_temp = min(min_temp, value)
-                        max_temp = max(max_temp, value)
-                continue
-
-            for j in range(N_VS):
-                if cell_value[N_VS + N_TS + 1] == 0:
-                    font = ("sans-serif", 14, "normal")
-                    color = "black"
-                    if cell_value[j] == minmax[0]:
+                    if volt == data_dict["voltages"]["max"]:
                         font = ("sans-serif", 14, "bold")
                         color = "magenta"
-                    if cell_value[j] == minmax[1]:
+                    elif volt == data_dict["voltages"]["min"]:
                         font = ("sans-serif", 14, "bold")
                         color = "cyan"
-                    value = round(cell_value[j] / 10000, 3)
+                    else:
+                        font = ("sans-serif", 14, "normal")
+                        color = "black"
 
-                    if self.faking and not avg_volt - 0.150 <= value <= avg_volt + 0.150:
-                        value = round(random.gauss(avg_volt, 0.015), 3)
+                    value = round(volt / 10000, 3)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "volt"), text_color=color, font=font)
-                    min_volt = min(min_volt, value)
-                    max_volt = max(min_volt, value)
 
-            for j in range(N_VS, N_VS + N_TS):
-                if cell_value[N_VS + N_TS + 1] == 0:
+                for j, temp in enumerate(slave["temps"]):
                     font = ("sans-serif", 14, "normal")
                     color = "black"
-                    value = round(cell_value[j], 2)
 
-                    if self.faking and not avg_temp - 7 <= value <= avg_temp + 7:
-                        value = round(random.gauss(avg_temp, 1), 2)
+                    value = round(temp, 2)
                     self.total_pack_labels[i][j].configure(text=str(value), fg_color=rgb(value, "temp"), text_color=color, font=font)
-                    min_temp = min(min_temp, value)
-                    max_temp = max(max_temp, value)
 
-        # uint16_t max_volt;  uint16_t min_volt;  uint32_t tot_volt;  uint16_t max_temp;   uint16_t prev_max_temp; uint16_t min_temp;  uint16_t tot_temp;  uint8_t max_temp_slave;
-        lem = list(unpack(FORMAT_LEM, resp[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
-        current_ampere = abs((lem[0]) / 1000.0)
-        if current_ampere > 200:
-            current_ampere = 0
+            elif data_dict["slaves"]["error_count"] > MIN_ERR:  # dead
+                for j in range(N_VS + N_TS):
+                    self.total_pack_labels[i][j].configure(text="DEAD", fg_color="black", text_color="white", font=("sans-serif", 14, "normal"))
 
-        minmax = list()
-        if self.faking:
-            minmax.append(max_volt)
-            minmax.append(min_volt)
-            minmax.append(max_volt - min_volt)
-            minmax.append(avg_volt * N_SLAVES * N_VS)
-            minmax.append(avg_volt)
-            minmax.append(max_temp)
-            minmax.append(min_temp)
-            minmax.append(avg_temp)
-            minmax.append(current_ampere)
-            minmax.append(current_ampere * avg_volt * N_SLAVES * N_VS)
-        if not self.faking:
-            minmax.append(max_volt)
-            minmax.append(min_volt)
-            minmax.append(max_volt - min_volt)
-            minmax.append(tot_volt)
-            minmax.append(avg_volt)
-            minmax.append(max_temp)
-            minmax.append(min_temp)
-            minmax.append(avg_temp)
-            minmax.append(current_ampere)
-            minmax.append(current_ampere * tot_volt)
+            else:  # error
+                for j in range(N_VS + N_TS):
+                    self.total_pack_labels[i][j].configure(text="ERR", fg_color="gray", text_color="black", font=("sans-serif", 14, "normal"))
 
         color = ("magenta", "cyan", "yellow", "white", "white", "white", "white", "white", "white", "white")
-
         # list_info: ["MAX VOLT", "MIN VOLT", "BALANCING","TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
-        for index, value in enumerate(minmax):
+        infos = (data_dict["voltages"]["max"], data_dict["voltages"]["min"], data_dict["voltages"]["max"] - data_dict["voltages"]["min"], data_dict["voltages"]["tot"], data_dict["voltages"]["avg"],
+                 data_dict["temps"][
+            "max"], data_dict["temps"]["min"], data_dict["temps"]["avg"], data_dict["current"])
+
+        for index, value in enumerate(infos):
             self.list_info[index].configure(text=str(round(value, 3)), text_color=color[index])
 
     def update_silent(self):
@@ -485,6 +382,15 @@ def rgb_volt(value):
         return "yellow"
     else:
         return "red"
+
+
+def parse_serial_data(serial_data):
+    try:
+        data_dict = json.loads(serial_data)
+        return data_dict
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        return None
 
 
 if __name__ == "__main__":
