@@ -1,5 +1,6 @@
 from ConfigurationMenu import *
 from DataFrame import *
+from WebSocketController import WebSocketController
 
 
 class UI(ctk.CTk):
@@ -14,7 +15,9 @@ class UI(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
 
         self.serial_controller = SerialController()
-        self.menu = ConfigurationMenu(self, self.serial_controller)
+        self.ws_controller = WebSocketController()
+
+        self.menu = ConfigurationMenu(self)
         self.data_frame = DataFrame(self)
 
         self._initialize_gui()

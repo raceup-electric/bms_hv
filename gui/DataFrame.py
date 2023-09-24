@@ -32,6 +32,9 @@ class DataFrame(ctk.CTkFrame):
     def _get_mode(self) -> str:
         return self.ui_frame.menu.get_mode()
 
+    def _get_type(self) -> str:
+        return self.ui_frame.menu.get()
+
     def _get_text(self) -> str:
         return self.ui_frame.menu.get_text()
 
@@ -40,6 +43,14 @@ class DataFrame(ctk.CTkFrame):
 
     def _update_gui(self) -> None:
 
+        if self.ui_frame.menu.type == "Serial":
+            self._update_serial()
+        else:
+            pass
+
+        self.after(UPDATE_FREQ, self._update_gui)
+
+    def _update_serial(self):
         try:
             if self._get_switch() == 1 and self.ui_frame.serial_controller.ser.isOpen():
                 if self._get_mode() == 0:
@@ -58,8 +69,6 @@ class DataFrame(ctk.CTkFrame):
             self.ui_frame.menu.error_serial("Device not responding, probably disconnected")
         except json.JSONDecodeError:
             self.ui_frame.menu.error_serial("Error Unpacking")  # look carefully the definition of the host's JSON
-
-        self.after(UPDATE_FREQ, self._update_gui)
 
     def _update_logic(self, packet: str) -> None:
 

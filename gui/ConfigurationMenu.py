@@ -8,12 +8,12 @@ from SerialController import *
 
 class ConfigurationMenu(ctk.CTkTabview):
 
-    def __init__(self, ui_frame: UI, serial_controller: SerialController):
+    def __init__(self, ui_frame: UI):
         super().__init__(ui_frame, state="disable", segmented_button_selected_color="chartreuse4", width=240, height=350)
         self.baud_var = tkinter.IntVar(value=115200)
         self.mode = tkinter.StringVar(value="Normal Mode")
         self.type = tkinter.StringVar(value="Serial")
-        self.serial_controller = serial_controller
+        self.serial_controller = ui_frame.serial_controller
         self._menu_setup()
 
     def _set_mode(self):
