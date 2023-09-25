@@ -13,19 +13,20 @@ class ConfigurationMenu(ctk.CTkTabview):
         self.baud_var = tkinter.IntVar(value=115200)
         self.mode = tkinter.StringVar(value="Normal Mode")
         self.type = tkinter.StringVar(value="Serial")
-        self.serial_controller = ui_frame.serial_controller
+        self.ui = ui_frame
+        self.controller = ui_frame.serial_controller
         self._menu_setup()
 
     def _set_mode(self):
         if self.get_switch() == 0:
             return
-        self.serial_controller.set_mode(self.mode.get()[0])
+        self.controller.set_mode(self.mode.get()[0])
 
     def _set_type(self):
-        if self.get_switch() == 0:
-            return
-
-    # TODO
+        if self.get_type() == "Serial":
+            self.controller = self.ui.serial_controller
+        else:
+            self.controller = self.ui.ws_controller
 
     def get_text(self):
         return self.textbox.cget("text")
@@ -109,21 +110,29 @@ class ConfigurationMenu(ctk.CTkTabview):
         self.option_COM.set(connected[0])
 
     def error_serial(self, message: str):
-        self.switch.deselect()
-        self.serial_controller.close()
-        self._get_com()
-        self.set_text(message)
+        if self.get_type() == "Serial":
+            self.switch.deselect()
+            self.controller.close()
+            self._get_com()
+            self.set_text(message)
+        else:
+            print("Wrong method")  # TODO
 
     def _switch_event(self):
         if self.switch.get() == 0:
-            self.serial_controller.close()
+            self.controller.close()
         else:
             if self.option_COM.get() == "No Device Found":
                 self.error_serial("Select a correct Serial Port")
             else:
                 try:
-                    self.serial_controller.open(self.baud_var.get(), self.option_COM.get())
-                    self.set_text("Selected port is ON and is listening")
+                    if self.get_type() == "Serial":
+                        self.controller.open(self.baud_var.get(), self.option_COM.get())
+                        self.set_text("Selected port is ON and listening")
+                    else:
+                        self.controller.open()
+                        self.set_text("WebSocket is ON and listening")
+
                 except SerialException:
                     self.error_serial("Not possible to open that port, please select another one")
 
@@ -132,6 +141,9 @@ class ConfigurationMenu(ctk.CTkTabview):
 
     def get_mode(self) -> str:
         return self.mode.get()
+
+    def get_type(self) -> str:
+        return self.type.get()
 
     def set_text(self, message: str) -> None:
         self.textbox.configure(text=message)

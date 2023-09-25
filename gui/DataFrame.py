@@ -43,18 +43,18 @@ class DataFrame(ctk.CTkFrame):
 
     def _update_gui(self) -> None:
 
-        if self.ui_frame.menu.type == "Serial":
+        if self.ui_frame.menu.type == "Serial" and self.ui_frame.controller.ser.isOpen():
             self._update_serial()
         else:
-            pass
+            self._update_serial()
 
         self.after(UPDATE_FREQ, self._update_gui)
 
     def _update_serial(self):
         try:
-            if self._get_switch() == 1 and self.ui_frame.serial_controller.ser.isOpen():
+            if self._get_switch() == 1:
                 if self._get_mode() == 0:
-                    packet = self.ui_frame.serial_controller.read_packet()
+                    packet = self.ui_frame.controller.read_packet()
                     self._update_logic(packet)
                 elif self._get_mode() == 1:
                     for i in range(N_SLAVES):
