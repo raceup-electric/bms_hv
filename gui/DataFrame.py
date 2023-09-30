@@ -5,6 +5,7 @@ import json
 
 
 def parse_serial_data(serial_data) -> dict:
+    # print(serial_data)
     return json.loads(serial_data)
 
 
@@ -63,12 +64,15 @@ class DataFrame(ctk.CTkFrame):
             self.ui_frame.menu.error("Device not responding, retry or select another port")
         except TypeError:
             self.ui_frame.menu.error("Device not responding, probably disconnected")
-        except json.JSONDecodeError:
-            self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
+        # except json.JSONDecodeError:
+        #     self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
 
         self.after(UPDATE_FREQ, self._update_gui)
 
     def _update_logic(self, packet: str) -> None:
+        # First packet is empty
+        if packet == "":
+            return
 
         data_dict: dict = parse_serial_data(packet)  # create a JSON dictionary
 

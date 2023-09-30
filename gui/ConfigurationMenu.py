@@ -123,24 +123,27 @@ class ConfigurationMenu(ctk.CTkTabview):
             self._get_com()
         else:
             print("-TO BE IMPLEMENTED-")  # TODO
+            print(message)
 
     def _switch_event(self):
         if self.switch.get() == 0:
             self.controller.close()
-        else:
-            if self.option_COM.get() == "No Device Found":
-                self.error("Select a correct Serial Port")
-            else:
-                try:
-                    if self.get_type() == "Serial":
-                        self.controller.open(self.baud_var.get(), self.option_COM.get())
-                        self.set_text("Selected port is ON and listening")
-                    else:
-                        self.controller.open()
-                        self.set_text("WebSocket is ON and listening")
+            return
 
-                except SerialException:
-                    self.error("Not possible to open that port, please select another one")
+        if self.get_type() == "Serial" and self.option_COM.get() == "No Device Found":
+            self.error("Select a correct Serial Port")
+            return
+
+        try:
+            if self.get_type() == "Serial":
+                self.controller.open(self.baud_var.get(), self.option_COM.get())
+                self.set_text("Selected port is ON and listening")
+            else:
+                self.controller.open()
+                self.set_text("WebSocket is ON and listening")
+
+        except SerialException:
+            self.error("Not possible to open that port, please select another one")
 
     def get_switch(self) -> int:
         return self.switch.get()

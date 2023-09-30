@@ -8,7 +8,7 @@ MIN_ERR: int = 10
 SIZE_PAYLOAD: int = 99
 FORMAT = 'utf-8'
 
-SERVER = "ws://127.0.0.1:8000"
+SERVER = "ws://192.168.4.1/ws"
 # PORT = 8000
 # SERVER = "localhost"
 # ADDR = (SERVER, PORT)

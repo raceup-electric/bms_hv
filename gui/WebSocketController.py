@@ -46,9 +46,9 @@ class WebSocketController:
         self.ws.close()
 
     def _on_message(self, ws, message):
-        print("- MESSAGE RECEIVED -")
-        print(message)
+        # print("- MESSAGE RECEIVED -")
+        # print(message)
         self.last_message = message
 
-    def read_packet(self, ws, message) -> str:
+    def read_packet(self) -> str:
         return self.last_message
