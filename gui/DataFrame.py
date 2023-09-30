@@ -1,6 +1,11 @@
 from Slave import *
 from Constants import *
 from SummaryInfo import *
+import json
+
+
+def parse_serial_data(serial_data) -> dict:
+    return json.loads(serial_data)
 
 
 class DataFrame(ctk.CTkFrame):
@@ -41,34 +46,27 @@ class DataFrame(ctk.CTkFrame):
     def _set_text(self, message: str) -> None:
         self.ui_frame.menu.set_text(message)
 
-    def _update_gui(self) -> None:
+    def _update_gui(self):
 
-        if self.ui_frame.menu.type == "Serial" and self.ui_frame.controller.ser.isOpen():
-            self._update_serial()
-        else:
-            self._update_serial()
-
-        self.after(UPDATE_FREQ, self._update_gui)
-
-    def _update_serial(self):
         try:
             if self._get_switch() == 1:
-                if self._get_mode() == 0:
-                    packet = self.ui_frame.controller.read_packet()
+                if self._get_mode() == "Normal Mode":
+                    packet = self.ui_frame.menu.controller.read_packet()
                     self._update_logic(packet)
-                elif self._get_mode() == 1:
+
+                elif self._get_mode() == "Sleep Mode":
                     for i in range(N_SLAVES):
                         self.slaves[i].update_slave({}, 0, 0)
                     self.summary_info.update_info({})
-                else:
-                    return
 
         except TimeoutError:
-            self.ui_frame.menu.error_serial("Device not responding, retry or select another port")
+            self.ui_frame.menu.error("Device not responding, retry or select another port")
         except TypeError:
-            self.ui_frame.menu.error_serial("Device not responding, probably disconnected")
+            self.ui_frame.menu.error("Device not responding, probably disconnected")
         except json.JSONDecodeError:
-            self.ui_frame.menu.error_serial("Error Unpacking")  # look carefully the definition of the host's JSON
+            self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
+
+        self.after(UPDATE_FREQ, self._update_gui)
 
     def _update_logic(self, packet: str) -> None:
 
@@ -84,10 +82,11 @@ class DataFrame(ctk.CTkFrame):
 def get_index_frame(master: DataFrame) -> ctk.CTkFrame:
     index_frame = ctk.CTkFrame(master)
     label = ctk.CTkLabel(index_frame, text="", fg_color="transparent", corner_radius=4, width=52)
-    label.grid(column=0, row=0, sticky="nsew", pady=(17, 5), padx=(5, 5))
+    label.grid(column=0, row=0, sticky="nsew", pady=(5, 5), padx=(5, 5))
 
     for i in range(0, N_VS + N_TS):
-        label = ctk.CTkLabel(index_frame, text="Cell " + str(i + 1) if i < N_VS else "Tmp " + str(i - N_VS + 1), fg_color=("gray70", "gray25"), corner_radius=4, width=52)
+        label = ctk.CTkLabel(index_frame, text="Cell " + str(i + 1) if i < N_VS else "Tmp " + str(i - N_VS + 1), fg_color=("gray70", "gray25"), corner_radius=4,
+                             width=52)
         label.grid(column=0, row=i + 1, sticky="nsew", pady=(5, 5), padx=(5, 5))
 
     return index_frame

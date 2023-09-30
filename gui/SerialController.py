@@ -9,13 +9,9 @@ def get_com() -> list:
     return [port.device for port in serial.tools.list_ports.comports()]
 
 
-def parse_serial_data(serial_data) -> dict:
-    return json.loads(serial_data)
-
-
 class SerialController:
     def __init__(self):
-        self.ser = serial.Serial()
+        self.ser = serial.Serial(timeout=2)
 
     def open(self, baud_rate: int, selected_com: str):
         self.ser.baudrate = baud_rate
@@ -40,9 +36,15 @@ class SerialController:
             self.close()
             raise TimeoutError
 
-    def _read(self, size: int) -> bytes:
-
+    def _readline(self) -> bytes:
         time_out = time.time() + 2
+        data = self.ser.readline()
+        self._check_timeout(time_out)
+        return data
+
+    def _read(self, size: int) -> bytes:
+        time_out = time.time() + 2
+
         while self.ser.in_waiting < size and time.time() < time_out:
             pass
 
@@ -64,9 +66,9 @@ class SerialController:
                 read = True
 
         self._check_timeout(time_out)
-        resp = self._read(SIZE_PAYLOAD)
+        resp = self._readline().decode(FORMAT).strip()
 
         self.ser.reset_input_buffer()
         self.ser.reset_output_buffer()
 
-        return resp.decode(FORMAT)
+        return resp

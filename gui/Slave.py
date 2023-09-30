@@ -1,5 +1,6 @@
 from UI import *
 from Constants import *
+import customtkinter as ctk
 
 
 def rgb_volt(value):
@@ -35,23 +36,25 @@ class Slave(ctk.CTkFrame):
         self._create_slave()
 
     def _create_slave(self):
-        select_slv = ctk.CTkCheckBox(self, text="Slv " + str(self.number_slv), fg_color=("gray70", "gray25"), corner_radius=4, width=70)
-        select_slv.configure(command=lambda: self._deselect_slave(select_slv))
-        select_slv.select()
-        select_slv.grid(column=0, row=0, sticky="nsew", padx=(5, 5), pady=(20, 5))
+        # select_slv = ctk.CTkCheckBox(self, text=str(self.number_slv), fg_color=("gray70", "gray25"), corner_radius=8, width=40)
+        # select_slv.configure(command=lambda: self._deselect_slave(select_slv))
+        # select_slv.select()
+        # select_slv.grid(column=0, row=0, sticky="nsew", pady=(20, 5))
+        label = ctk.CTkLabel(self, text="Slv " + str(self.number_slv), fg_color=("gray70", "gray25"), corner_radius=4, width=52)
+        label.grid(column=0, row=0, sticky="nsew", pady=(5, 5), padx=(5, 5))
 
         for j in range(1, N_VS + N_TS + 1):
-            label = ctk.CTkLabel(self, text="0", fg_color=("gray80", "gray15"), corner_radius=4, text_color="black", font=("sans-serif", 14))
-            label.grid(column=0, row=j, sticky="nsew", padx=(2, 2), pady=(5, 5))
+            label = ctk.CTkLabel(self, text="0", fg_color=("gray80", "gray15"), corner_radius=4, text_color="black", font=("sans-serif", 14), width=70)
+            label.grid(column=0, row=j, sticky="nsew", padx=(0, 0), pady=(5, 5))
             self.values.append(label)
 
-    def _deselect_slave(self, button):
-        if button.get() == 0:
-            for e in self.values:
-                e.grid_forget()
-        else:
-            for i, e in enumerate(self.values):
-                e.grid(column=0, row=i + 1, sticky="nsew", padx=(2, 2), pady=(5, 5))
+    # def _deselect_slave(self, button):
+    #     if button.get() == 0:
+    #         for e in self.values:
+    #             e.grid_forget()
+    #     else:
+    #         for i, e in enumerate(self.values):
+    #             e.grid(column=0, row=i + 1, sticky="nsew", padx=(2, 2), pady=(5, 5))
 
     # Return true if the slave is dead, false if it's not
     def update_slave(self, slave_values: dict, max_volt: float, min_volt: float) -> int:
@@ -85,6 +88,6 @@ class Slave(ctk.CTkFrame):
 
             for j, temp in enumerate(slave_values["temps"]):
                 value = round(temp, 2)
-                self.values[j].configure(text=str(value), fg_color=Slave.rgb_function["temp"](value), font=("sans-serif", 14), text_color="black")
+                self.values[j + N_VS].configure(text=str(value), fg_color=Slave.rgb_function["temp"](value), font=("sans-serif", 14), text_color="black")
 
         return 1
