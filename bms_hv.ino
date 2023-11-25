@@ -2,17 +2,12 @@
 #include "operations.h"
 #include "canc.h"
 #include "fan.h"
-#include "ui.h"
 
 // global bms state
 BMS g_bms = {};
-EasyNex ui(Serial3);
 
 void setup() {
   Serial.begin(115200);
-  if (SCREEN_ENABLE) {
-    init_nextion();
-  }
   init_spi();
   wakeup_sleep();
   init_bms();
@@ -40,10 +35,6 @@ void loop() {
   }
   if (DEBUG && !g_bms.gui_conn) {
     print_slaves_hr();
-  }
-  if (SCREEN_ENABLE) {
-    render();
-    ui.NextionListen();
   }
   reset_measures();
 }

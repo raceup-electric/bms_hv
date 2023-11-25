@@ -2,7 +2,6 @@
 #define STRUCTS_H_
 
 #include "config.h"
-#include "EasyNextionLibrary.h"
 
 enum class Mode {
   NORMAL,
