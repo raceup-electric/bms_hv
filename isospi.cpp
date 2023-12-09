@@ -5,10 +5,10 @@
 void init_spi() {
   pinMode(SPI_CS_PIN, OUTPUT);
   digitalWrite(SPI_CS_PIN, HIGH);
-  SPI.begin();
+  SPI.begin(SPI_CLK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN);
   SPI.setDataMode(SPI_MODE3);
   SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(168); // 1 MHz
+  SPI.setFrequency(1000000); // 1MHz
 }
 
 void tx(uint8_t* tx_data, int tx_bytes) {

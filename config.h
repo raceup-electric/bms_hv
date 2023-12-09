@@ -46,7 +46,12 @@ constexpr uint8_t GREG_LEN = 6;
 constexpr uint32_t PRECH_MIN_WAIT = 5000; // ms
 constexpr uint8_t PRECH_MIN_CYCLE = 20;
 // pins config (new host board!!)
-constexpr uint8_t SPI_CS_PIN = 5;
+constexpr uint8_t CAN_TX_PIN = 1;
+constexpr uint8_t CAN_RX_PIN = 2;
+constexpr uint8_t SPI_MISO_PIN = 13;
+constexpr uint8_t SPI_MOSI_PIN = 11;
+constexpr uint8_t SPI_CLK_PIN = 12;
+constexpr uint8_t SPI_CS_PIN = 10;
 constexpr uint8_t FAN_EN_PIN = 4;
 constexpr uint8_t BMS_FAULT_PIN = 3;
 constexpr uint8_t SDC_SENSE_PIN = 7;
