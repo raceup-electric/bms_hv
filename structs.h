@@ -22,7 +22,7 @@ struct Fan {
 };
 
 struct LEM {
-  int32_t curr;
+  int32_t curr; // in mA
   uint32_t last_recv;
 };
 
@@ -32,6 +32,13 @@ struct Precharge {
   uint32_t start_tmstp;
   uint8_t cycle_counter;
   bool done;
+};
+
+struct SOC {
+  uint32_t t_prev;
+  float soc;
+  float dod;
+  float soh;
 };
 
 struct BMS {
@@ -51,6 +58,7 @@ struct BMS {
   Mode mode;
   Precharge precharge;
   bool gui_conn;
+  SOC soc;
 };
 
 #endif // STRUCTS_H_

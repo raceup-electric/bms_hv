@@ -2,6 +2,7 @@
 #include "operations.h"
 #include "canc.h"
 #include "fan.h"
+#include "soc.h"
 
 // global bms state
 BMS g_bms = {};
@@ -24,6 +25,7 @@ void loop() {
     read_volts();
     start_adax();
     read_temps();
+    estimate_soc();
     set_fan_dutycycle(); 
     if (FAULT_ENABLE) {
       check_faults();

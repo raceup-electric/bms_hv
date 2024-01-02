@@ -5,6 +5,7 @@
 
 constexpr uint8_t SLAVE_NUM = 16;
 constexpr uint8_t CELL_NUM = 9;
+constexpr uint8_t TOT_CELLS = SLAVE_NUM * CELL_NUM;
 constexpr uint8_t TEMP_NUM = 3;
 constexpr uint8_t ADC_OPT = 0;
 constexpr uint8_t ADC_CONVERSION_MODE = 2;
@@ -45,6 +46,12 @@ constexpr uint8_t GREG_LEN = 6;
 // precharge config
 constexpr uint32_t PRECH_MIN_WAIT = 5000; // ms
 constexpr uint8_t PRECH_MIN_CYCLE = 20;
+// SOC config
+constexpr float C_RATED = 12.7; // Ah
+constexpr uint16_t SAFETY_MARGIN = 1000; // in 0.1 mV => 100 mV  
+constexpr uint32_t CHARGED_VOLT = (OV_THRESHOLD - SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV (144 cells)
+constexpr uint32_t EMPTY_VOLT = (UV_THRESHOLD + SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV 
+constexpr float ETA = 0.9; // coulomb efficiency
 // pins config (new host board!!)
 constexpr uint8_t CAN_TX_PIN = 1;
 constexpr uint8_t CAN_RX_PIN = 2;
