@@ -1,15 +1,17 @@
 #ifndef SUPABASE_H_
 #define SUPABASE_H_
 
-#include <WiFi.h>
+#include "structs.h"
 
+#include <WiFi.h>
 #include <ArduinoHttpClient.h>
 #include <HttpClient.h>
 
-#include "structs.h"
-
 #define SSID "."
 #define PASSWORD "8caratteri"
+
+#include <WebSocketsServer.h>
+WebSocketsServer webSocket = WebSocketsServer(81);
 
 uint8_t attempts = 0;
 

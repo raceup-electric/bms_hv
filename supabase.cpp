@@ -43,7 +43,7 @@ void supabase_insert(void *)
             int bLen = sprintf(body, "{\
                 %s \
                 \"stest\": \"%lli\" \
-            }", slaves, 1);
+            }", slaves, 1); //TODO: timestamp
 
             if(WiFi.status() == WL_CONNECTED && attempts < 20) {
                 client.beginRequest();
@@ -62,10 +62,11 @@ void supabase_insert(void *)
                 if(attempts == 100) {
                     WiFi.disconnect();
                     WiFi.softAP("BMS_RaceUP", "VediQualcosa?", 1, 1, 10); // Hidden SSID
+
+                    webSocket.begin();
                 }
 
-                // Send websocket
-
+                webSocket.broadcastTXT(body);
             } else {
                 attempts++;
             }
