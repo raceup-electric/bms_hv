@@ -28,6 +28,6 @@ void set_fan_dutycycle() {
   g_bms.fan.prev_temp = g_bms.max_temp;
 }
 
-void toggle_fan(BytesUnion* data) {
-  if (data->byte[0] == 0x1) g_bms.fan.on = !g_bms.fan.on;
-}
+// void toggle_fan(BytesUnion* data) {
+//   if (data->byte[0] == 0x1) g_bms.fan.on = !g_bms.fan.on;
+// }

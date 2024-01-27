@@ -3,10 +3,10 @@
 
 #include <Arduino.h>
 
-constexpr uint8_t SLAVE_NUM = 16;
-constexpr uint8_t CELL_NUM = 9;
+constexpr uint8_t SLAVE_NUM = 1;
+constexpr uint8_t CELL_NUM = 11;
 constexpr uint8_t TOT_CELLS = SLAVE_NUM * CELL_NUM;
-constexpr uint8_t TEMP_NUM = 3;
+constexpr uint8_t TEMP_NUM = 5;
 constexpr uint8_t ADC_OPT = 0;
 constexpr uint8_t ADC_CONVERSION_MODE = 2;
 constexpr uint8_t ADC_DCP = 1;
@@ -34,9 +34,9 @@ constexpr float VAR_MIN = 0;
 constexpr uint32_t CAN_BAUD_RATE = 500000;
 constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
 constexpr uint32_t LEM_CURRENT_ID = 0x3C2;
-constexpr uint32_t DATA_VOLTAGE_ID = 0x110;
-constexpr uint32_t DATA_TEMP_ID = 0x111;
-constexpr uint32_t FAN_TOGGLE_ID = 0x90;
+constexpr uint32_t DATA_VOLTAGE_ID = 0x55;
+constexpr uint32_t DATA_TEMP_ID = 0x56;
+//constexpr uint32_t FAN_TOGGLE_ID = 0x90;
 // commands consts (do not edit unless bug)
 constexpr uint8_t CMD_LEN = 2;
 constexpr uint8_t CFG_LEN = 6;
@@ -60,13 +60,13 @@ constexpr uint8_t SPI_MOSI_PIN = 11;
 constexpr uint8_t SPI_CLK_PIN = 12;
 constexpr uint8_t SPI_CS_PIN = 10;
 constexpr uint8_t FAN_EN_PIN = 4;
-constexpr uint8_t BMS_FAULT_PIN = 3;
-constexpr uint8_t SDC_SENSE_PIN = 7;
+constexpr uint8_t BMS_FAULT_PIN = 7;
+constexpr uint8_t SDC_SENSE_PIN = 5;
 constexpr uint8_t AIR_2_EN_PIN = 6;
-constexpr uint8_t LED_0_PIN = 2;
+constexpr uint8_t LED_0_PIN = 21;
 // operations config
 constexpr bool SCREEN_ENABLE = false;
-constexpr bool DEBUG = false;
+constexpr bool DEBUG = true;
 constexpr bool FAULT_ENABLE = false;
 
 #endif

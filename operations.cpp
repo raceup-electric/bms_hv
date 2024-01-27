@@ -86,33 +86,18 @@ void read_volts() {
         g_bms.slaves[i].err += 1;
       }
     }
-    
-    // Dannati elettronici
-    uint16_t tmp = g_bms.slaves[i].volts[5];
-    g_bms.slaves[i].volts[5] = g_bms.slaves[i].volts[6];
-    g_bms.slaves[i].volts[6] = g_bms.slaves[i].volts[7];
-    g_bms.slaves[i].volts[7] = g_bms.slaves[i].volts[8];
-    g_bms.slaves[i].volts[8] = tmp;
   }
 }
 
 void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   constexpr uint8_t CELLS_PER_REG = 3;
-  // Ancora elettronici bastardi
-  if (reg == 'D') {
-    uint16_t voltage = (raw_volts[1] << 8) | (raw_volts[0] & 0xFF);
-    g_bms.slaves[slave_idx].volts[5] = voltage;
-    if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
-    if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
-    g_bms.tot_volt += voltage;
-    return;
-  }
+
   // for each measure (2 bytes)
   for (int i = 0; i < VREG_LEN; i += 2) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
     // don't read last cell in reg B because it is not connected (elettronici vi odio)
-    if (reg == 'B' && i == VREG_LEN - 2) continue;
+    if (reg == 'D' && i == VREG_LEN) continue;
     g_bms.slaves[slave_idx].volts[offset + (i / 2)] = voltage;
     if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
     if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
@@ -149,13 +134,16 @@ void read_temps() {
 
 
 void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
-  // grazie tronici -_-
-  if (reg == 'A') {
-    // gpio 1, 2, 3
+  if (reg == 'A' || reg == 'B') {
     for (int i = 0; i < GREG_LEN; i += 2) {
+      if(i == GREG_LEN - 2 && reg == 'B') return;
+      int offset = reg == 'B' ? 3 : 0;
+
       uint16_t volt = (raw_temps[i + 1] << 8) | (raw_temps[i] & 0xFF);
       uint16_t temp = parse_temp(volt);
-      g_bms.slaves[slave_idx].temps[i / 2] = temp; 
+
+      g_bms.slaves[slave_idx].temps[offset + i / 2] = temp; 
+      
       if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
       if (temp < g_bms.min_temp) g_bms.min_temp = temp;
       g_bms.tot_temp += temp;
@@ -262,15 +250,19 @@ void send_can() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     if (g_bms.slaves[i].err == 0) responses++;
   }
+
+  uint32_t avg_volt = responses == 0 ? 0 : g_bms.tot_volt / (responses * CELL_NUM);
+  uint32_t avg_temp = responses == 0 ? 0 : g_bms.tot_temp / (responses * CELL_NUM);
+
   send_data_to_ECU(
     g_bms.max_volt,
-    g_bms.tot_volt / (responses * CELL_NUM),
+    avg_volt,
     g_bms.min_volt,
-    bitmap_alive_slaves(), 
+    (int) g_bms.soc.soc, 
     g_bms.max_temp,
-    g_bms.tot_temp / (responses * TEMP_NUM),
+    avg_temp,
     g_bms.min_temp,
-    g_bms.max_temp_slave
+    0 //fan speed
   );
 }
 
