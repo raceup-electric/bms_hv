@@ -8,8 +8,9 @@
 
 #define SSID "."
 #define PASSWORD "8caratteri"
+#define ATTEMPTS 10
 
-#include <WebSocketsServer.h>
+#include <ESPAsyncWebServer.h>
 
 extern QueueHandle_t supabase_q;
 extern SemaphoreHandle_t supabase_semaphore;

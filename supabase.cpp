@@ -4,14 +4,17 @@ struct BMS g_bms2;
 
 uint8_t attempts = 0;
 
-//WiFiClient wifi_client;
-WebSocketsServer webSocket = WebSocketsServer(81);
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
+
 HTTPClient http;
 
 void supabase_init()
 {
     WiFi.disconnect();
     WiFi.begin(SSID, PASSWORD);
+
+    server.addHandler(&ws);
 }
 
 void supabase_insert(void *)
@@ -40,7 +43,7 @@ void supabase_insert(void *)
 
             int bLen = sprintf(body, "%s\"stest\":\"%i\"}", body, 1);
 
-            if(WiFi.status() == WL_CONNECTED && attempts < 20) {
+            if(WiFi.status() == WL_CONNECTED && attempts < ATTEMPTS) {
                 http.begin(HTTP_SERVER_URL);
 
                 http.addHeader("apikey", API_KEY);
@@ -51,18 +54,20 @@ void supabase_insert(void *)
                 http.addHeader("Prefer", "return=minimal");
 
                 int httpResponseCode = http.POST(body);
-            } /*else if (attempts >= 20) {
-                if(attempts == 20) {
+            } else if (attempts >= ATTEMPTS) {
+                if(attempts == ATTEMPTS) {
                     WiFi.softAP("BMS_RG07", "VediQualcosa?");
 
-                    webSocket.begin();
+                    //webSocket.begin();
+                    server.begin();
                     attempts++;
                 }
                 
-                webSocket.broadcastTXT((const byte*) body, bLen);
+                ws.textAll(body);
+                //webSocket.broadcastTXT((const byte*) body, bLen);
             } else {
                 attempts++;
-            }*/
+            }
         }
 
         memset(body, 0, 512);
