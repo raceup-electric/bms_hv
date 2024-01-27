@@ -1,5 +1,13 @@
 #include "supabase.h"
 
+struct BMS g_bms2;
+
+uint8_t attempts = 0;
+
+//WiFiClient wifi_client;
+WebSocketsServer webSocket = WebSocketsServer(81);
+HTTPClient http;
+
 void supabase_init()
 {
     WiFi.disconnect();
@@ -8,7 +16,7 @@ void supabase_init()
 
 void supabase_insert(void *)
 {
-    char *body = (char *)malloc(512);
+    char *body = (char *)malloc(6144);
     while (1)
     {
         if (
@@ -16,63 +24,50 @@ void supabase_insert(void *)
             xQueueReceive(supabase_q, &g_bms2, (TickType_t)10) == pdPASS &&
             xSemaphoreTake(supabase_semaphore, 1) == pdPASS)
         {
-            char *slaves = "";
+            sprintf(body, "%s", "{");
 
-            for (int i = 0; i < SLAVE_NUM; i++)
+            for (int i = 0; i < 12 /*SLAVE_NUM*/; i++)
             {
-                for (int j = 0; j < CELL_NUM; j++)
-                {
-                    char *slave = "";
-                    printf(slave, "\"cell_%i_%i\": \"%hu\",", i, j, g_bms2.slaves[i].volts[j]);
-                    slaves = strcat(slaves, slave);
-                }
+                for (int j = 0; j < 11 /*CELL_NUM*/; j++)
+                    sprintf(body, "%s\"cell_%i_%i\":\"%.2f\",", body, i, j, g_bms2.slaves[i].volts[j]);
 
-                char *temps = "";
-                printf(temps, "\
-                        \"cell_%i_0\": \"%hu\", \
-                        \"cell_%i_1\": \"%hu\", \
-                        \"cell_%i_2\": \"%hu\", \
-                    ",  g_bms2.slaves[i].temps[0], 
-                        g_bms2.slaves[i].temps[1],
-                        g_bms2.slaves[i].temps[2]
-                    );
-
-                slaves = strcat(slaves, temps);
+                sprintf(body, "%s\"temp_%i_0\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[0]);
+                sprintf(body, "%s\"temp_%i_1\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[1]);
+                sprintf(body, "%s\"temp_%i_2\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[2]);
+                sprintf(body, "%s\"temp_%i_3\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[2]);
+                sprintf(body, "%s\"temp_%i_4\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[2]);
             }
 
-            int bLen = sprintf(body, "{\
-                %s \
-                \"stest\": \"%lli\" \
-            }", slaves, 1); //TODO: timestamp
+            int bLen = sprintf(body, "%s\"stest\":\"%i\"}", body, 1);
 
             if(WiFi.status() == WL_CONNECTED && attempts < 20) {
-                client.beginRequest();
-                client.post("/");
+                http.begin(HTTP_SERVER_URL);
 
-                client.sendHeader("apikey", API_KEY);
-                client.sendHeader("Authorization", BEARER_VALUE);
-                client.sendHeader(HTTP_HEADER_CONTENT_LENGTH, bLen);
-                client.sendHeader(HTTP_HEADER_CONTENT_TYPE, ",application/json");
-                client.sendHeader("Prefer", "return=minimal");
+                http.addHeader("apikey", API_KEY);
+                http.setAuthorizationType("Bearer");
+                http.setAuthorization(API_KEY);
 
-                client.endRequest();
+                http.addHeader("Content-Type", "application/json");
+                http.addHeader("Prefer", "return=minimal");
 
-                client.write((const byte*) body, bLen);
-            } else if (attempts >= 100) {
-                if(attempts == 100) {
-                    WiFi.disconnect();
-                    WiFi.softAP("BMS_RaceUP", "VediQualcosa?", 1, 1, 10); // Hidden SSID
+                int httpResponseCode = http.POST(body);
+            } /*else if (attempts >= 20) {
+                if(attempts == 20) {
+                    WiFi.softAP("BMS_RG07", "VediQualcosa?");
 
                     webSocket.begin();
+                    attempts++;
                 }
-
-                webSocket.broadcastTXT(body);
+                
+                webSocket.broadcastTXT((const byte*) body, bLen);
             } else {
                 attempts++;
-            }
+            }*/
         }
-    }
 
-    memset(body, 0, 512);
-    xSemaphoreGive(supabase_semaphore);
+        memset(body, 0, 512);
+        xSemaphoreGive(supabase_semaphore);
+
+        delay(1000);
+    }
 }
