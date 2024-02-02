@@ -29,44 +29,36 @@ void init_cfg(Mode mode) {
   uint8_t cfg_data[CFG_LEN] = {};
   uint16_t uv_val = (UV_THRESHOLD / 16) - 1;
   uint16_t ov_val = (OV_THRESHOLD / 16); // values required by datasheet
-  switch (mode) {
-    case Mode::NORMAL:
-      // turn on GPIO pins pulldown, disable discharge timer and set ADC OPT flag (table 52 datasheet)
-      cfg_data[0] = 0xF8 | ADC_OPT;
-      // LSB of undervolt value
-      cfg_data[1] = uv_val & 0xFF;
-      // four LSB of overvolt value and remaining MSB of undervolt
-      cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
-      // eigth MSB of overvolt value
-      cfg_data[3] = ov_val >> 4;
+  // This part is common to all modes
+  // turn on GPIO pins pulldown, disable discharge timer and set ADC OPT flag (table 52 datasheet)
+  cfg_data[0] = 0xF8 | ADC_OPT;
+  // LSB of undervolt value
+  cfg_data[1] = uv_val & 0xFF;
+  // four LSB of overvolt value and remaining MSB of undervolt
+  cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
+  // eigth MSB of overvolt value
+  cfg_data[3] = ov_val >> 4;
+  if (mode == Mode::NORMAL || g_bms.min_volt == 0 || g_bms.max_volt == 0) { // Not balancing or no measurements available so don't try balancing
       // write to all slaves broadcast
       wrcfg(cfg_data);
-      break;
-    case Mode::BALANCE:
-      uint16_t discharge_bitmap = 0;
-      // turn on GPIO pins pulldown, disable discharge timer and set ADC OPT flag (table 52 datasheet)
-      cfg_data[0] = 0xF8 | ADC_OPT;
-      // LSB of undervolt value
-      cfg_data[1] = uv_val & 0xFF;
-      // four LSB of overvolt value and remaining MSB of undervolt
-      cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
-      // eigth MSB of overvolt value
-      cfg_data[3] = ov_val >> 4;
-      for (int slave = 0; slave < SLAVE_NUM; slave++) {
-        for (int cell = 0; cell < CELL_NUM; cell++) {
-          if (abs(g_bms.slaves[slave].volts[cell] - g_bms.min_volt) > BAL_EPSILON) {
-            discharge_bitmap = discharge_bitmap | (1 << cell); 
-          }
+  }
+  else if (mode == Mode::BALANCE) {
+    // Create a bitmap with 1 if cell i has to be balanced 0 otherwise
+    uint16_t discharge_bitmap = 0;
+    for (int slave = 0; slave < SLAVE_NUM; slave++) {
+      for (int cell = 0; cell < CELL_NUM; cell++) {
+        if (abs(g_bms.slaves[slave].volts[cell] - g_bms.min_volt) > BAL_EPSILON) {
+          discharge_bitmap = discharge_bitmap | (1 << cell); 
         }
-        // enable discharge for cells outside of acceptable range
-        cfg_data[CFG_LEN - 2] = 0xFF & discharge_bitmap;
-        cfg_data[CFG_LEN - 1] = 0xF & (discharge_bitmap >> 8); 
-        wrcfg(g_bms.slaves[slave].addr, cfg_data);
-        discharge_bitmap = 0;
-      } 
-      break;
-    default: break;
-  };
+      }
+      // enable discharge for cells outside of acceptable range
+      cfg_data[CFG_LEN - 2] = 0xFF & discharge_bitmap;
+      cfg_data[CFG_LEN - 1] = 0xF & (discharge_bitmap >> 8); 
+      // write config manually to each slave (not everyone has the same cells to balance => bitmap is different)
+      wrcfg(g_bms.slaves[slave].addr, cfg_data);
+      discharge_bitmap = 0;
+    }
+  }
 }
 
 // void init_pwm() {
