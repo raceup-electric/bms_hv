@@ -9,7 +9,7 @@ constexpr uint8_t TOT_CELLS = SLAVE_NUM * CELL_NUM;
 constexpr uint8_t TEMP_NUM = 5;
 constexpr uint8_t ADC_OPT = 0;
 constexpr uint8_t ADC_CONVERSION_MODE = 2;
-constexpr uint8_t ADC_DCP = 1;
+constexpr uint8_t ADC_DCP = 0;
 constexpr uint8_t CELL_CHANNEL = 0;
 constexpr uint8_t GPIO_CHANNEL = 0;
 // threshold faults
@@ -22,8 +22,8 @@ constexpr uint32_t T_FAULT_TIME = 1000;
 constexpr uint16_t MEAS_DELAY = 6;
 constexpr uint8_t READ_DELAY = 2;
 // balancing discharge config
-constexpr uint8_t DCTO = 0x3;
-constexpr uint8_t DISCHARGE_DUTY_CICLE = 0b1000;
+constexpr uint16_t BAL_EPSILON = 500; // amount of tolerance when balancing (0.1mV)
+constexpr uint16_t BAL_DELAY = 1000; // wait BAL_DELAY ms before measuring again (better accuracy)
 // fan config
 constexpr uint8_t MIN_TEMP_FAN = 20;
 constexpr uint8_t MAX_TEMP_FAN = 50;

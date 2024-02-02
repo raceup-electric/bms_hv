@@ -23,7 +23,6 @@ void init_bms() {
   g_bms.sdc_closed = false;
   g_bms.precharge.done = false;
   init_cfg(g_bms.mode);
-  init_pwm();
 };
 
 void init_cfg(Mode mode) {
@@ -32,35 +31,51 @@ void init_cfg(Mode mode) {
   uint16_t ov_val = (OV_THRESHOLD / 16); // values required by datasheet
   switch (mode) {
     case Mode::NORMAL:
-      // turn on GPIO pins pulldown, enable discharge timer and set ADC OPT flag (table 52 datasheet)
-      cfg_data[0] = 0xFA | ADC_OPT;
+      // turn on GPIO pins pulldown, disable discharge timer and set ADC OPT flag (table 52 datasheet)
+      cfg_data[0] = 0xF8 | ADC_OPT;
       // LSB of undervolt value
       cfg_data[1] = uv_val & 0xFF;
       // four LSB of overvolt value and remaining MSB of undervolt
       cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
       // eigth MSB of overvolt value
       cfg_data[3] = ov_val >> 4;
+      // write to all slaves broadcast
+      wrcfg(cfg_data);
       break;
     case Mode::BALANCE:
-      // discharge timer enabled
-      cfg_data[0] = 0x2;
-      // discharge enabled for all cells
-      cfg_data[CFG_LEN - 2] = 0xFF;
-      // DCTO 
-      cfg_data[CFG_LEN - 1] = ((DCTO & 0xF) << 4) | 0xF; 
+      uint16_t discharge_bitmap = 0;
+      // turn on GPIO pins pulldown, disable discharge timer and set ADC OPT flag (table 52 datasheet)
+      cfg_data[0] = 0xF8 | ADC_OPT;
+      // LSB of undervolt value
+      cfg_data[1] = uv_val & 0xFF;
+      // four LSB of overvolt value and remaining MSB of undervolt
+      cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
+      // eigth MSB of overvolt value
+      cfg_data[3] = ov_val >> 4;
+      for (int slave = 0; slave < SLAVE_NUM; slave++) {
+        for (int cell = 0; cell < CELL_NUM; cell++) {
+          if (abs(g_bms.slaves[slave].volts[cell] - g_bms.min_volt) > BAL_EPSILON) {
+            discharge_bitmap = discharge_bitmap | (1 << cell); 
+          }
+        }
+        // enable discharge for cells outside of acceptable range
+        cfg_data[CFG_LEN - 2] = 0xFF & discharge_bitmap;
+        cfg_data[CFG_LEN - 1] = 0xF & (discharge_bitmap >> 8); 
+        wrcfg(g_bms.slaves[slave].addr, cfg_data);
+        discharge_bitmap = 0;
+      } 
       break;
     default: break;
   };
-  wrcfg(cfg_data);
 }
 
-void init_pwm() {
-  uint8_t pwm_data[PWM_LEN];
-  for (int i = 0; i < PWM_LEN; i++) {
-    pwm_data[i] = (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
-  }
-  wrpwm(pwm_data);
-}
+// void init_pwm() {
+//   uint8_t pwm_data[PWM_LEN];
+//   for (int i = 0; i < PWM_LEN; i++) {
+//     pwm_data[i] = (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
+//   }
+//   wrpwm(pwm_data);
+// }
 
 void start_adcv() {
   adcv();
@@ -151,6 +166,12 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
   }
 }
 
+void balance() {
+  if (g_bms.mode != Mode::BALANCE) return;
+  init_cfg(Mode::BALANCE);
+  delay(BAL_DELAY);
+}
+
 void check_faults() {
   if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_volt > UV_THRESHOLD) {
     g_bms.fault_volt_tmstp = millis();
@@ -181,7 +202,6 @@ void update_mode() {
     g_bms.mode = new_mode;
     wakeup_sleep();
     init_cfg(g_bms.mode);
-    init_pwm();
   }
 }
 

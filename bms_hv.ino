@@ -32,6 +32,18 @@ void loop() {
     }
     send_can();
   }
+  if (g_bms.mode == Mode::BALANCE) {
+    start_adcv();
+    read_volts();
+    start_adax();
+    read_temps();
+    set_fan_dutycycle(); 
+    if (FAULT_ENABLE) {
+      check_faults();
+    }
+    send_can();
+    balance();
+  }
   if (g_bms.gui_conn) {
    print_slaves_bin();
   }

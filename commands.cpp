@@ -11,6 +11,15 @@ void wrcfg(uint8_t *cfg_data) {
   tx(packet, packet_len);
 }
 
+void wrcfg(uint8_t addr, uint8_t *cfg_data) {
+  constexpr uint8_t packet_len = CMD_LEN + PEC_LEN + CFG_LEN + PEC_LEN;
+  uint8_t packet[packet_len] = {};
+  init_cmd(packet, CommandCode::WRCFGA, CommandMode::ADDRESSED, addr);
+  init_data(&(packet[CMD_LEN + PEC_LEN]), cfg_data, CFG_LEN);
+  wakeup_idle();
+  tx(packet, packet_len);
+}
+
 void wrpwm(uint8_t *pwm_data) {
   constexpr uint8_t packet_len = CMD_LEN + PEC_LEN + PWM_LEN + PEC_LEN;
   uint8_t packet[packet_len] = {};
