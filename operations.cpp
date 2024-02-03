@@ -104,7 +104,7 @@ void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
     // don't read last cell in reg B because it is not connected (elettronici vi odio)
-    if (reg == 'D' && i == VREG_LEN) continue;
+    if (reg == 'D' && i == VREG_LEN - 2) continue;
     g_bms.slaves[slave_idx].volts[offset + (i / 2)] = voltage;
     if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
     if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
