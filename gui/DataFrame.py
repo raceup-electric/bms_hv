@@ -74,10 +74,15 @@ class DataFrame(ctk.CTkFrame):
         if packet == "":
             return
 
-        data_dict: dict = parse_serial_data(packet)  # create a JSON dictionary
+        data_dict: dict = (packet)
+        if self.ui_frame.menu.get_type() != "WebSocket":
+            data_dict: dict = parse_serial_data(packet)
 
-        for i, slave_values in enumerate(data_dict["slaves"]):
-            self.slaves[i].update_slave(slave_values, data_dict["voltages"]["max"], data_dict["voltages"]["min"])
+        for i, slave_values in enumerate(packet["slaves"]):
+            try:
+                self.slaves[i].update_slave(slave_values, packet["voltages"]["max"], packet["voltages"]["min"])
+            except Exception:
+                pass
 
         self.summary_info.update_info(data_dict)
 

@@ -1,7 +1,7 @@
 
-N_VS: int = 9
-N_TS: int = 3
-N_SLAVES: int = 16
+N_VS: int = 11
+N_TS: int = 5 # 3
+N_SLAVES: int = 1 #16
 
 UPDATE_FREQ: int = 300
 MIN_ERR: int = 10
