@@ -1,4 +1,5 @@
 #include "supabase.h"
+#include "operations.h"
 
 uint8_t attempts = 0;
 
@@ -35,7 +36,7 @@ void supabase_init()
 void supabase_insert(void *)
 {
     struct BMS g_bms2;
-    char *body = (char *)malloc(6144);
+    char *body = (char *)malloc(16000);
     while (1)
     {
         if (
@@ -44,16 +45,16 @@ void supabase_insert(void *)
         {
             sprintf(body, "%s", "{");
 
-            for (int i = 0; i < 1 /*SLAVE_NUM*/; i++)
+            for (int i = 0; i < SLAVE_NUM; i++)
             {
-                for (int j = 0; j < 11 /*CELL_NUM*/; j++)
-                    sprintf(body, "%s\"cell_%i_%i\":\"%.2f\",", body, i, j, g_bms2.slaves[i].volts[j]);
+                for (int j = 0; j < CELL_NUM; j++)
+                    sprintf(body, "%s\"cell_%i_%i\":\"%hu\",", body, i, j, g_bms2.slaves[i].volts[j]);
 
-                sprintf(body, "%s\"temp_%i_0\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[0]);
-                sprintf(body, "%s\"temp_%i_1\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[1]);
-                sprintf(body, "%s\"temp_%i_2\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[2]);
-                sprintf(body, "%s\"temp_%i_3\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[2]);
-                sprintf(body, "%s\"temp_%i_4\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[2]);
+                sprintf(body, "%s\"temp_%i_0\":\"%hu\",", body, i, g_bms2.slaves[i].temps[0]);
+                sprintf(body, "%s\"temp_%i_1\":\"%hu\",", body, i, g_bms2.slaves[i].temps[1]);
+                sprintf(body, "%s\"temp_%i_2\":\"%hu\",", body, i, g_bms2.slaves[i].temps[2]);
+                sprintf(body, "%s\"temp_%i_3\":\"%hu\",", body, i, g_bms2.slaves[i].temps[3]);
+                sprintf(body, "%s\"temp_%i_4\":\"%hu\",", body, i, g_bms2.slaves[i].temps[4]);
             }
 
             sprintf(body, "%s\"lem\":\"%li\",\"stest\":\"%i\"}", body, g_bms2.lem.curr, 1);
@@ -77,9 +78,8 @@ void supabase_insert(void *)
                     break;
                 default:
                     break;
-            }
+            }   
+            memset(body, 0, 16000);
         }
-
-        memset(body, 0, 512);
     }
 }

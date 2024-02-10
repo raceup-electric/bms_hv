@@ -3,9 +3,9 @@
 
 #include <Arduino.h>
 
-constexpr uint8_t SLAVE_NUM = 16;
-constexpr uint8_t CELL_NUM = 9;
-constexpr uint8_t TEMP_NUM = 3;
+constexpr uint8_t SLAVE_NUM = 2;
+constexpr uint8_t CELL_NUM = 11;
+constexpr uint8_t TEMP_NUM = 5;
 constexpr uint8_t ADC_OPT = 0;
 constexpr uint8_t ADC_CONVERSION_MODE = 2;
 constexpr uint8_t ADC_DCP = 1;

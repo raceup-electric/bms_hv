@@ -33,7 +33,7 @@ void task_main(void *) {
       //send_can(); 
     }
     if (g_bms.gui_conn) {
-    print_slaves_bin();
+      print_slaves_bin();
     }
     if (DEBUG && !g_bms.gui_conn) {
       print_slaves_hr();
@@ -64,7 +64,7 @@ void setup() {
   supabase_q = xQueueCreate(3, sizeof(struct BMS));
 
   xTaskCreatePinnedToCore(supabase_insert, "supabase_insert", 8192, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(task_main, "loop", 8192, NULL, 2, NULL, 0);
+  xTaskCreatePinnedToCore(task_main, "loop", 16384, NULL, 2, NULL, 0);
 }
 
 void loop() {
