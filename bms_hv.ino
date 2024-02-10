@@ -12,8 +12,41 @@
 BMS g_bms = {};
 
 QueueHandle_t supabase_q;
-SemaphoreHandle_t supabase_semaphore;
 int stest = 0;
+
+void task_main(void *) {
+  uint8_t counter = 0;
+  while(1){
+    reset_measures();
+    update_mode();
+    if (g_bms.mode == Mode::NORMAL) {
+      precharge_control();
+      start_adcv();
+      read_volts();
+      start_adax();
+      read_temps();
+      set_fan_dutycycle(); 
+      if (FAULT_ENABLE) {
+        check_faults();
+      }
+
+      //send_can(); 
+    }
+    if (g_bms.gui_conn) {
+    print_slaves_bin();
+    }
+    if (DEBUG && !g_bms.gui_conn) {
+      print_slaves_hr();
+    }
+
+    if(counter == 50) {
+      xQueueSend(supabase_q, &g_bms, 0);
+      counter = 0;
+    }
+
+    counter++;
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -28,37 +61,13 @@ void setup() {
 
   supabase_init();
 
-  supabase_q = xQueueCreate(1, sizeof(struct BMS));
-  supabase_semaphore = xSemaphoreCreateBinary();
-  xSemaphoreGive(supabase_semaphore);
+  supabase_q = xQueueCreate(3, sizeof(struct BMS));
 
-  xTaskCreatePinnedToCore(supabase_insert, "supabase_insert", 8192, NULL, tskIDLE_PRIORITY, NULL, 1);
+  xTaskCreatePinnedToCore(supabase_insert, "supabase_insert", 8192, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(task_main, "loop", 8192, NULL, 2, NULL, 0);
 }
 
 void loop() {
-  int start = millis();
-
-  update_mode();
-  if (g_bms.mode == Mode::NORMAL) {
-    precharge_control();
-    start_adcv();
-    read_volts();
-    start_adax();
-    read_temps();
-    set_fan_dutycycle(); 
-    if (FAULT_ENABLE) {
-      check_faults();
-    }
-
-    //send_can(); 
-  }
-  if (g_bms.gui_conn) {
-   print_slaves_bin();
-  }
-  if (DEBUG && !g_bms.gui_conn) {
-    print_slaves_hr();
-  }
-
-  xQueueSend(supabase_q, &g_bms, 0);
-  reset_measures();
+  NOP();
+  vTaskDelay(pdMS_TO_TICKS(10000));
 }

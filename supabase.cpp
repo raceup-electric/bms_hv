@@ -1,8 +1,8 @@
 #include "supabase.h"
 
-struct BMS g_bms2;
-
 uint8_t attempts = 0;
+
+wifi_status net_status;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -12,24 +12,39 @@ HTTPClient http;
 void supabase_init()
 {
     WiFi.disconnect();
-    WiFi.begin(SSID, PASSWORD);
+    
+    while(WiFi.begin(SSID, PASSWORD) != WL_CONNECTED && attempts < ATTEMPTS) {
+        attempts++;
+    }
 
-    server.addHandler(&ws);
+    if (WiFi.status() == WL_CONNECTED){
+        net_status = CONNECTED_TO_CAR;
+        //WiFi.onEvent([](arduino_event_t *event){
+        //    net_status = CONNECTED_TO_WEBSOCKET;
+        //}, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+    } else {
+        WiFi.softAP("BMS_RG07", "VediQualcosa?");
+
+        server.addHandler(&ws);
+        server.begin();
+
+        net_status = CONNECTED_TO_WEBSOCKET;
+    }
 }
 
 void supabase_insert(void *)
 {
+    struct BMS g_bms2;
     char *body = (char *)malloc(6144);
     while (1)
     {
         if (
             body != NULL &&
-            xQueueReceive(supabase_q, &g_bms2, (TickType_t)10) == pdPASS &&
-            xSemaphoreTake(supabase_semaphore, 1) == pdPASS)
+            xQueueReceive(supabase_q, &g_bms2, (TickType_t)10) == pdPASS) 
         {
             sprintf(body, "%s", "{");
 
-            for (int i = 0; i < 12 /*SLAVE_NUM*/; i++)
+            for (int i = 0; i < 1 /*SLAVE_NUM*/; i++)
             {
                 for (int j = 0; j < 11 /*CELL_NUM*/; j++)
                     sprintf(body, "%s\"cell_%i_%i\":\"%.2f\",", body, i, j, g_bms2.slaves[i].volts[j]);
@@ -41,38 +56,35 @@ void supabase_insert(void *)
                 sprintf(body, "%s\"temp_%i_4\":\"%.2f\",", body, i, g_bms2.slaves[i].temps[2]);
             }
 
-            int bLen = sprintf(body, "%s\"stest\":\"%i\"}", body, 1);
+            sprintf(body, "%s\"lem\":\"%li\",\"stest\":\"%i\"}", body, g_bms2.lem.curr, 1);
 
-            if(WiFi.status() == WL_CONNECTED && attempts < ATTEMPTS) {
-                http.begin(HTTP_SERVER_URL);
+            switch(net_status) {
+                case CONNECTED_TO_CAR:
+                    http.begin(HTTP_SERVER_URL);
 
-                http.addHeader("apikey", API_KEY);
-                http.setAuthorizationType("Bearer");
-                http.setAuthorization(API_KEY);
+                    http.addHeader("apikey", API_KEY);
+                    http.setAuthorizationType("Bearer");
+                    http.setAuthorization(API_KEY);
 
-                http.addHeader("Content-Type", "application/json");
-                http.addHeader("Prefer", "return=minimal");
-
-                int httpResponseCode = http.POST(body);
-            } else if (attempts >= ATTEMPTS) {
-                if(attempts == ATTEMPTS) {
-                    WiFi.softAP("BMS_RG07", "VediQualcosa?");
-
-                    //webSocket.begin();
-                    server.begin();
-                    attempts++;
-                }
-                
-                ws.textAll(body);
-                //webSocket.broadcastTXT((const byte*) body, bLen);
-            } else {
-                attempts++;
+                    http.addHeader("Content-Type", "application/json");
+                    http.addHeader("Prefer", "return=minimal");
+                    http.POST(body);
+                    break;
+                case CONNECTED_TO_WEBSOCKET:
+                    if(ws.availableForWriteAll()){
+                        ws.textAll(body);
+                        Serial.print("Client count: ");
+                        Serial.println(ws.count());
+                        Serial.print("WiFi status: ");
+                        Serial.println(WiFi.status());
+                        Serial.print("");
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
         memset(body, 0, 512);
-        xSemaphoreGive(supabase_semaphore);
-
-        delay(1000);
     }
 }
