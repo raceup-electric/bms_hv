@@ -19,10 +19,10 @@ void supabase_init()
 
     if (WiFi.status() == WL_CONNECTED){
         net_status = CONNECTED_TO_CAR;
-        //WiFi.onEvent([](arduino_event_t *event){
-        //    net_status = CONNECTED_TO_WEBSOCKET;
-        //}, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
     } else {
+        WiFi.disconnect();
+        WiFi.enableAP(true);
+        WiFi.mode(WIFI_AP);
         WiFi.softAP("BMS_RG07", "VediQualcosa?");
 
         server.addHandler(&ws);
@@ -73,11 +73,6 @@ void supabase_insert(void *)
                 case CONNECTED_TO_WEBSOCKET:
                     if(ws.availableForWriteAll()){
                         ws.textAll(body);
-                        Serial.print("Client count: ");
-                        Serial.println(ws.count());
-                        Serial.print("WiFi status: ");
-                        Serial.println(WiFi.status());
-                        Serial.print("");
                     }
                     break;
                 default:
