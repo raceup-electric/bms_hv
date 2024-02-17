@@ -12,12 +12,30 @@
 BMS g_bms = {};
 
 QueueHandle_t supabase_q;
+QueueHandle_t commands_q;
 int stest = 0;
 
 void task_main(void *) {
   uint8_t counter = 0;
+  char command;
+
   while(1){
     reset_measures();
+
+    if(xQueueReceive(commands_q, &command, (TickType_t)10) == pdPASS) {
+      switch(command) {
+        case 'N': 
+          update_mode(Mode::NORMAL);
+          break;
+        case 'B': 
+          update_mode(Mode::BALANCE);
+          break;
+        case 'S': 
+          update_mode(Mode::SLEEP);
+          break;
+      }
+    }
+
     update_mode();
     if (g_bms.mode == Mode::NORMAL) {
       precharge_control();
@@ -30,7 +48,7 @@ void task_main(void *) {
         check_faults();
       }
 
-      //send_can(); 
+      //send_can();
     }
     if (g_bms.gui_conn) {
       print_slaves_bin();
@@ -62,6 +80,7 @@ void setup() {
   supabase_init();
 
   supabase_q = xQueueCreate(3, sizeof(struct BMS));
+  commands_q = xQueueCreate(1, 1); // 1 char len
 
   xTaskCreatePinnedToCore(supabase_insert, "supabase_insert", 8192, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(task_main, "loop", 16384, NULL, 2, NULL, 0);

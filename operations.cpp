@@ -187,6 +187,15 @@ void check_faults() {
   }
 }
 
+void update_mode(Mode new_mode) {
+  if (new_mode != g_bms.mode) { 
+    g_bms.mode = new_mode;
+    wakeup_sleep();
+    init_cfg(g_bms.mode);
+    init_pwm();
+  }
+}
+
 void update_mode() {
   Mode new_mode = read_mode();
   if (new_mode != g_bms.mode) { 

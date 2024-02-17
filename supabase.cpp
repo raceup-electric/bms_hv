@@ -10,6 +10,15 @@ AsyncWebSocket ws("/ws");
 
 HTTPClient http;
 
+void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+    if(type == WS_EVT_DATA){
+        AwsFrameInfo *info = (AwsFrameInfo*)arg;
+        if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+            xQueueSend(commands_q, &data[0], 0);
+        }
+    }
+}
+
 void supabase_init()
 {
     WiFi.disconnect();
@@ -24,7 +33,9 @@ void supabase_init()
         WiFi.disconnect();
         WiFi.enableAP(true);
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("BMS_RG07", "VediQualcosa?");
+        WiFi.softAP("BMS_RG07", PASSWORD);
+
+        ws.onEvent(onEvent);
 
         server.addHandler(&ws);
         server.begin();
