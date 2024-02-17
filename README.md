@@ -120,3 +120,17 @@ pyinstaller -F -w -i resources/icon.png --workpath guibuild --distpath guidist -
 ```
 
 L'eseguibile si troverà nella directory _guidist_
+
+### Creazione applicazione meglio
+```
+pip install nuitka
+```
+
+Poi eseguire il seguente comando:
+```
+python -m nuitka --follow-imports UI.py --lto=no --onefile  --enable-plugin=tk-inter --disable-console
+```
+
+
+
+
