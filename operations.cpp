@@ -39,8 +39,8 @@ void init_cfg(Mode mode) {
   // eigth MSB of overvolt value
   cfg_data[3] = ov_val >> 4;
   if (mode == Mode::NORMAL || g_bms.min_volt == 0 || g_bms.max_volt == 0) { // Not balancing or no measurements available so don't try balancing
-      // write to all slaves broadcast
-      wrcfg(cfg_data);
+    // write to all slaves broadcast
+    wrcfg(cfg_data);
   }
   else if (mode == Mode::BALANCE) {
     // Create a bitmap with 1 if cell i has to be balanced 0 otherwise

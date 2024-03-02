@@ -9,9 +9,6 @@
 #include "soc.h"
 #include "supabase.h"
 
-#define SSID "RG07"
-#define PASSWORD "VediQualcosa?"
-
 #define uS_TO_S_FACTOR 1000000
 #define TIME_TO_SLEEP  3600
 
@@ -42,18 +39,7 @@ void task_main(void *) {
         check_faults();
       }
       send_can();
-    } else if (g_bms.mode == Mode::VELEX) {
-      start_adcv();
-      read_volts();
-      start_adax();
-      read_temps();
-      if (FAULT_ENABLE) {
-        check_faults();
-      }
-
-      velex = true;
-    }
-
+    } 
     else if (g_bms.mode == Mode::BALANCE) {
       start_adcv();
       read_volts();
@@ -65,6 +51,17 @@ void task_main(void *) {
       }
       send_can();
       balance();
+    }
+    else if (g_bms.mode == Mode::VELEX) {
+      start_adcv();
+      read_volts();
+      start_adax();
+      read_temps();
+      if (FAULT_ENABLE) {
+        check_faults();
+      }
+
+      velex = true;
     }
 
     if (g_bms.gui_conn) print_slaves_bin();
