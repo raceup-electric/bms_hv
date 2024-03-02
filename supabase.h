@@ -6,9 +6,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-#define SSID "RG07"
-#define PASSWORD "VediQualcosa?"
-#define ATTEMPTS 0
+#define ATTEMPTS 10
 
 #include <ESPAsyncWebServer.h>
 
@@ -23,7 +21,7 @@ enum wifi_status {
     CONNECTED_TO_WEBSOCKET
 };
 
-void supabase_init();
+void supabase_init(char* ssid, char* password);
 
 void supabase_insert(void*);
 

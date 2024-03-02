@@ -6,7 +6,8 @@
 enum class Mode {
   NORMAL,
   SLEEP,
-  BALANCE
+  BALANCE,
+  VELEX
 };
 
 struct Slave {

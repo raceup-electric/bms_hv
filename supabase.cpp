@@ -19,11 +19,11 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     }
 }
 
-void supabase_init()
+void supabase_init(char* ssid, char* password)
 {
     WiFi.disconnect();
     
-    while(WiFi.begin(SSID, PASSWORD) != WL_CONNECTED && attempts < ATTEMPTS) {
+    while(WiFi.begin(ssid, password) != WL_CONNECTED && attempts < ATTEMPTS) {
         attempts++;
     }
 
@@ -33,7 +33,7 @@ void supabase_init()
         WiFi.disconnect();
         WiFi.enableAP(true);
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("BMS_RG07", PASSWORD);
+        WiFi.softAP("BMS_RG07", "VediQualcosa?");
 
         ws.onEvent(onEvent);
 
@@ -92,5 +92,7 @@ void supabase_insert(void *)
             }   
             memset(body, 0, 16000);
         }
+
+        if (g_bms2.mode == Mode::VELEX) esp_deep_sleep_start();
     }
 }

@@ -206,6 +206,8 @@ void update_mode() {
 }
 
 Mode read_mode() {
+  char command;
+
   if(Serial.available() > 0) {
     char input = (char) Serial.read();
     Serial.flush();
@@ -217,6 +219,16 @@ Mode read_mode() {
       case 'D': g_bms.gui_conn = false; break;
     }
   }
+
+  if(xQueueReceive(commands_q, &command, (TickType_t)10) == pdPASS) {
+    switch(command) {
+      case 'N': return Mode::NORMAL;
+      case 'B': return Mode::BALANCE;
+      case 'S': return Mode::SLEEP;
+      case 'V': break;
+    }
+  }
+
   return g_bms.mode;
 }
 

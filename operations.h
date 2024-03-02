@@ -8,6 +8,8 @@
 
 extern BMS g_bms;
 
+extern QueueHandle_t commands_q;
+
 void init_bms();
 
 void init_cfg(Mode mode);
