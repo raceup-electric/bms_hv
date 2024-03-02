@@ -48,8 +48,7 @@ void task_main(void *) {
       if (FAULT_ENABLE) {
         check_faults();
       }
-
-      //send_can();
+      send_can();
     }
     if (g_bms.gui_conn) {
       print_slaves_bin();
