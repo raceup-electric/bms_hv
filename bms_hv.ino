@@ -14,6 +14,7 @@ void setup() {
   init_bms();
   init_can();
   init_fan();
+  init_soc();
   reset_measures();
 }
 

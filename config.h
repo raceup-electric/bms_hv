@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-constexpr uint8_t SLAVE_NUM = 1;
+constexpr uint8_t SLAVE_NUM = 2;
 constexpr uint8_t CELL_NUM = 11;
 constexpr uint8_t TOT_CELLS = SLAVE_NUM * CELL_NUM;
 constexpr uint8_t TEMP_NUM = 5;

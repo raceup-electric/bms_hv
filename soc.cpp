@@ -4,6 +4,8 @@
 static bool initialized = false;
 static ArduinoNvs soc_nvs;
 
+#define ARDUINONVS_SILENT 1
+
 void init_soc() {
   soc_nvs.begin("soc");
   float init_soc = soc_nvs.getFloat("soc", -1);
@@ -24,10 +26,6 @@ void init_soc() {
 }
 
 void estimate_soc() {
-  if (!initialized) {
-    init_soc();
-    initialized = true;
-  }
   if (g_bms.soc.t_prev == 0) {
     g_bms.soc.t_prev = millis();
     return;
