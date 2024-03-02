@@ -6,7 +6,6 @@
 #include "config.h"
 #include "canc.h"
 
-
 extern BMS g_bms;
 
 void init_bms();
@@ -31,9 +30,11 @@ void balance();
 
 void check_faults();
 
+Mode read_mode();
+
 void update_mode();
 
-Mode read_mode();
+void update_mode(Mode new_mode);
 
 void print_slaves_hr();
 
