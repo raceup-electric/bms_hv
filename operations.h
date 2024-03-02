@@ -10,8 +10,6 @@ extern BMS g_bms;
 
 void init_bms();
 
-// void init_pwm();
-
 void init_cfg(Mode mode);
 
 void start_adcv();

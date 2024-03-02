@@ -193,7 +193,6 @@ void update_mode(Mode new_mode) {
     g_bms.mode = new_mode;
     wakeup_sleep();
     init_cfg(g_bms.mode);
-    init_pwm();
   }
 }
 
