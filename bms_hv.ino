@@ -9,24 +9,18 @@
 #include "soc.h"
 #include "supabase.h"
 
-#define uS_TO_S_FACTOR 1000000
-#define TIME_TO_SLEEP  3600
-
 // global bms state
 BMS g_bms = {};
 
-QueueHandle_t supabase_q;
-QueueHandle_t commands_q;
+QueueHandle_t data_queue;
+QueueHandle_t commands_queue;
 int stest = 0;
-
-RTC_DATA_ATTR bool velex = false;
 
 void task_main(void *) {
   uint8_t counter = 0;
 
   while(1){
     reset_measures();
-
     update_mode();
     if (g_bms.mode == Mode::NORMAL) {
       precharge_control();
@@ -52,7 +46,8 @@ void task_main(void *) {
       send_can();
       balance();
     }
-    else if (g_bms.mode == Mode::VELEX) {
+    else if (g_bms.mode == Mode::STORAGE) {
+      init_cfg(Mode::STORAGE);
       start_adcv();
       read_volts();
       start_adax();
@@ -60,15 +55,11 @@ void task_main(void *) {
       if (FAULT_ENABLE) {
         check_faults();
       }
-
-      velex = true;
+      nap();
     }
 
-    if (g_bms.gui_conn) print_slaves_bin();
-    if (DEBUG && !g_bms.gui_conn) print_slaves_hr();
-
     if(counter == 50) {
-      xQueueSend(supabase_q, &g_bms, 0);
+      xQueueSend(data_queue, &g_bms, 0);
       counter = 0;
     }
     counter++;
@@ -87,13 +78,10 @@ void setup() {
   init_soc();
   reset_measures();
 
-  if (velex) supabase_init("Velex_Raceup", "Velex.2021");
-  else supabase_init("RG07", "VediQualcosa?");
+  data_queue = xQueueCreate(3, sizeof(struct BMS));
+  commands_queue = xQueueCreate(1, 1); // 1 char len
 
-  supabase_q = xQueueCreate(3, sizeof(struct BMS));
-  commands_q = xQueueCreate(1, 1); // 1 char len
-
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  supabase_init();
 
   xTaskCreatePinnedToCore(supabase_insert, "supabase_insert", 8192, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(task_main, "loop", 16384, NULL, 2, NULL, 0);

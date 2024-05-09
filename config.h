@@ -12,6 +12,7 @@ constexpr uint8_t ADC_CONVERSION_MODE = 2;
 constexpr uint8_t ADC_DCP = 0;
 constexpr uint8_t CELL_CHANNEL = 0;
 constexpr uint8_t GPIO_CHANNEL = 0;
+constexpr uint8_t MONITORING_SLEEP_TIMEOUT = 60; //s
 // threshold faults
 constexpr uint16_t UV_THRESHOLD = 33000;
 constexpr uint16_t OV_THRESHOLD = 42000;
@@ -68,5 +69,12 @@ constexpr uint8_t LED_0_PIN = 21;
 constexpr bool SCREEN_ENABLE = false;
 constexpr bool DEBUG = true;
 constexpr bool FAULT_ENABLE = false;
+// WiFi config
+constexpr char* SSID_STORAGE = "";
+constexpr char* PASSWORD_STORAGE = "";
+constexpr char* SSID_CAR = "";
+constexpr char* PASSWORD_CAR = "";
+constexpr char* SSID_BMS = "BMS-RG07";
+constexpr char* PASSWORD_BMS = "VediQualcosa?";
 
 #endif

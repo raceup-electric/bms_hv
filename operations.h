@@ -8,7 +8,7 @@
 
 extern BMS g_bms;
 
-extern QueueHandle_t commands_q;
+extern QueueHandle_t commands_queue;
 
 void init_bms();
 
@@ -43,5 +43,10 @@ void print_slaves_bin();
 void send_can();
 
 void reset_measures();
+
+inline void nap() {
+  esp_sleep_enable_timer_wakeup(MONITORING_SLEEP_TIMEOUT * 1000000000);
+  esp_light_sleep_start();
+}
 
 #endif

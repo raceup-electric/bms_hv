@@ -19,7 +19,8 @@ void init_bms() {
     g_bms.slaves[i].err = 0;
   }
   g_bms.mode = Mode::NORMAL;
-  g_bms.gui_conn = false;
+  g_bms.serial_gui_conn = false;
+  g_bms.ws_gui_conn = 0;
   g_bms.sdc_closed = false;
   g_bms.precharge.done = false;
   init_cfg(g_bms.mode);
@@ -38,7 +39,7 @@ void init_cfg(Mode mode) {
   cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
   // eigth MSB of overvolt value
   cfg_data[3] = ov_val >> 4;
-  if (mode == Mode::NORMAL || g_bms.min_volt == 0 || g_bms.max_volt == 0) { // Not balancing or no measurements available so don't try balancing
+  if (mode != Mode::BALANCE  || g_bms.min_volt == 0 || g_bms.max_volt == 0) { // Not balancing or no measurements available so don't try balancing
     // write to all slaves broadcast
     wrcfg(cfg_data);
   }
@@ -206,7 +207,6 @@ void update_mode() {
 }
 
 Mode read_mode() {
-  char command;
 
   if(Serial.available() > 0) {
     char input = (char) Serial.read();
@@ -215,17 +215,21 @@ Mode read_mode() {
       case 'N': return Mode::NORMAL;
       case 'B': return Mode::BALANCE;
       case 'S': return Mode::SLEEP;
-      case 'C': g_bms.gui_conn = true; break;
-      case 'D': g_bms.gui_conn = false; break;
+      case 'C': g_bms.serial_gui_conn = true; break;
+      case 'D': g_bms.serial_gui_conn = false; break;
+      case 'V': return Mode::STORAGE;
     }
   }
 
-  if(xQueueReceive(commands_q, &command, (TickType_t)10) == pdPASS) {
+  char command;
+  if(xQueueReceive(commands_queue, &command, (TickType_t)10) == pdPASS) {
     switch(command) {
       case 'N': return Mode::NORMAL;
       case 'B': return Mode::BALANCE;
       case 'S': return Mode::SLEEP;
-      case 'V': break;
+      case 'C': g_bms.ws_gui_conn++; break;
+      case 'D': g_bms.ws_gui_conn--; break;
+      case 'V': return Mode::STORAGE;
     }
   }
 

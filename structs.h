@@ -7,7 +7,7 @@ enum class Mode {
   NORMAL,
   SLEEP,
   BALANCE,
-  VELEX
+  STORAGE
 };
 
 struct Slave {
@@ -58,7 +58,8 @@ struct BMS {
   uint32_t fault_temp_tmstp;
   Mode mode;
   Precharge precharge;
-  bool gui_conn;
+  bool serial_gui_conn;
+  uint16_t ws_gui_conn;
   SOC soc;
 };
 
