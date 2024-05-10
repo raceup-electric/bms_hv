@@ -7,7 +7,7 @@
 #include "canc.h"
 #include "fan.h"
 #include "soc.h"
-#include "supabase.h"
+#include "communication.h"
 
 // global bms state
 BMS g_bms = {};
@@ -79,11 +79,11 @@ void setup() {
   reset_measures();
 
   data_queue = xQueueCreate(3, sizeof(struct BMS));
-  commands_queue = xQueueCreate(1, 1); // 1 char len
+  commands_queue = xQueueCreate(5, 1); // 1 char len
 
-  supabase_init();
+  com_init();
 
-  xTaskCreatePinnedToCore(supabase_insert, "supabase_insert", 8192, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(com_send, "supabase_insert", 8192, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(task_main, "loop", 16384, NULL, 2, NULL, 0);
 }
 

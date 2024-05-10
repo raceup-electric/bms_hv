@@ -1,4 +1,4 @@
-#include "supabase.h"
+#include "communication.h"
 #include "operations.h"
 
 uint8_t attempts = 0;
@@ -27,7 +27,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     }
 }
 
-void supabase_init()
+void com_init()
 {
     WiFi.disconnect();
     // try to connect to car's wifi first    
@@ -63,7 +63,7 @@ void supabase_init()
     net_status = CONNECTED_TO_WEBSOCKET;
 }
 
-void supabase_insert(void *)
+void com_send(void *)
 {
     struct BMS bms_data;
     char *body = (char *)malloc(4096);
@@ -73,22 +73,20 @@ void supabase_insert(void *)
             body != NULL &&
             xQueueReceive(data_queue, &bms_data, (TickType_t)10) == pdPASS) 
         {
-            sprintf(body, "%s", "{");
+            int body_len = sprintf(body, "%s", "{");
 
             for (int i = 0; i < SLAVE_NUM; i++)
             {
                 for (int j = 0; j < CELL_NUM; j++) {
-                    sprintf(body, "%s\"cell_%i_%i\":\"%hu\",", body, i, j, bms_data.slaves[i].volts[j]);
+                    body_len += sprintf(body + body_len, "\"cell_%i_%i\":\"%hu\",", i, j, bms_data.slaves[i].volts[j]);
+                }
+                for (int j = 0; j < TEMP_NUM; j++) {
+                    body_len += sprintf(body + body_len, "\"temp_%i_%i\":\"%hu\",", i, j, bms_data.slaves[i].temps[0]);
                 }
 
-                sprintf(body, "%s\"temp_%i_0\":\"%hu\",", body, i, bms_data.slaves[i].temps[0]);
-                sprintf(body, "%s\"temp_%i_1\":\"%hu\",", body, i, bms_data.slaves[i].temps[1]);
-                sprintf(body, "%s\"temp_%i_2\":\"%hu\",", body, i, bms_data.slaves[i].temps[2]);
-                sprintf(body, "%s\"temp_%i_3\":\"%hu\",", body, i, bms_data.slaves[i].temps[3]);
-                sprintf(body, "%s\"temp_%i_4\":\"%hu\",", body, i, bms_data.slaves[i].temps[4]);
             }
 
-            sprintf(body, "%s\"lem\":\"%li\",\"stest\":\"%i\"}", body, bms_data.lem.curr, 1);
+            body_len += sprintf(body + body_len, "\"lem\":\"%li\",\"stest\":\"%i\"}", bms_data.lem.curr, 1);
 
             switch(net_status) {
                 case CONNECTED_TO_CAR || CONNECTED_TO_STORAGE:

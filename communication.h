@@ -6,7 +6,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-#define ATTEMPTS 10
+#define ATTEMPTS 3
 
 #include <ESPAsyncWebServer.h>
 
@@ -22,8 +22,8 @@ enum WifiStatus {
     CONNECTED_TO_WEBSOCKET
 };
 
-void supabase_init();
+void com_init();
 
-void supabase_insert(void*);
+void com_send(void*);
 
 #endif
