@@ -116,7 +116,7 @@ pip3 install pypackage
 
 Poi eseguire il seguente comando:
 ```
-pyinstaller -F -w -i resources/icon.png --workpath guibuild --distpath guidist --collect-all customtkinter -n BMS gui.py
+pyinstaller -F -w -i resources/icon.png --workpath guibuild --distpath guidist --collect-all customtkinter -n BMS .\gui\UI.py
 ```
 
 L'eseguibile si troverà nella directory _guidist_

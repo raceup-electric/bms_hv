@@ -52,15 +52,16 @@ class DataFrame(ctk.CTkFrame):
     def _update_gui(self):
 
         try:
-            if self._get_switch() == 1:
-                if self._get_mode() == "Normal Mode":
-                    packet = self.ui_frame.menu.controller.read_packet()
-                    self._update_logic(packet)
+            switch = self._get_switch()
 
-                elif self._get_mode() == "Sleep Mode":
-                    for i in range(N_SLAVES):
-                        self.slaves[i].update_slave({}, 0, 0)
-                    self.summary_info.update_info({})
+            if switch == 1 and self._get_mode() == "Normal Mode":
+                packet = self.ui_frame.menu.controller.read_packet()
+                self._update_logic(packet)
+
+            elif (switch == 1 and self._get_mode() == "Sleep Mode") or switch == -1:  #clear all the slaves
+                for i in range(N_SLAVES):
+                    self.slaves[i].update_slave({}, 0, 0)
+                self.summary_info.update_info({})
 
         except TimeoutError:
             self.ui_frame.menu.error("Device not responding, retry or select another port")

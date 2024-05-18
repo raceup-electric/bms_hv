@@ -26,10 +26,13 @@ class SummaryInfo(ctk.CTkFrame):
 
         if len(data_dict) == 0:
             infos = [0] * len(self.list_info)
-        else:
-            infos = (
-                data_dict["voltages"]["max"], data_dict["voltages"]["min"], data_dict["voltages"]["max"] - data_dict["voltages"]["min"], data_dict["voltages"]["tot"], data_dict["voltages"]["avg"],
-                data_dict["temps"]["max"], data_dict["temps"]["min"], data_dict["temps"]["avg"], data_dict["current"])
+            for index, value in enumerate(infos):
+                        self.list_info[index].configure(text=str(round(value, 3)), text_color="white")
+            return 
+        
+        infos = (
+            data_dict["voltages"]["max"], data_dict["voltages"]["min"], data_dict["voltages"]["max"] - data_dict["voltages"]["min"], data_dict["voltages"]["tot"], data_dict["voltages"]["avg"],
+            data_dict["temps"]["max"], data_dict["temps"]["min"], data_dict["temps"]["avg"], data_dict["current"])
 
         for index, value in enumerate(infos):
             self.list_info[index].configure(text=str(round(value, 3)), text_color=color[index])

@@ -61,7 +61,7 @@ class Slave(ctk.CTkFrame):
 
         if len(slave_values) == 0:
             for j in range(len(self.values)):
-                self.values[j].configure(text="0", text_color="white", font=("sans-serif", 14))
+                self.values[j].configure(text="0", fg_color=("gray80", "gray15"), text_color="white", font=("sans-serif", 14))
 
             return 0
 

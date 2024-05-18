@@ -45,8 +45,11 @@ class SerialController:
     def _read(self, size: int) -> bytes:
         time_out = time.time() + 2
 
-        while self.ser.in_waiting < size and time.time() < time_out:
-            pass
+        try:
+            while self.ser.in_waiting < size and time.time() < time_out:
+                pass
+        except serial.SerialException:
+            return bytes(size)
 
         self._check_timeout(time_out)
         return self.ser.read(size)

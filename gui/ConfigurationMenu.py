@@ -15,11 +15,16 @@ class ConfigurationMenu(ctk.CTkTabview):
         self.type = tkinter.StringVar(value="Serial")
         self.ui = ui_frame
         self.controller = ui_frame.serial_controller
+        self.old_value = False    # when close clear all the values
+
         self._menu_setup()
 
     def _set_mode(self):
-        if self.get_switch() == 0:
+        switch = self.get_switch
+
+        if switch == 0 or switch == -1:
             return
+        
         self.controller.set_mode(self.mode.get()[0])
 
     def _set_type(self):
@@ -41,9 +46,9 @@ class ConfigurationMenu(ctk.CTkTabview):
         self.tab("SERIAL").grid_columnconfigure(0, weight=1)
         self._serial_setup()
 
-        self.add("WIFI")
-        self.tab("WIFI").grid_columnconfigure(0, weight=1)
-        self._socket_setup()
+        #self.add("WIFI")
+        #self.tab("WIFI").grid_columnconfigure(0, weight=1)
+        #self._socket_setup()
 
     def _general_setup(self):
         self._mode_frame_setup()
@@ -68,8 +73,8 @@ class ConfigurationMenu(ctk.CTkTabview):
                                       command=None)
             tk_button.grid(row=buttons.index(button) + 4, column=0, pady=button[1], sticky="news")
 
-    def _socket_setup(self):
-        pass
+    #def _socket_setup(self):
+    #    pass
 
     def _baud_frame_setup(self):
         baud_frame = ctk.CTkFrame(self.tab("SERIAL"))
@@ -128,6 +133,7 @@ class ConfigurationMenu(ctk.CTkTabview):
     def _switch_event(self):
         if self.switch.get() == 0:
             self.controller.close()
+            self.set_text("Connection closed")
             return
 
         if self.get_type() == "Serial" and self.option_COM.get() == "No Device Found":
@@ -146,7 +152,13 @@ class ConfigurationMenu(ctk.CTkTabview):
             self.error("Not possible to open that port, please select another one")
 
     def get_switch(self) -> int:
-        return self.switch.get()
+        value = self.switch.get()
+        if not value and self.old_value:
+            self.old_value = value
+            return -1
+
+        self.old_value = value
+        return value
 
     def get_mode(self) -> str:
         return self.mode.get()
