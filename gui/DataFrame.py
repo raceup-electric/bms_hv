@@ -52,7 +52,9 @@ class DataFrame(ctk.CTkFrame):
         try:
             if self._get_switch() == 1:
                 if self._get_mode() == "Normal Mode":
+                    print("Reading packet")
                     packet = self.ui_frame.menu.controller.read_packet()
+                    print(f'Parsed packet:\n{packet}')
                     self._update_logic(packet)
 
                 elif self._get_mode() == "Sleep Mode":
@@ -62,10 +64,11 @@ class DataFrame(ctk.CTkFrame):
 
         except TimeoutError:
             self.ui_frame.menu.error("Device not responding, retry or select another port")
-        except TypeError:
+        except TypeError as e:
+            print(e)
             self.ui_frame.menu.error("Device not responding, probably disconnected")
-        # except json.JSONDecodeError:
-        #     self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
+        except json.JSONDecodeError:
+            self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
 
         self.after(UPDATE_FREQ, self._update_gui)
 
@@ -74,10 +77,10 @@ class DataFrame(ctk.CTkFrame):
         if packet == "":
             return
 
-        data_dict: dict = (packet)
-        if self.ui_frame.menu.get_type() != "WebSocket":
-            data_dict: dict = parse_serial_data(packet)
-
+        data_dict: dict = parse_serial_data(packet)
+        # if self.ui_frame.menu.get_type() != "WebSocket":
+        #     data_dict: dict = parse_serial_data(packet)
+        print(data_dict)
         for i, slave_values in enumerate(packet["slaves"]):
             try:
                 self.slaves[i].update_slave(slave_values, packet["voltages"]["max"], packet["voltages"]["min"])
