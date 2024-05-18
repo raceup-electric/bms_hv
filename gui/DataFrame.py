@@ -2,7 +2,7 @@ from Slave import *
 from Constants import *
 from SummaryInfo import *
 import json
-from flatten_json import unflatten
+import flatten_json
 
 
 
@@ -54,9 +54,7 @@ class DataFrame(ctk.CTkFrame):
         try:
             if self._get_switch() == 1:
                 if self._get_mode() == "Normal Mode":
-                    print("Reading packet")
                     packet = self.ui_frame.menu.controller.read_packet()
-                    print(f'Parsed packet:\n{packet}')
                     self._update_logic(packet)
 
                 elif self._get_mode() == "Sleep Mode":
@@ -66,7 +64,8 @@ class DataFrame(ctk.CTkFrame):
 
         except TimeoutError:
             self.ui_frame.menu.error("Device not responding, retry or select another port")
-        except TypeError or json.JSONDecodeError:
+        except TypeError or json.JSONDecodeError as e:
+            print(e)
             self.ui_frame.menu.error("Unable to parse JSON")
         # except json.JSONDecodeError:
         #     self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
@@ -77,14 +76,13 @@ class DataFrame(ctk.CTkFrame):
         # First packet is empty
         if packet == "":
             return
-
         data_dict: dict = parse_serial_data(packet)
-        data_dict = unflatten(data_dict)
-
-        for i, slave_values in enumerate(packet["slaves"]):
+        data_dict = flatten_json.unflatten_list(data_dict)
+        for i, slave_values in enumerate(data_dict["slaves"]):
             try:
-                self.slaves[i].update_slave(slave_values, packet["voltages"]["max"], packet["voltages"]["min"])
-            except Exception:
+                self.slaves[i].update_slave(slave_values, data_dict["voltages"]["max"], data_dict["voltages"]["min"])
+            except Exception as e:
+                print(f"In update logic {e}")
                 pass
 
         self.summary_info.update_info(data_dict)

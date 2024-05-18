@@ -70,12 +70,12 @@ class Slave(ctk.CTkFrame):
             min_volt: (("sans-serif", 14, "bold"), "cyan")
         }
 
-        if slave_values["error_count"] > MIN_ERR:  # dead
+        if slave_values["errorCount"] > MIN_ERR:  # dead
             for j in range(N_VS + N_TS):
                 self.values[j].configure(text="DEAD", fg_color="black", text_color="white")
             return 0
 
-        elif slave_values["error_count"] != 0:  # error
+        elif slave_values["errorCount"] != 0:  # error
             for j in range(N_VS + N_TS):
                 self.values[j].configure(text="ERR", fg_color="gray", text_color="black")
             return 0

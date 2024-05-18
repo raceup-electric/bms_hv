@@ -83,7 +83,7 @@ void setup() {
 
   com_init();
 
-  xTaskCreatePinnedToCore(com_send, "supabase_insert", 8192, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(com_send, "com_send", 8192, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(task_main, "loop", 16384, NULL, 2, NULL, 0);
 }
 

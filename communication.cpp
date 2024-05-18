@@ -81,8 +81,9 @@ void com_send(void *)
                     body_len += sprintf(body + body_len, "\"slaves_%i_voltages_%i\":%hu,", i, j, bms_data.slaves[i].volts[j]);
                 }
                 for (int j = 0; j < TEMP_NUM; j++) {
-                    body_len += sprintf(body + body_len, "\"slaves_%i_temperatures_%i\":%hu,", i, j, bms_data.slaves[i].temps[0]);
+                    body_len += sprintf(body + body_len, "\"slaves_%i_temps_%i\":%hu,", i, j, bms_data.slaves[i].temps[j]);
                 }
+                body_len += sprintf(body + body_len, "\"slaves_%i_errorCount\":%hu,", i, bms_data.slaves[i].err);
             }
 
             int responses = 0;
