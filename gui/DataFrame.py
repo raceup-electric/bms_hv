@@ -2,6 +2,8 @@ from Slave import *
 from Constants import *
 from SummaryInfo import *
 import json
+from flatten_json import unflatten
+
 
 
 def parse_serial_data(serial_data) -> dict:
@@ -64,11 +66,10 @@ class DataFrame(ctk.CTkFrame):
 
         except TimeoutError:
             self.ui_frame.menu.error("Device not responding, retry or select another port")
-        except TypeError as e:
-            print(e)
-            self.ui_frame.menu.error("Device not responding, probably disconnected")
-        except json.JSONDecodeError:
-            self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
+        except TypeError or json.JSONDecodeError:
+            self.ui_frame.menu.error("Unable to parse JSON")
+        # except json.JSONDecodeError:
+        #     self.ui_frame.menu.error("Error Unpacking")  # look carefully the definition of the host's JSON
 
         self.after(UPDATE_FREQ, self._update_gui)
 
@@ -78,9 +79,8 @@ class DataFrame(ctk.CTkFrame):
             return
 
         data_dict: dict = parse_serial_data(packet)
-        # if self.ui_frame.menu.get_type() != "WebSocket":
-        #     data_dict: dict = parse_serial_data(packet)
-        print(data_dict)
+        data_dict = unflatten(data_dict)
+
         for i, slave_values in enumerate(packet["slaves"]):
             try:
                 self.slaves[i].update_slave(slave_values, packet["voltages"]["max"], packet["voltages"]["min"])
