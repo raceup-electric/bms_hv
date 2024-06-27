@@ -7,8 +7,10 @@ void set_precharge(BytesUnion* data) {
 }
 
 void precharge_control() {
+  // Tramaccio because with a zener diode the voltage level reaches up to 2.6 V and it reads low even if it is high
+  int sdc_level = ((3.3 / 4096) * analogRead(SDC_SENSE_PIN)) >= 2 ? 1 : 0;   
   // if sdc has closed
-  if (digitalRead(SDC_SENSE_PIN) == HIGH) {
+  if (sdc_level == HIGH) {
     if (g_bms.precharge.done) return;
     g_bms.precharge.cycle_counter = 0;
     if (!g_bms.sdc_closed) {

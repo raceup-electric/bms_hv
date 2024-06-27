@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-constexpr uint8_t SLAVE_NUM = 2;
+constexpr uint8_t SLAVE_NUM = 12;
 constexpr uint8_t CELL_NUM = 11;
 constexpr uint8_t TOT_CELLS = SLAVE_NUM * CELL_NUM;
 constexpr uint8_t TEMP_NUM = 5;
@@ -35,8 +35,8 @@ constexpr float VAR_MIN = 0;
 constexpr uint32_t CAN_BAUD_RATE = 500000;
 constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
 constexpr uint32_t LEM_CURRENT_ID = 0x3C2;
-constexpr uint32_t DATA_VOLTAGE_ID = 0x55;
-constexpr uint32_t DATA_TEMP_ID = 0x56;
+constexpr uint32_t DATA_VOLTAGE_ID = 0x57;
+constexpr uint32_t DATA_TEMP_ID = 0x58;
 //constexpr uint32_t FAN_TOGGLE_ID = 0x90;
 // commands consts (do not edit unless bug)
 constexpr uint8_t CMD_LEN = 2;
@@ -52,7 +52,7 @@ constexpr float C_RATED = 12.7; // Ah
 constexpr uint16_t SAFETY_MARGIN = 1000; // in 0.1 mV => 100 mV  
 constexpr uint32_t CHARGED_VOLT = (OV_THRESHOLD - SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV (144 cells)
 constexpr uint32_t EMPTY_VOLT = (UV_THRESHOLD + SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV 
-constexpr float ETA = 0.9; // coulomb efficiency
+constexpr float ETA = 0.98; // coulomb efficiency
 // pins config (new host board!!)
 constexpr uint8_t CAN_TX_PIN = 1;
 constexpr uint8_t CAN_RX_PIN = 2;
@@ -60,7 +60,8 @@ constexpr uint8_t SPI_MISO_PIN = 13;
 constexpr uint8_t SPI_MOSI_PIN = 11;
 constexpr uint8_t SPI_CLK_PIN = 12;
 constexpr uint8_t SPI_CS_PIN = 10;
-constexpr uint8_t FAN_EN_PIN = 4;
+constexpr uint8_t FAN1_EN_PIN = 3;
+constexpr uint8_t FAN2_EN_PIN = 4;
 constexpr uint8_t BMS_FAULT_PIN = 7;
 constexpr uint8_t SDC_SENSE_PIN = 5;
 constexpr uint8_t AIR_2_EN_PIN = 6;
