@@ -38,6 +38,7 @@ void precharge_control() {
         digitalWrite(AIR_2_EN_PIN, LOW);
         g_bms.precharge.done = false;
         g_bms.sdc_closed = false;
+        g_bms.precharge.cycle_counter = 0;
     }
   }
 }

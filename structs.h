@@ -30,7 +30,7 @@ struct LEM {
 struct Precharge {
   float bus_volt;
   bool via_can;
-  uint32_t start_tmstp;
+  uint64_t start_tmstp;
   uint8_t cycle_counter;
   bool done;
 };
