@@ -46,7 +46,7 @@ constexpr uint8_t VREG_LEN = 6;
 constexpr uint8_t GREG_LEN = 6;
 // precharge config
 constexpr uint32_t PRECH_MIN_WAIT = 5000; // ms
-constexpr uint8_t PRECH_MIN_CYCLE = 20;
+constexpr uint8_t PRECH_MIN_CYCLE = 5;
 // SOC config
 constexpr float C_RATED = 12.7; // Ah
 constexpr uint16_t SAFETY_MARGIN = 1000; // in 0.1 mV => 100 mV  

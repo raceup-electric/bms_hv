@@ -83,11 +83,11 @@ void setup() {
 
   com_init();
 
-  xTaskCreatePinnedToCore(com_send, "com_send", 8192, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(task_main, "loop", 16384, NULL, 2, NULL, 0);
+  xTaskCreatePinnedToCore(com_send, "com_send", 16384, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(task_main, "loop", 8192, NULL, 2, NULL, 0);
 }
 
 void loop() {
   NOP();
-  vTaskDelay(pdMS_TO_TICKS(10000));
+  vTaskDelay(pdMS_TO_TICKS(5000));
 }

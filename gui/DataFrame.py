@@ -7,7 +7,7 @@ import flatten_json
 
 
 def parse_serial_data(serial_data) -> dict:
-    # print(serial_data)
+    #print(serial_data)
     return json.loads(serial_data)
 
 

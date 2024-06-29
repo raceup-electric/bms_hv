@@ -23,6 +23,7 @@ void init_bms() {
   g_bms.ws_gui_conn = 0;
   g_bms.sdc_closed = false;
   g_bms.precharge.done = false;
+  g_bms.precharge.start_tmstp = millis();
   init_cfg(g_bms.mode);
 };
 
@@ -222,7 +223,7 @@ Mode read_mode() {
   }
 
   char command;
-  if(xQueueReceive(commands_queue, &command, (TickType_t)10) == pdPASS) {
+  if(xQueueReceive(commands_queue, &command, 0) == pdPASS) {
     switch(command) {
       case 'N': return Mode::NORMAL;
       case 'B': return Mode::BALANCE;
