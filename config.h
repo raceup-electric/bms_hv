@@ -64,7 +64,7 @@ constexpr uint8_t FAN1_EN_PIN = 3;
 constexpr uint8_t FAN2_EN_PIN = 4;
 constexpr uint8_t BMS_FAULT_PIN = 7;
 constexpr uint8_t SDC_SENSE_PIN = 5;
-constexpr uint8_t AIR_2_EN_PIN = 6;
+constexpr uint8_t AIR_2_EN_PIN = 47;
 constexpr uint8_t LED_0_PIN = 21;
 // operations config
 constexpr bool SCREEN_ENABLE = false;
