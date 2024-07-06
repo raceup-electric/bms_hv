@@ -73,8 +73,8 @@ constexpr bool FAULT_ENABLE = false;
 // WiFi config
 constexpr char* SSID_STORAGE = "";
 constexpr char* PASSWORD_STORAGE = "";
-constexpr char* SSID_CAR = "";
-constexpr char* PASSWORD_CAR = "";
+constexpr char* SSID_CAR = "RG07";
+constexpr char* PASSWORD_CAR = "VediQualcosa";
 constexpr char* SSID_BMS = "BMS-RG07";
 constexpr char* PASSWORD_BMS = "VediQualcosa?";
 

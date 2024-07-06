@@ -30,26 +30,28 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 void com_init()
 {
     WiFi.disconnect();
+    WiFi.mode(WIFI_STA);
+    WiFi.enableSTA(true);
     // try to connect to car's wifi first    
-    while(WiFi.begin(SSID_CAR, PASSWORD_CAR) != WL_CONNECTED && attempts < ATTEMPTS) {
+    while(attempts < ATTEMPTS) {
+        wl_status_t status = WiFi.begin(SSID_CAR, PASSWORD_CAR);
+        if (status == WL_CONNECTED){
+            net_status = CONNECTED_TO_CAR;
+            return;
+        }
         attempts++;
         delay(1000);
-    }
-
-    if (WiFi.status() == WL_CONNECTED){
-        net_status = CONNECTED_TO_CAR;
-        return;
     }
 
     // then try Velex wifi
-    while(WiFi.begin(SSID_STORAGE, PASSWORD_STORAGE) != WL_CONNECTED && attempts < ATTEMPTS) {
+    while(attempts < ATTEMPTS) {
+        wl_status_t status = WiFi.begin(SSID_STORAGE, PASSWORD_STORAGE);
+        if (status == WL_CONNECTED){
+            net_status = CONNECTED_TO_STORAGE;
+            return;
+        }
         attempts++;
         delay(1000);
-    }
-
-    if (WiFi.status() == WL_CONNECTED){
-        net_status = CONNECTED_TO_STORAGE;
-        return;
     }
 
     // If no wifi network available then open AP for websockets
