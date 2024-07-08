@@ -11,7 +11,7 @@ void init_bms() {
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
   // bms fault have normal logic (HIGH => fault, LOW => ok)
-  digitalWrite(BMS_FAULT_PIN, LOW);
+  digitalWrite(BMS_FAULT_PIN, HIGH);
   digitalWrite(AIR_2_EN_PIN, LOW);
   digitalWrite(LED_0_PIN, LOW);
   for (uint8_t i = 0; i < SLAVE_NUM; i++) {
