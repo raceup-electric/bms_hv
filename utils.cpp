@@ -3,14 +3,14 @@
 
 uint16_t parse_temp(uint16_t volt) {
   // se non va chiedere a Cracco e Vardabasso
+  // Consider USHRT_MAX as a fault value because it would trigger the overtemp condition
+  constexpr uint16_t FAULT = USHRT_MAX;
+  if (volt == 0) return FAULT; // if voltage is zero => thermistor disconnected so return fault
+  if ((VREF2 - volt) == 0) return FAULT; // VREF - volt == 0 => thermistor is shorted to VREF so return fault 
   uint16_t R = (RTHERMISTOR * volt) / (VREF2 - volt);
-  return (uint16_t) (
-    B/(log(58.65 * R)) - KEL2CEL
-  );
-  //return (uint16_t) ( 
-  //  TEMP_FIT_COEFF[0] * pow(volt, (-TEMP_FIT_COEFF[1])) +
-  //  TEMP_FIT_COEFF[2]
-  //);
+  if (R <= 0) return USHRT_MAX;
+  uint16_t temp = (uint16_t) (B/(log(58.65 * R)) - KEL2CEL);
+  return temp >= 0 ? temp : FAULT; // If temperature is negative return fault
 }
 
 uint16_t bitmap_alive_slaves() {
