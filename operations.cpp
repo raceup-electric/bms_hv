@@ -171,7 +171,7 @@ void check_faults() {
     g_bms.fault_volt_tmstp = millis();
   }
 
-  if (g_bms.max_temp < TEMP_THRESHOLD) {
+  if (g_bms.max_temp < OT_THRESHOLD && g_bms.min_temp > UT_THRESHOLD) {
     g_bms.fault_temp_tmstp = millis();
   }
 
