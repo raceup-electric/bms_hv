@@ -117,7 +117,13 @@ pip3 install pypackage
 Poi eseguire il seguente comando (MacOS):
 ```
 cd gui
-python -m nuitka UI.py --lto=no --onefile  --enable-plugin=tk-inter --macos-create-app-bundle --macos-app-icon=icon.ico
+python -m nuitka UI.py --lto=no --onefile  --enable-plugin=tk-inter --macos-create-app-bundle --macos-app-icon=icon.ico --output-dir=./dist
 ```
 
-L'app si troverà nella directory
+Poi eseguire il seguente comando (Windows):
+```
+cd gui
+python -m nuitka --standalone --onefile --enable-plugin=tk-inter --windows-console-mode=disable --follow-imports --output-dir=./dist UI.py
+```
+
+L'app si troverà nella directory dist
