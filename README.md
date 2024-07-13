@@ -114,9 +114,10 @@ Per produrre un eseguibile (solo per la piattaforma in uso) installare PyPackage
 pip3 install pypackage
 ```
 
-Poi eseguire il seguente comando:
+Poi eseguire il seguente comando (MacOS):
 ```
-pyinstaller -F -w -i resources/icon.png --workpath guibuild --distpath guidist --collect-all customtkinter -n BMS .\gui\UI.py
+cd gui
+python -m nuitka UI.py --lto=no --onefile  --enable-plugin=tk-inter --macos-create-app-bundle --macos-app-icon=icon.ico
 ```
 
-L'eseguibile si troverà nella directory _guidist_
+L'app si troverà nella directory
