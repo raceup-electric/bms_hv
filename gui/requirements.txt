@@ -1,7 +1,0 @@
-customtkinter==5.2.2
-darkdetect==0.8.0
-flatten-json==0.1.14
-packaging==24.0
-pyserial==3.5
-six==1.16.0
-websocket-client==1.8.0

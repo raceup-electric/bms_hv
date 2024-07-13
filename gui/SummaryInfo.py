@@ -31,8 +31,8 @@ class SummaryInfo(ctk.CTkFrame):
             return 
         
         infos = (
-            data_dict["voltages"]["max"], data_dict["voltages"]["min"], data_dict["voltages"]["max"] - data_dict["voltages"]["min"], data_dict["voltages"]["tot"], data_dict["voltages"]["avg"],
-            data_dict["temps"]["max"], data_dict["temps"]["min"], data_dict["temps"]["avg"], data_dict["current"])
+            data_dict["voltages"]["max"]/10000, data_dict["voltages"]["min"]/10000, (data_dict["voltages"]["max"] - data_dict["voltages"]["min"])/10000, data_dict["voltages"]["tot"]/10000, data_dict["voltages"]["avg"]/10000,
+            data_dict["temps"]["max"], data_dict["temps"]["min"], data_dict["temps"]["avg"], data_dict["current"]/1000)
 
         for index, value in enumerate(infos):
             self.list_info[index].configure(text=str(round(value, 3)), text_color=color[index])
