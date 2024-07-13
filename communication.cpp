@@ -94,8 +94,15 @@ void com_send(void *)
 
             int responses = 0;
             for (int i = 0; i < SLAVE_NUM; i++) {
+                if (DEBUG) {
+                    Serial.print("Errors slave ");
+                    Serial.print(i);
+                    Serial.print(": ");
+                    Serial.println(bms_data.slaves[i].err);
+                }
                 if (bms_data.slaves[i].err == 0) responses++;
             }
+
 
             uint32_t avg_volt = responses == 0 ? 0 : g_bms.tot_volt / (responses * CELL_NUM);
             uint32_t avg_temp = responses == 0 ? 0 : g_bms.tot_temp / (responses * CELL_NUM);
