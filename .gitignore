@@ -63,3 +63,4 @@ gui/UI.onefile-build
 gui/Info.plist
 gui/UI.bin
 gui/Resources
+gui/.venv
