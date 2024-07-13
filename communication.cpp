@@ -22,8 +22,8 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
         xQueueSend(commands_queue, (void*)&connect, 0);
     }
     if(type == WS_EVT_DISCONNECT) {
-        char connect = 'D';
-        xQueueSend(commands_queue, (void*)&connect, 0);
+        char disconnect = 'D';
+        xQueueSend(commands_queue, (void*)&disconnect, 0);
     }
 }
 
@@ -62,6 +62,9 @@ void com_init()
     ws.onEvent(onEvent);
     server.addHandler(&ws);
     server.begin();
+    if (DEBUG) {
+        Serial.println(WiFi.localIP().toString());
+    }
     net_status = CONNECTED_TO_WEBSOCKET;
 }
 
@@ -108,6 +111,11 @@ void com_send(void *)
 
             body[body_size - 1] = '\0';
 
+            if (DEBUG) {
+                Serial.print("Net status: ");
+                Serial.println(net_status);
+            }
+
             switch(net_status) {
                 case CONNECTED_TO_CAR || CONNECTED_TO_STORAGE:
                     http.begin(HTTP_SERVER_URL);
@@ -115,9 +123,12 @@ void com_send(void *)
                     http.POST(body);
                     break;
                 case CONNECTED_TO_WEBSOCKET:
+                    if (DEBUG) {
+                        Serial.println("Trying to send via websocket");
+                    }
                     if(ws.availableForWriteAll() && ws.count() > 0){
                         if (DEBUG) {
-                            Serial.println("Available for WebSocket send");
+                            Serial.println("Sending via WebSocket send");
                         }
                         ws.textAll(body);
                     }
