@@ -16,7 +16,7 @@ void set_lem(BytesUnion *data) {
   current |= ((data->bytes[1]) << 16);
   current |= ((data->bytes[2]) << 8);
   current |= ((data->bytes[3]) << 0);
-  g_bms.lem.curr = (int32_t)(current);
+  g_bms.lem.curr = -(int32_t)(current);
   g_bms.lem.last_recv = millis();
 }
 

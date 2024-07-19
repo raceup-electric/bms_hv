@@ -14,7 +14,7 @@ constexpr uint8_t CELL_CHANNEL = 0;
 constexpr uint8_t GPIO_CHANNEL = 0;
 constexpr uint8_t MONITORING_SLEEP_TIMEOUT = 60; //s
 // threshold faults
-constexpr uint16_t UV_THRESHOLD = 33000;
+constexpr uint16_t UV_THRESHOLD = 30000;
 constexpr uint16_t OV_THRESHOLD = 42000;
 constexpr uint16_t UT_THRESHOLD = 0;
 constexpr uint16_t OT_THRESHOLD = 60;
@@ -29,8 +29,8 @@ constexpr uint16_t BAL_DELAY = 1000; // wait BAL_DELAY ms before measuring again
 // fan config
 constexpr uint8_t MIN_TEMP_FAN = 20;
 constexpr uint8_t MAX_TEMP_FAN = 50;
-constexpr float MIN_FAN_SPEED = 0.7;
-constexpr float MAX_FAN_SPEED = 1.0;
+constexpr float MIN_FAN_SPEED = 0.2;
+constexpr float MAX_FAN_SPEED = 1;
 constexpr float VAR_MIN = 0;
 // can config
 constexpr uint32_t CAN_BAUD_RATE = 500000;

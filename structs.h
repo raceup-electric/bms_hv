@@ -18,8 +18,7 @@ struct Slave {
 };
 
 struct Fan {
-  uint16_t prev_temp;
-  bool on;
+  uint8_t speed;
 };
 
 struct LEM {
@@ -50,7 +49,6 @@ struct BMS {
   uint16_t max_temp;
   uint16_t min_temp;
   uint16_t tot_temp;
-  uint8_t max_temp_slave;
   Fan fan;
   LEM lem;
   bool sdc_closed;

@@ -33,6 +33,7 @@ void task_main(void *) {
         check_faults();
       }
       send_can();
+      estimate_soc();
     } 
     else if (g_bms.mode == Mode::BALANCE) {
       start_adcv();

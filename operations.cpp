@@ -49,7 +49,7 @@ void init_cfg(Mode mode) {
     uint16_t discharge_bitmap = 0;
     for (int slave = 0; slave < SLAVE_NUM; slave++) {
       for (int cell = 0; cell < CELL_NUM; cell++) {
-        if (abs(g_bms.slaves[slave].volts[cell] - g_bms.min_volt) > BAL_EPSILON) {
+        if ((g_bms.slaves[slave].volts[cell] - g_bms.min_volt) > BAL_EPSILON) {
           discharge_bitmap = discharge_bitmap | (1 << cell); 
         }
       }
@@ -105,7 +105,7 @@ void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   for (int i = 0; i < VREG_LEN; i += 2) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
-    // don't read last cell in reg B because it is not connected (elettronici vi odio)
+    // don't read last cell in reg D because it is not connected
     if (reg == 'D' && i == VREG_LEN - 2) continue;
     g_bms.slaves[slave_idx].volts[offset + (i / 2)] = voltage;
     if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
@@ -143,18 +143,19 @@ void read_temps() {
 
 
 void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
+  constexpr uint8_t TEMPS_PER_REG = 3;
   if (reg == 'A' || reg == 'B') {
     for (int i = 0; i < GREG_LEN; i += 2) {
       if(i == GREG_LEN - 2 && reg == 'B') return;
-      int offset = reg == 'B' ? 3 : 0;
+      int offset = reg == 'B' ? TEMPS_PER_REG : 0;
 
       uint16_t volt = (raw_temps[i + 1] << 8) | (raw_temps[i] & 0xFF);
       uint16_t temp = parse_temp(volt);
 
       g_bms.slaves[slave_idx].temps[offset + i / 2] = temp; 
       
-      if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
-      if (temp < g_bms.min_temp) g_bms.min_temp = temp;
+      if (temp > g_bms.max_temp) { g_bms.max_temp = temp; }
+      if (temp < g_bms.min_temp) { g_bms.min_temp = temp; }
       g_bms.tot_temp += temp;
     }
   }
@@ -299,7 +300,7 @@ void send_can() {
     g_bms.max_temp,
     avg_temp,
     g_bms.min_temp,
-    0 //fan speed
+    g_bms.fan.speed
   );
 }
 
