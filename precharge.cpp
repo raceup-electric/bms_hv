@@ -9,35 +9,19 @@ void set_precharge(BytesUnion* data) {
 void precharge_control() {
   // Tramaccio because with a zener diode the voltage level reaches up to 2.6 V and it reads low even if it is high
   int sdc_level = ((3.3 / 4096) * analogRead(SDC_SENSE_PIN)) >= 2 ? 1 : 0;   
-  if (DEBUG) {
-    Serial.print("SDC level ");
-    Serial.println(sdc_level);
-    Serial.print("SDC voltage ");
-    Serial.println((3.3 / 4096) * analogRead(SDC_SENSE_PIN));
-  }
   // if sdc has closed
   if (sdc_level == HIGH) {
     if (g_bms.precharge.done) {
-      if (DEBUG) {
-        Serial.println("Precharge complete");
-      }
       return;
     }
     if (!g_bms.sdc_closed) {
       g_bms.sdc_closed = true;
       g_bms.precharge.start_tmstp = millis();
-      if (DEBUG) {
-        Serial.print("Starting precharge at ");
-        Serial.println(g_bms.precharge.start_tmstp);
-      }
       return;
     }
     if ((millis() - g_bms.precharge.start_tmstp) > PRECH_MIN_WAIT) {
       digitalWrite(AIR_2_EN_PIN, HIGH);
       g_bms.precharge.done = true;
-      if (DEBUG) {
-        Serial.println("Closing AIR 2");
-      }
     }
   }
   // cycle counter serves as debouncer for sdc sense signal (wait at least PRECH_MIN_CYCLE of LOW sdc sense to open AIR 2)

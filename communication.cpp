@@ -1,29 +1,32 @@
 #include "communication.h"
 #include "operations.h"
 
-uint8_t attempts = 0;
-
 WifiStatus net_status;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
-HTTPClient http;
+WiFiUDP udp;
 
-void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
-    if(type == WS_EVT_DATA){
-        AwsFrameInfo *info = (AwsFrameInfo*)arg;
-        if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+{
+    if (type == WS_EVT_DATA)
+    {
+        AwsFrameInfo *info = (AwsFrameInfo *)arg;
+        if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+        {
             xQueueSend(commands_queue, &data[0], 0);
         }
     }
-    if(type == WS_EVT_CONNECT) {
+    if (type == WS_EVT_CONNECT)
+    {
         char connect = 'C';
-        xQueueSend(commands_queue, (void*)&connect, 0);
+        xQueueSend(commands_queue, (void *)&connect, 0);
     }
-    if(type == WS_EVT_DISCONNECT) {
+    if (type == WS_EVT_DISCONNECT)
+    {
         char disconnect = 'D';
-        xQueueSend(commands_queue, (void*)&disconnect, 0);
+        xQueueSend(commands_queue, (void *)&disconnect, 0);
     }
 }
 
@@ -32,10 +35,12 @@ void com_init()
     WiFi.disconnect();
     WiFi.mode(WIFI_STA);
     WiFi.enableSTA(true);
-    // try to connect to car's wifi first    
-    while(attempts < ATTEMPTS) {
+    // try to connect to car's wifi first
+    for (int attempts = 0; attempts < CAR_WIFI_ATTEMPTS; attempts++)
+    {
         wl_status_t status = WiFi.begin(SSID_CAR, PASSWORD_CAR);
-        if (status == WL_CONNECTED){
+        if (status == WL_CONNECTED)
+        {
             net_status = CONNECTED_TO_CAR;
             return;
         }
@@ -44,9 +49,11 @@ void com_init()
     }
 
     // then try Velex wifi
-    while(attempts < ATTEMPTS) {
+    for (int attempts = 0; attempts < STORAGE_WIFI_ATTEMPTS; attempts++)
+    {
         wl_status_t status = WiFi.begin(SSID_STORAGE, PASSWORD_STORAGE);
-        if (status == WL_CONNECTED){
+        if (status == WL_CONNECTED)
+        {
             net_status = CONNECTED_TO_STORAGE;
             return;
         }
@@ -62,9 +69,6 @@ void com_init()
     ws.onEvent(onEvent);
     server.addHandler(&ws);
     server.begin();
-    if (DEBUG) {
-        Serial.println(WiFi.localIP().toString());
-    }
     net_status = CONNECTED_TO_WEBSOCKET;
 }
 
@@ -77,79 +81,80 @@ void com_send(void *)
     {
         if (
             body != NULL &&
-            xQueueReceive(data_queue, &bms_data, (TickType_t)10) == pdPASS) 
+            xQueueReceive(data_queue, &bms_data, (TickType_t)500) == pdPASS)
         {
-            int body_len = sprintf(body, "%s", "{");
-
-            for (int i = 0; i < SLAVE_NUM; i++)
+            if (net_status == CONNECTED_TO_CAR || net_status == CONNECTED_TO_STORAGE)
             {
-                for (int j = 0; j < CELL_NUM; j++) {
-                    body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_voltages_%i\":%hu,", i, j, bms_data.slaves[i].volts[j]);
-                }
-                for (int j = 0; j < TEMP_NUM; j++) {
-                    body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_temps_%i\":%hu,", i, j, bms_data.slaves[i].temps[j]);
-                }
-                body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_errorCount\":%hu,", i, bms_data.slaves[i].err);
-            }
 
-            int responses = 0;
-            for (int i = 0; i < SLAVE_NUM; i++) {
-                if (DEBUG) {
-                    Serial.print("Errors slave ");
-                    Serial.print(i);
-                    Serial.print(": ");
-                    Serial.println(bms_data.slaves[i].err);
-                }
-                if (bms_data.slaves[i].err == 0) responses++;
-            }
+                int body_len = 0;
 
-
-            uint32_t avg_volt = responses == 0 ? 0 : g_bms.tot_volt / (responses * CELL_NUM);
-            uint32_t avg_temp = responses == 0 ? 0 : g_bms.tot_temp / (responses * CELL_NUM);
-
-            body_len += snprintf(body + body_len, body_size - body_len,  "\"voltages_max\":%i,", bms_data.max_volt);
-            body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_min\":%i,", bms_data.min_volt);
-            body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_tot\":%i,", bms_data.tot_volt);
-            body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_avg\":%i,", avg_volt);
-            body_len += snprintf(body + body_len, body_size - body_len, "\"temps_max\":%i,", bms_data.max_temp);
-            body_len += snprintf(body + body_len, body_size - body_len, "\"temps_min\":%i,", bms_data.min_temp);
-            body_len += snprintf(body + body_len, body_size - body_len, "\"temps_avg\":%i,", avg_temp);
-            body_len += snprintf(body + body_len, body_size - body_len, "\"current\":%i}\n", bms_data.lem.curr);
-
-            body[body_size - 1] = '\0';
-
-            if (DEBUG) {
-                Serial.print("Net status: ");
-                Serial.println(net_status);
-            }
-
-            switch(net_status) {
-                case CONNECTED_TO_CAR || CONNECTED_TO_STORAGE:
-                    http.begin(HTTP_SERVER_URL);
-                    http.addHeader("Content-Type", "application/json");
-                    http.POST(body);
-                    break;
-                case CONNECTED_TO_WEBSOCKET:
-                    if (DEBUG) {
-                        Serial.println("Trying to send via websocket");
+                for (int i = 0; i < SLAVE_NUM; i++)
+                {
+                    body_len = 0;
+                    body_len += snprintf(body + body_len, body_size - body_len, "{\"type\":\"battery%d\",", i);
+                    for (int j = 0; j < CELL_NUM; j++)
+                    {
+                        body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_voltages_%i\":%hu,", i, j, bms_data.slaves[i].volts[j]);
                     }
-                    if(ws.availableForWriteAll() && ws.count() > 0){
-                        if (DEBUG) {
-                            Serial.println("Sending via WebSocket send");
-                        }
+                    for (int j = 0; j < TEMP_NUM; j++)
+                    {
+                        body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_temps_%i\":%hu,", i, j, bms_data.slaves[i].temps[j]);
+                    }
+                    body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_errorCount\":%hu}", i, bms_data.slaves[i].err);
+                    udp.beginPacket(ENDPOINT_IP, ENDPOINT_PORT);
+                    udp.write((uint8_t *)body, body_len);
+                    udp.endPacket();
+                }
+            }
+            if (ws.count() > 0 || bms_data.serial_gui_conn == true)
+            {
+                int body_len = sprintf(body, "%s", "{");
+
+                for (int i = 0; i < SLAVE_NUM; i++)
+                {
+                    for (int j = 0; j < CELL_NUM; j++)
+                    {
+                        body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_voltages_%i\":%hu,", i, j, bms_data.slaves[i].volts[j]);
+                    }
+                    for (int j = 0; j < TEMP_NUM; j++)
+                    {
+                        body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_temps_%i\":%hu,", i, j, bms_data.slaves[i].temps[j]);
+                    }
+                    body_len += snprintf(body + body_len, body_size - body_len, "\"slaves_%i_errorCount\":%hu,", i, bms_data.slaves[i].err);
+                }
+
+                int responses = 0;
+                for (int i = 0; i < SLAVE_NUM; i++)
+                {
+                    if (bms_data.slaves[i].err == 0) responses++;
+                }
+
+                uint32_t avg_volt = responses == 0 ? 0 : g_bms.tot_volt / (responses * CELL_NUM);
+                uint32_t avg_temp = responses == 0 ? 0 : g_bms.tot_temp / (responses * CELL_NUM);
+
+                body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_max\":%i,", bms_data.max_volt);
+                body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_min\":%i,", bms_data.min_volt);
+                body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_tot\":%i,", bms_data.tot_volt);
+                body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_avg\":%i,", avg_volt);
+                body_len += snprintf(body + body_len, body_size - body_len, "\"temps_max\":%i,", bms_data.max_temp);
+                body_len += snprintf(body + body_len, body_size - body_len, "\"temps_min\":%i,", bms_data.min_temp);
+                body_len += snprintf(body + body_len, body_size - body_len, "\"temps_avg\":%i,", avg_temp);
+                body_len += snprintf(body + body_len, body_size - body_len, "\"current\":%i}\n", bms_data.lem.curr);
+
+                body[body_size - 1] = '\0';
+
+                if (ws.availableForWriteAll() && ws.count() > 0) {
                         ws.textAll(body);
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if (bms_data.serial_gui_conn) {
-                for (int i = 0; i < 4; i++) {
-                    Serial.write(0xFF);
                 }
-                Serial.write(body);
+                if (bms_data.serial_gui_conn) {
+                    // Write termination sequence (0xFFFFFFFF)
+                    for (int i = 0; i < 4; i++)
+                    {
+                        Serial.write(0xFF);
+                    }
+                    Serial.write(body);
+                }
             }
         }
-
     }
 }

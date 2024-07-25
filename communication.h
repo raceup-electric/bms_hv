@@ -4,16 +4,19 @@
 #include "structs.h"
 
 #include <WiFi.h>
+#include <WiFiUdp.h>
 #include <HTTPClient.h>
 
-#define ATTEMPTS 3
+#define ENDPOINT_IP "204.216.214.158"
+#define ENDPOINT_PORT 7777
+
+#define CAR_WIFI_ATTEMPTS 5 
+#define STORAGE_WIFI_ATTEMPTS 1 
 
 #include <ESPAsyncWebServer.h>
 
 extern QueueHandle_t data_queue;
 extern QueueHandle_t commands_queue;
-
-#define HTTP_SERVER_URL "http://204.216.214.158:8080/telegraf"
 
 enum WifiStatus {
     CONNECTED_TO_CAR,

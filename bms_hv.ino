@@ -4,6 +4,7 @@
 
 #include "isospi.h"
 #include "operations.h"
+#include "sdc.h"
 #include "canc.h"
 #include "fan.h"
 #include "soc.h"
@@ -32,6 +33,9 @@ void task_main(void *) {
       if (FAULT_ENABLE) {
         check_faults();
       }
+      else {
+        sdc_close();
+      }
       send_can();
       estimate_soc();
     } 
@@ -44,6 +48,9 @@ void task_main(void *) {
       if (FAULT_ENABLE) {
         check_faults();
       }
+      else {
+        sdc_close();
+      }
       send_can();
       balance();
     }
@@ -55,6 +62,9 @@ void task_main(void *) {
       read_temps();
       if (FAULT_ENABLE) {
         check_faults();
+      }
+      else {
+        sdc_close();
       }
       nap();
     }
