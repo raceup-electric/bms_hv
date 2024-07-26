@@ -10,6 +10,7 @@ void init_bms() {
   pinMode(SDC_SENSE_PIN, INPUT);
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
+  delay(100);
   // bms fault have normal logic (HIGH => fault, LOW => ok)
   digitalWrite(BMS_FAULT_PIN, HIGH);
   digitalWrite(AIR_2_EN_PIN, LOW);
@@ -139,6 +140,10 @@ void read_temps() {
       }
     }
   }
+  // tramaccio because there is a short on three thermistors and it cannot be fixed this year
+  g_bms.slaves[3].temps[2] = g_bms.slaves[3].temps[3];
+  g_bms.slaves[4].temps[1] = g_bms.slaves[4].temps[2];
+  g_bms.slaves[9].temps[3] = g_bms.slaves[9].temps[4];
 }
 
 

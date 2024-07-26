@@ -8,7 +8,7 @@
 #include <HTTPClient.h>
 
 #define ENDPOINT_IP "204.216.214.158"
-#define ENDPOINT_PORT 7777
+#define ENDPOINT_PORT 8814
 
 #define CAR_WIFI_ATTEMPTS 5 
 #define STORAGE_WIFI_ATTEMPTS 1 
