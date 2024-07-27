@@ -140,10 +140,6 @@ void read_temps() {
       }
     }
   }
-  // tramaccio because there is a short on three thermistors and it cannot be fixed this year
-  g_bms.slaves[3].temps[2] = g_bms.slaves[3].temps[3];
-  g_bms.slaves[4].temps[1] = g_bms.slaves[4].temps[2];
-  g_bms.slaves[9].temps[3] = g_bms.slaves[9].temps[4];
 }
 
 
@@ -155,10 +151,22 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
       int offset = reg == 'B' ? TEMPS_PER_REG : 0;
 
       uint16_t volt = (raw_temps[i + 1] << 8) | (raw_temps[i] & 0xFF);
+
       uint16_t temp = parse_temp(volt);
 
+      // tramaccio because there is a short on three thermistors and it cannot be fixed this year
+      if (slave_idx == 3 && ((offset + i / 2) == 2)) {
+        temp = g_bms.slaves[3].temps[1];
+      }
+      else if (slave_idx == 4 && ((offset + i / 2) == 1)) {
+        temp = g_bms.slaves[4].temps[0];
+      }
+      else if (slave_idx == 9 && ((offset + i / 2) == 3)) {
+        temp = g_bms.slaves[9].temps[2];
+      }
+
       g_bms.slaves[slave_idx].temps[offset + i / 2] = temp; 
-      
+
       if (temp > g_bms.max_temp) { g_bms.max_temp = temp; }
       if (temp < g_bms.min_temp) { g_bms.min_temp = temp; }
       g_bms.tot_temp += temp;
