@@ -17,8 +17,15 @@ struct Slave {
   uint8_t err;
 };
 
+enum class FanState {
+  OFF,
+  RAMPING,
+  ON
+};
+
 struct Fan {
   uint8_t speed;
+  FanState state;
 };
 
 struct LEM {
