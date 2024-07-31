@@ -31,7 +31,7 @@ constexpr uint8_t MIN_TEMP_FAN = 20;
 constexpr uint8_t MAX_TEMP_FAN = 58;
 constexpr float MIN_FAN_SPEED = 0;
 constexpr float MAX_FAN_SPEED = 0.8;
-constexpr uint8_t FAN_ON_DELAY = 20; // 20 s delay
+constexpr uint8_t FAN_ON_DELAY = 45; // s delay
 // can config
 constexpr uint32_t CAN_BAUD_RATE = 500000;
 constexpr uint32_t DC_BUS_VOLTAGE_ID = 0x120;
