@@ -16,10 +16,12 @@ void set_fan_dutycycle() {
       g_bms.fan.state = FanState::RAMPING;
   }
   else if (g_bms.fan.state == FanState::RAMPING) {
-    uint32_t elapsed = (millis() - hv_on_ts) / 1000; // s elapsed since hv on
-    fan_speed = (elapsed - FAN_ON_DELAY >= 0) ? 0.1 * (elapsed - FAN_ON_DELAY) : 0.0;
-    if (elapsed - FAN_ON_DELAY > 5) {
-      g_bms.fan.state = FanState::ON;
+    int32_t elapsed = ((millis() - hv_on_ts) / 1000 - FAN_ON_DELAY); // s elapsed since hv on
+    if (elapsed >= 0) {
+      fan_speed = 0.1 * elapsed;
+      if (elapsed > 5) {
+        g_bms.fan.state = FanState::ON;
+      }
     }
   }
   else if (g_bms.fan.state == FanState::ON) {

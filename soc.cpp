@@ -15,18 +15,20 @@ void init_soc() {
     float m = 1.0 / (CHARGED_VOLT - EMPTY_VOLT);
     float q = - EMPTY_VOLT * m;
     g_bms.soc.soc = m * g_bms.tot_volt + q;
-    g_bms.soc.soh = 1; 
-    g_bms.soc.dod = g_bms.soc.soh - g_bms.soc.soc;
-    return;
   }
-  // otherwise there is information stored about the battery
-  g_bms.soc.soc = init_soc;
-  g_bms.soc.dod = soc_nvs.getFloat("dod", 0);
+  else {
+    // otherwise there is information stored about the battery
+    g_bms.soc.soc = init_soc;
+  }
   g_bms.soc.soh = soc_nvs.getFloat("soh", 1);
+  g_bms.soc.dod = g_bms.soc.soh - g_bms.soc.soc;
+  g_bms.soc.t_prev = millis();
+  g_bms.soc.last_nvs_update = millis();
 }
 
 void estimate_soc() {
-  uint32_t period = millis() - g_bms.soc.t_prev;
+  uint32_t now = millis();
+  uint32_t period = now - g_bms.soc.t_prev;
   float delta_dod = -((g_bms.lem.curr / 1000.0) * (period / 1000.0) * 3600) / C_RATED; // % of Ah discharged during period relative to rated capacity
   g_bms.soc.dod += ETA * delta_dod; // Update dod relative to rated capacity accounting for coulombic efficiency
   g_bms.soc.soc = g_bms.soc.soh - g_bms.soc.dod; // capacity releasable is the max capacity - capacity discharged
@@ -36,7 +38,11 @@ void estimate_soc() {
   if (g_bms.lem.curr > 0 && g_bms.tot_volt >= CHARGED_VOLT) { // reached end of charge
     g_bms.soc.soh = g_bms.soc.soc; // actual max capacity is equal to the capacity available
   }
-  soc_nvs.setFloat("soc", g_bms.soc.soc);
-  soc_nvs.setFloat("dod", g_bms.soc.dod);
-  soc_nvs.setFloat("soh", g_bms.soc.soh);
+  if ((now - g_bms.soc.last_nvs_update) > SOC_NVS_PERIOD) {
+    soc_nvs.setFloat("soc", g_bms.soc.soc);
+    soc_nvs.setFloat("dod", g_bms.soc.dod);
+    soc_nvs.setFloat("soh", g_bms.soc.soh);
+    g_bms.soc.last_nvs_update = now;
+  }
+  g_bms.soc.t_prev = now;
 }
