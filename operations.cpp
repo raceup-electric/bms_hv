@@ -302,8 +302,8 @@ void send_can() {
     if (g_bms.slaves[i].err == 0) responses++;
   }
 
-  uint32_t avg_volt = responses == 0 ? 0 : g_bms.tot_volt / (responses * CELL_NUM);
-  uint32_t avg_temp = responses == 0 ? 0 : g_bms.tot_temp / (responses * CELL_NUM);
+  uint16_t avg_volt = (responses == 0) ? 0 : (g_bms.tot_volt / (responses * CELL_NUM));
+  uint16_t avg_temp = (responses == 0) ? 0 : (g_bms.tot_temp / (responses * TEMP_NUM));
   uint8_t soc = (g_bms.soc.soc / g_bms.soc.soh) * 100;
 
   send_data_to_ECU(

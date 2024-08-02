@@ -51,7 +51,7 @@ constexpr uint8_t PRECH_MIN_CYCLE = 5;
 // SOC config
 constexpr float C_RATED = 12.7; // Ah
 constexpr uint16_t SAFETY_MARGIN = 1000; // in 0.1 mV => 100 mV  
-constexpr uint32_t CHARGED_VOLT = (OV_THRESHOLD - SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV (144 cells)
+constexpr uint32_t CHARGED_VOLT = (OV_THRESHOLD - SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV 
 constexpr uint32_t EMPTY_VOLT = (UV_THRESHOLD + SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV 
 constexpr uint32_t SOC_NVS_PERIOD = 60 * 1000; // every minute
 constexpr float ETA = 0.98; // coulomb efficiency

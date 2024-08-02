@@ -129,8 +129,8 @@ void com_send(void *)
                     if (bms_data.slaves[i].err == 0) responses++;
                 }
 
-                uint32_t avg_volt = responses == 0 ? 0 : bms_data.tot_volt / (responses * CELL_NUM);
-                uint32_t avg_temp = responses == 0 ? 0 : bms_data.tot_temp / (responses * CELL_NUM);
+                uint32_t avg_volt = (responses == 0) ? 0 : (bms_data.tot_volt / (responses * CELL_NUM));
+                uint32_t avg_temp = (responses == 0) ? 0 : (bms_data.tot_temp / (responses * TEMP_NUM));
 
                 body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_max\":%i,", bms_data.max_volt);
                 body_len += snprintf(body + body_len, body_size - body_len, "\"voltages_min\":%i,", bms_data.min_volt);

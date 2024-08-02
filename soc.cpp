@@ -8,25 +8,30 @@ static ArduinoNvs soc_nvs;
 
 void init_soc() {
   soc_nvs.begin("soc");
-  float init_soc = soc_nvs.getFloat("soc", -1);
-  // there is not a previous state stored in soc_nvs so we need to estimate the starting point
-  if (init_soc < 0) {
-    // try a linear interpolation
-    float m = 1.0 / (CHARGED_VOLT - EMPTY_VOLT);
-    float q = - EMPTY_VOLT * m;
-    g_bms.soc.soc = m * g_bms.tot_volt + q;
-  }
-  else {
-    // otherwise there is information stored about the battery
-    g_bms.soc.soc = init_soc;
-  }
-  g_bms.soc.soh = soc_nvs.getFloat("soh", 1);
-  g_bms.soc.dod = g_bms.soc.soh - g_bms.soc.soc;
-  g_bms.soc.t_prev = millis();
-  g_bms.soc.last_nvs_update = millis();
+  soc_nvs.eraseAll();
 }
 
 void estimate_soc() {
+  static bool first_time = true;
+  if (first_time) {
+    float init_soc = soc_nvs.getFloat("soc", -1);
+    // there is not a previous state stored in soc_nvs so we need to estimate the starting point
+    if (init_soc < 0) {
+      // try a linear interpolation
+      float m = 1.0 / (CHARGED_VOLT - EMPTY_VOLT);
+      float q = - (EMPTY_VOLT * m);
+      g_bms.soc.soc = m * g_bms.tot_volt + q;
+    }
+    else {
+      // otherwise there is information stored about the battery
+      g_bms.soc.soc = init_soc;
+    }
+    g_bms.soc.soh = soc_nvs.getFloat("soh", 1);
+    g_bms.soc.dod = g_bms.soc.soh - g_bms.soc.soc;
+    g_bms.soc.t_prev = millis();
+    g_bms.soc.last_nvs_update = millis();
+    first_time = false;
+  }
   uint32_t now = millis();
   uint32_t period = now - g_bms.soc.t_prev;
   float delta_dod = -((g_bms.lem.curr / 1000.0) * (period / 1000.0) * 3600) / C_RATED; // % of Ah discharged during period relative to rated capacity
