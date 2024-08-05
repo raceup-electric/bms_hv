@@ -304,7 +304,7 @@ void send_can() {
 
   uint16_t avg_volt = (responses == 0) ? 0 : (g_bms.tot_volt / (responses * CELL_NUM));
   uint16_t avg_temp = (responses == 0) ? 0 : (g_bms.tot_temp / (responses * TEMP_NUM));
-  uint8_t soc = (g_bms.soc.soc / g_bms.soc.soh) * 100;
+  uint8_t soc = (uint8_t)(g_bms.soc.soc / g_bms.soc.soh * 100);
 
   send_data_to_ECU(
     g_bms.max_volt,

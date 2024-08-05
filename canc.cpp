@@ -27,8 +27,8 @@ void read_precharge(CAN_FRAME *frame) {
 //  toggle_fan(&(frame->data));
 //}
 
-void send_data_to_ECU(uint16_t max_volt, uint16_t mean_volt, uint16_t min_volt, uint16_t soc, uint16_t max_temp, uint16_t mean_temp, uint16_t min_temp, uint8_t fan_speed) {
-  delay(10);
+void send_data_to_ECU(uint16_t max_volt, uint16_t mean_volt, uint16_t min_volt, uint8_t soc, uint16_t max_temp, uint16_t mean_temp, uint16_t min_temp, uint8_t fan_speed) {
+  delay(3);
 
   constexpr uint8_t VOLT_DATA_SIZE = 7;
   constexpr uint8_t TEMP_DATA_SIZE = 7;
