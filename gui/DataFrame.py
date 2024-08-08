@@ -54,10 +54,9 @@ class DataFrame(ctk.CTkFrame):
         try:
             switch = self._get_switch()
 
-            if switch == 1 and self._get_mode() == "Normal Mode":
+            if switch == 1 and (self._get_mode() == "Normal Mode" or self._get_mode() == "Balancing Mode"):
                 packet = self.ui_frame.menu.controller.read_packet()
                 self._update_logic(packet)
-
             elif (switch == 1 and self._get_mode() == "Sleep Mode") or switch == -1:  #clear all the slaves
                 for i in range(N_SLAVES):
                     self.slaves[i].update_slave({}, 0, 0)
