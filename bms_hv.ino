@@ -86,7 +86,6 @@ void setup() {
   init_can();
 
   init_fan();
-  init_soc();
   reset_measures();
 
   data_queue = xQueueCreate(3, sizeof(struct BMS));

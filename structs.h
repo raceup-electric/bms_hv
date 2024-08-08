@@ -43,7 +43,6 @@ struct Precharge {
 
 struct SOC {
   uint32_t t_prev;
-  uint32_t last_nvs_update;
   float soc;
   float dod;
   float soh;

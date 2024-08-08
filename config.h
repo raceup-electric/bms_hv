@@ -24,7 +24,7 @@ constexpr uint32_t T_FAULT_TIME = 1000;
 constexpr uint16_t MEAS_DELAY = 6;
 constexpr uint8_t READ_DELAY = 2;
 // balancing discharge config
-constexpr uint16_t BAL_EPSILON = 500; // amount of tolerance when balancing (0.1mV)
+constexpr uint16_t BAL_EPSILON = 250; // amount of tolerance when balancing (0.1mV)
 constexpr uint16_t BAL_DELAY = 1000; // wait BAL_DELAY ms before measuring again (better accuracy)
 // fan config
 constexpr uint8_t MIN_TEMP_FAN = 20;
