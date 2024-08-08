@@ -155,14 +155,17 @@ void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
       uint16_t temp = parse_temp(volt);
 
       // tramaccio because there is a short on three thermistors and it cannot be fixed this year
+      if (slave_idx == 2 && ((offset + i / 2) == 4)) {
+        temp = g_bms.slaves[2].temps[3];
+      }
       if (slave_idx == 3 && ((offset + i / 2) == 2)) {
         temp = g_bms.slaves[3].temps[1];
       }
-      else if (slave_idx == 4 && ((offset + i / 2) == 1)) {
-        temp = g_bms.slaves[4].temps[0];
+      else if (slave_idx == 6 && ((offset + i / 2) == 1)) {
+        temp = g_bms.slaves[6].temps[0];
       }
-      else if (slave_idx == 9 && ((offset + i / 2) == 3)) {
-        temp = g_bms.slaves[9].temps[2];
+      else if (slave_idx == 11 && ((offset + i / 2) == 0)) {
+        temp = g_bms.slaves[10].temps[4];
       }
 
       g_bms.slaves[slave_idx].temps[offset + i / 2] = temp; 
@@ -181,19 +184,20 @@ void balance() {
 }
 
 void check_faults() {
+  uint32_t now = millis();
   if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_volt > UV_THRESHOLD) {
-    g_bms.fault_volt_tmstp = millis();
+    g_bms.fault_volt_tmstp = now;
   }
 
   if (g_bms.max_temp < OT_THRESHOLD && g_bms.min_temp > UT_THRESHOLD) {
-    g_bms.fault_temp_tmstp = millis();
+    g_bms.fault_temp_tmstp = now;
   }
 
   uint8_t alives = n_alive_slaves();
 
   if (
-    millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
-    millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
+    now - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
+    now - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
     !is_lem_in_time() ||
     alives < SLAVE_NUM
   ) {

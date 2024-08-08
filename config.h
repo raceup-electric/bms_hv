@@ -16,7 +16,7 @@ constexpr uint8_t MONITORING_SLEEP_TIMEOUT = 60; //s
 // threshold faults
 constexpr uint16_t UV_THRESHOLD = 30000;
 constexpr uint16_t OV_THRESHOLD = 42000;
-constexpr uint16_t UT_THRESHOLD = 0;
+constexpr uint16_t UT_THRESHOLD = 10;
 constexpr uint16_t OT_THRESHOLD = 60;
 constexpr uint8_t MIN_ERR_THRESHOLD = 50;
 constexpr uint32_t V_FAULT_TIME = 500;
@@ -28,9 +28,9 @@ constexpr uint16_t BAL_EPSILON = 500; // amount of tolerance when balancing (0.1
 constexpr uint16_t BAL_DELAY = 1000; // wait BAL_DELAY ms before measuring again (better accuracy)
 // fan config
 constexpr uint8_t MIN_TEMP_FAN = 20;
-constexpr uint8_t MAX_TEMP_FAN = 58;
+constexpr uint8_t MAX_TEMP_FAN = 50;
 constexpr float MIN_FAN_SPEED = 0;
-constexpr float MAX_FAN_SPEED = 0.8;
+constexpr float MAX_FAN_SPEED = 1;
 constexpr uint8_t FAN_ON_DELAY = 45; // s delay
 // can config
 constexpr uint32_t CAN_BAUD_RATE = 500000;
