@@ -56,5 +56,11 @@ docs
 *.spec
 
 # gui artifacts
-guibuild/
-guidist/
+gui/UI.app
+gui/UI.build
+gui/UI.dist
+gui/UI.onefile-build
+gui/Info.plist
+gui/UI.bin
+gui/Resources
+gui/.venv

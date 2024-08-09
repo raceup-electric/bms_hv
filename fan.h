@@ -9,6 +9,6 @@ extern BMS g_bms;
 
 void init_fan();
 void set_fan_dutycycle();
-void toggle_fan(BytesUnion* data);
+//void toggle_fan(BytesUnion* data);
 
 #endif

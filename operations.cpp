@@ -10,7 +10,8 @@ void init_bms() {
   pinMode(SDC_SENSE_PIN, INPUT);
   pinMode(AIR_2_EN_PIN, OUTPUT);
   pinMode(LED_0_PIN, OUTPUT);
-  // bms fault have inverted logic (HIGH off, LOW on)
+  delay(100);
+  // bms fault have normal logic (HIGH => fault, LOW => ok)
   digitalWrite(BMS_FAULT_PIN, HIGH);
   digitalWrite(AIR_2_EN_PIN, LOW);
   digitalWrite(LED_0_PIN, LOW);
@@ -19,48 +20,57 @@ void init_bms() {
     g_bms.slaves[i].err = 0;
   }
   g_bms.mode = Mode::NORMAL;
-  g_bms.gui_conn = false;
+  g_bms.serial_gui_conn = false;
+  g_bms.ws_gui_conn = 0;
   g_bms.sdc_closed = false;
   g_bms.precharge.done = false;
+  g_bms.precharge.start_tmstp = millis();
   init_cfg(g_bms.mode);
-  init_pwm();
 };
 
 void init_cfg(Mode mode) {
   uint8_t cfg_data[CFG_LEN] = {};
   uint16_t uv_val = (UV_THRESHOLD / 16) - 1;
   uint16_t ov_val = (OV_THRESHOLD / 16); // values required by datasheet
-  switch (mode) {
-    case Mode::NORMAL:
-      // turn on GPIO pins pulldown, enable discharge timer and set ADC OPT flag (table 52 datasheet)
-      cfg_data[0] = 0xFA | ADC_OPT;
-      // LSB of undervolt value
-      cfg_data[1] = uv_val & 0xFF;
-      // four LSB of overvolt value and remaining MSB of undervolt
-      cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
-      // eigth MSB of overvolt value
-      cfg_data[3] = ov_val >> 4;
-      break;
-    case Mode::BALANCE:
-      // discharge timer enabled
-      cfg_data[0] = 0x2;
-      // discharge enabled for all cells
-      cfg_data[CFG_LEN - 2] = 0xFF;
-      // DCTO 
-      cfg_data[CFG_LEN - 1] = ((DCTO & 0xF) << 4) | 0xF; 
-      break;
-    default: break;
-  };
-  wrcfg(cfg_data);
+  // This part is common to all modes
+  // turn on GPIO pins pulldown, disable discharge timer and set ADC OPT flag (table 52 datasheet)
+  cfg_data[0] = 0xF8 | ADC_OPT;
+  // LSB of undervolt value
+  cfg_data[1] = uv_val & 0xFF;
+  // four LSB of overvolt value and remaining MSB of undervolt
+  cfg_data[2] = ((ov_val & 0xF) << 4) | ((uv_val & 0xF00) >> 8);
+  // eigth MSB of overvolt value
+  cfg_data[3] = ov_val >> 4;
+  if (mode != Mode::BALANCE  || g_bms.min_volt == 0 || g_bms.max_volt == 0) { // Not balancing or no measurements available so don't try balancing
+    // write to all slaves broadcast
+    wrcfg(cfg_data);
+  }
+  else if (mode == Mode::BALANCE) {
+    // Create a bitmap with 1 if cell i has to be balanced 0 otherwise
+    uint16_t discharge_bitmap = 0;
+    for (int slave = 0; slave < SLAVE_NUM; slave++) {
+      for (int cell = 0; cell < CELL_NUM; cell++) {
+        if ((g_bms.slaves[slave].volts[cell] - g_bms.min_volt) > BAL_EPSILON) {
+          discharge_bitmap = discharge_bitmap | (1 << cell); 
+        }
+      }
+      // enable discharge for cells outside of acceptable range
+      cfg_data[CFG_LEN - 2] = 0xFF & discharge_bitmap;
+      cfg_data[CFG_LEN - 1] = 0xF & (discharge_bitmap >> 8); 
+      // write config manually to each slave (not everyone has the same cells to balance => bitmap is different)
+      wrcfg(g_bms.slaves[slave].addr, cfg_data);
+      discharge_bitmap = 0;
+    }
+  }
 }
 
-void init_pwm() {
-  uint8_t pwm_data[PWM_LEN];
-  for (int i = 0; i < PWM_LEN; i++) {
-    pwm_data[i] = (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
-  }
-  wrpwm(pwm_data);
-}
+// void init_pwm() {
+//   uint8_t pwm_data[PWM_LEN];
+//   for (int i = 0; i < PWM_LEN; i++) {
+//     pwm_data[i] = (DISCHARGE_DUTY_CICLE << 4) | (DISCHARGE_DUTY_CICLE & 0xF);
+//   }
+//   wrpwm(pwm_data);
+// }
 
 void start_adcv() {
   adcv();
@@ -86,33 +96,18 @@ void read_volts() {
         g_bms.slaves[i].err += 1;
       }
     }
-    
-    // Dannati elettronici
-    uint16_t tmp = g_bms.slaves[i].volts[5];
-    g_bms.slaves[i].volts[5] = g_bms.slaves[i].volts[6];
-    g_bms.slaves[i].volts[6] = g_bms.slaves[i].volts[7];
-    g_bms.slaves[i].volts[7] = g_bms.slaves[i].volts[8];
-    g_bms.slaves[i].volts[8] = tmp;
   }
 }
 
 void save_volts(int slave_idx, char reg, uint8_t* raw_volts) {
   constexpr uint8_t CELLS_PER_REG = 3;
-  // Ancora elettronici bastardi
-  if (reg == 'D') {
-    uint16_t voltage = (raw_volts[1] << 8) | (raw_volts[0] & 0xFF);
-    g_bms.slaves[slave_idx].volts[5] = voltage;
-    if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
-    if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
-    g_bms.tot_volt += voltage;
-    return;
-  }
+
   // for each measure (2 bytes)
   for (int i = 0; i < VREG_LEN; i += 2) {
     uint16_t voltage = (raw_volts[i + 1] << 8) | (raw_volts[i] & 0xFF);
     uint16_t offset = (reg - 'A') * CELLS_PER_REG;
-    // don't read last cell in reg B because it is not connected (elettronici vi odio)
-    if (reg == 'B' && i == VREG_LEN - 2) continue;
+    // don't read last cell in reg D because it is not connected
+    if (reg == 'D' && i == VREG_LEN - 2) continue;
     g_bms.slaves[slave_idx].volts[offset + (i / 2)] = voltage;
     if (voltage > g_bms.max_volt) g_bms.max_volt = voltage;
     if (voltage < g_bms.min_volt) g_bms.min_volt = voltage;
@@ -149,34 +144,60 @@ void read_temps() {
 
 
 void save_temps(int slave_idx, char reg, uint8_t* raw_temps) {
-  // grazie tronici -_-
-  if (reg == 'A') {
-    // gpio 1, 2, 3
+  constexpr uint8_t TEMPS_PER_REG = 3;
+  if (reg == 'A' || reg == 'B') {
     for (int i = 0; i < GREG_LEN; i += 2) {
+      if(i == GREG_LEN - 2 && reg == 'B') return;
+      int offset = reg == 'B' ? TEMPS_PER_REG : 0;
+
       uint16_t volt = (raw_temps[i + 1] << 8) | (raw_temps[i] & 0xFF);
+
       uint16_t temp = parse_temp(volt);
-      g_bms.slaves[slave_idx].temps[i / 2] = temp; 
-      if (temp > g_bms.max_temp) { g_bms.max_temp = temp; g_bms.max_temp_slave = slave_idx; }
-      if (temp < g_bms.min_temp) g_bms.min_temp = temp;
+
+      // tramaccio because there is a short on three thermistors and it cannot be fixed this year
+      if (slave_idx == 2 && ((offset + i / 2) == 4)) {
+        temp = g_bms.slaves[2].temps[3];
+      }
+      if (slave_idx == 3 && ((offset + i / 2) == 2)) {
+        temp = g_bms.slaves[3].temps[1];
+      }
+      else if (slave_idx == 6 && ((offset + i / 2) == 1)) {
+        temp = g_bms.slaves[6].temps[0];
+      }
+      else if (slave_idx == 11 && ((offset + i / 2) == 0)) {
+        temp = g_bms.slaves[10].temps[4];
+      }
+
+      g_bms.slaves[slave_idx].temps[offset + i / 2] = temp; 
+
+      if (temp > g_bms.max_temp) { g_bms.max_temp = temp; }
+      if (temp < g_bms.min_temp) { g_bms.min_temp = temp; }
       g_bms.tot_temp += temp;
     }
   }
 }
 
+void balance() {
+  if (g_bms.mode != Mode::BALANCE) return;
+  init_cfg(Mode::BALANCE);
+  delay(BAL_DELAY);
+}
+
 void check_faults() {
+  uint32_t now = millis();
   if (g_bms.max_volt < OV_THRESHOLD && g_bms.min_volt > UV_THRESHOLD) {
-    g_bms.fault_volt_tmstp = millis();
+    g_bms.fault_volt_tmstp = now;
   }
 
-  if (g_bms.max_temp < TEMP_THRESHOLD) {
-    g_bms.fault_temp_tmstp = millis();
+  if (g_bms.max_temp < OT_THRESHOLD && g_bms.min_temp > UT_THRESHOLD) {
+    g_bms.fault_temp_tmstp = now;
   }
 
   uint8_t alives = n_alive_slaves();
 
   if (
-    millis() - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
-    millis() - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
+    now - g_bms.fault_volt_tmstp > V_FAULT_TIME ||
+    now - g_bms.fault_temp_tmstp > T_FAULT_TIME ||
     !is_lem_in_time() ||
     alives < SLAVE_NUM
   ) {
@@ -187,17 +208,25 @@ void check_faults() {
   }
 }
 
+void update_mode(Mode new_mode) {
+  if (new_mode != g_bms.mode) { 
+    g_bms.mode = new_mode;
+    wakeup_sleep();
+    init_cfg(g_bms.mode);
+  }
+}
+
 void update_mode() {
   Mode new_mode = read_mode();
   if (new_mode != g_bms.mode) { 
     g_bms.mode = new_mode;
     wakeup_sleep();
     init_cfg(g_bms.mode);
-    init_pwm();
   }
 }
 
 Mode read_mode() {
+
   if(Serial.available() > 0) {
     char input = (char) Serial.read();
     Serial.flush();
@@ -205,10 +234,24 @@ Mode read_mode() {
       case 'N': return Mode::NORMAL;
       case 'B': return Mode::BALANCE;
       case 'S': return Mode::SLEEP;
-      case 'C': g_bms.gui_conn = true; break;
-      case 'D': g_bms.gui_conn = false; break;
+      case 'C': g_bms.serial_gui_conn = true; break;
+      case 'D': g_bms.serial_gui_conn = false; break;
+      case 'V': return Mode::STORAGE;
     }
   }
+
+  char command;
+  if(xQueueReceive(commands_queue, &command, 0) == pdPASS) {
+    switch(command) {
+      case 'N': return Mode::NORMAL;
+      case 'B': return Mode::BALANCE;
+      case 'S': return Mode::SLEEP;
+      case 'C': g_bms.ws_gui_conn++; break;
+      case 'D': g_bms.ws_gui_conn--; break;
+      case 'V': return Mode::STORAGE;
+    }
+  }
+
   return g_bms.mode;
 }
 
@@ -262,15 +305,20 @@ void send_can() {
   for (int i = 0; i < SLAVE_NUM; i++) {
     if (g_bms.slaves[i].err == 0) responses++;
   }
+
+  uint16_t avg_volt = (responses == 0) ? 0 : (g_bms.tot_volt / (responses * CELL_NUM));
+  uint16_t avg_temp = (responses == 0) ? 0 : (g_bms.tot_temp / (responses * TEMP_NUM));
+  uint8_t soc = (uint8_t)(g_bms.soc.soc / g_bms.soc.soh * 100);
+
   send_data_to_ECU(
     g_bms.max_volt,
-    g_bms.tot_volt / (responses * CELL_NUM),
+    avg_volt,
     g_bms.min_volt,
-    bitmap_alive_slaves(), 
+    soc,
     g_bms.max_temp,
-    g_bms.tot_temp / (responses * TEMP_NUM),
+    avg_temp,
     g_bms.min_temp,
-    g_bms.max_temp_slave
+    g_bms.fan.speed
   );
 }
 

@@ -6,7 +6,8 @@
 enum class Mode {
   NORMAL,
   SLEEP,
-  BALANCE
+  BALANCE,
+  STORAGE
 };
 
 struct Slave {
@@ -16,22 +17,35 @@ struct Slave {
   uint8_t err;
 };
 
+enum class FanState {
+  OFF,
+  RAMPING,
+  ON
+};
+
 struct Fan {
-  uint16_t prev_temp;
-  bool on;
+  uint8_t speed;
+  FanState state;
 };
 
 struct LEM {
-  int32_t curr;
+  int32_t curr; // in mA
   uint32_t last_recv;
 };
 
 struct Precharge {
   float bus_volt;
   bool via_can;
-  uint32_t start_tmstp;
+  uint64_t start_tmstp;
   uint8_t cycle_counter;
   bool done;
+};
+
+struct SOC {
+  uint32_t t_prev;
+  float soc;
+  float dod;
+  float soh;
 };
 
 struct BMS {
@@ -42,7 +56,6 @@ struct BMS {
   uint16_t max_temp;
   uint16_t min_temp;
   uint16_t tot_temp;
-  uint8_t max_temp_slave;
   Fan fan;
   LEM lem;
   bool sdc_closed;
@@ -50,7 +63,9 @@ struct BMS {
   uint32_t fault_temp_tmstp;
   Mode mode;
   Precharge precharge;
-  bool gui_conn;
+  bool serial_gui_conn;
+  uint16_t ws_gui_conn;
+  SOC soc;
 };
 
 #endif // STRUCTS_H_

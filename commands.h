@@ -25,6 +25,8 @@ enum class CommandMode {
 
 void wrcfg(uint8_t* cfg_data);
 
+void wrcfg(uint8_t addr, uint8_t* cfg_data);
+
 void wrpwm(uint8_t* pwm_data);
 
 void adcv();

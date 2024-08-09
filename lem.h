@@ -1,5 +1,5 @@
-#ifndef BMS_LEMREADER_H
-#define BMS_LEMREADER_H
+#ifndef LEM_H_
+#define LEM_H_
 
 #include "config.h"
 #include "structs.h"
