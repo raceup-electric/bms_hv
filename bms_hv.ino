@@ -69,7 +69,7 @@ void task_main(void *) {
       nap();
     }
 
-    if(counter == 10) {
+    if(counter == 5) {
       xQueueSend(data_queue, &g_bms, 0);
       counter = 0;
     }
