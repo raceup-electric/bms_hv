@@ -34,15 +34,15 @@ class UI(ctk.CTk):
         self.destroy()
 
     def ctrl_e_pressed(self, event):
-        # if self.menu.get_switch() == 1:
-            # self.menu.controller.set_mode("E")
+        if self.menu.get_switch() == 1:
+            self.menu.controller.set_mode("E")
             self.title("BMS UIe")
 
         # print("Ctrl+E was pressed!")
 
     def ctrl_x_pressed(self, event):
-        # if self.menu.get_switch() == 1:
-            # self.menu.controller.set_mode("X")
+        if self.menu.get_switch() == 1:
+            self.menu.controller.set_mode("X")
             self.title("BMS UIx")
 
         # print("Ctrl+X was pressed!")
