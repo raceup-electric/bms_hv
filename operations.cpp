@@ -26,6 +26,7 @@ void init_bms() {
   g_bms.precharge.done = false;
   g_bms.precharge.start_tmstp = millis();
   init_cfg(g_bms.mode);
+  g_bms.fault_enabled = FAULT_ENABLE;
 };
 
 void init_cfg(Mode mode) {
@@ -237,6 +238,8 @@ Mode read_mode() {
       case 'C': g_bms.serial_gui_conn = true; break;
       case 'D': g_bms.serial_gui_conn = false; break;
       case 'V': return Mode::STORAGE;
+      case 'E': g_bms.fault_enabled = true; break;
+      case 'X': g_bms.fault_enabled = false; break;
     }
   }
 
@@ -249,6 +252,8 @@ Mode read_mode() {
       case 'C': g_bms.ws_gui_conn++; break;
       case 'D': g_bms.ws_gui_conn--; break;
       case 'V': return Mode::STORAGE;
+      case 'E': g_bms.fault_enabled = true; break;
+      case 'X': g_bms.fault_enabled = false; break;
     }
   }
 
