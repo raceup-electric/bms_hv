@@ -9,7 +9,7 @@ class UI(ctk.CTk):
         super().__init__()
         
         #self.iconbitmap("icon.ico")
-        self.title("BMS UI")
+        self.title("BMS UIx")
         self.resizable(False, False)
         self.geometry("+20+20")  # top left corner
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
