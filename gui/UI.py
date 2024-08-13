@@ -13,6 +13,8 @@ class UI(ctk.CTk):
         self.resizable(False, False)
         self.geometry("+20+20")  # top left corner
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
+        self.bind('<Control-e>', self.ctrl_e_pressed)
+        self.bind('<Control-x>', self.ctrl_x_pressed)
 
         self.serial_controller = SerialController()
         self.ws_controller = WebSocketController()
@@ -30,6 +32,21 @@ class UI(ctk.CTk):
         if self.menu.get_switch() == 1:
             self.serial_controller.close()
         self.destroy()
+
+    def ctrl_e_pressed(self, event):
+        # if self.menu.get_switch() == 1:
+            # self.menu.controller.set_mode("E")
+            self.title("BMS UIe")
+
+        # print("Ctrl+E was pressed!")
+
+    def ctrl_x_pressed(self, event):
+        # if self.menu.get_switch() == 1:
+            # self.menu.controller.set_mode("X")
+            self.title("BMS UIx")
+
+        # print("Ctrl+X was pressed!")
+
 
 
 if __name__ == "__main__":
