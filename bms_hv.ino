@@ -30,7 +30,7 @@ void task_main(void *) {
       start_adax();
       read_temps();
       set_fan_dutycycle(); 
-      if (FAULT_ENABLE) {
+      if (g_bms.fault_enabled) {
         check_faults();
       }
       else {
@@ -45,7 +45,7 @@ void task_main(void *) {
       start_adax();
       read_temps();
       set_fan_dutycycle(); 
-      if (FAULT_ENABLE) {
+      if (g_bms.fault_enabled) {
         check_faults();
       }
       else {
@@ -60,7 +60,7 @@ void task_main(void *) {
       read_volts();
       start_adax();
       read_temps();
-      if (FAULT_ENABLE) {
+      if (g_bms.fault_enabled) {
         check_faults();
       }
       else {

@@ -66,6 +66,7 @@ struct BMS {
   bool serial_gui_conn;
   uint16_t ws_gui_conn;
   SOC soc;
+  bool fault_enabled;
 };
 
 #endif // STRUCTS_H_
