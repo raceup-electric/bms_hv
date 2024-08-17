@@ -32,39 +32,8 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 
 void com_init()
 {
+    // Open AP on startup
     WiFi.disconnect();
-    WiFi.mode(WIFI_STA);
-    WiFi.enableSTA(true);
-    // try to connect to car's wifi first
-    for (int attempts = 0; attempts < CAR_WIFI_ATTEMPTS; attempts++)
-    {
-        wl_status_t status = WiFi.begin(SSID_CAR, PASSWORD_CAR);
-        if (status == WL_CONNECTED)
-        {
-            net_status = CONNECTED_TO_CAR;
-            return;
-        }
-        attempts++;
-        delay(1000);
-    }
-
-    // then try Velex wifi
-    for (int attempts = 0; attempts < STORAGE_WIFI_ATTEMPTS; attempts++)
-    {
-        wl_status_t status = WiFi.begin(SSID_STORAGE, PASSWORD_STORAGE);
-        if (status == WL_CONNECTED)
-        {
-            net_status = CONNECTED_TO_STORAGE;
-            return;
-        }
-        attempts++;
-        delay(1000);
-    }
-
-    // If no wifi network available then open AP for websockets
-    WiFi.disconnect();
-    WiFi.enableAP(true);
-    WiFi.mode(WIFI_AP);
     WiFi.softAP(SSID_BMS, PASSWORD_BMS);
     ws.onEvent(onEvent);
     server.addHandler(&ws);
@@ -83,7 +52,7 @@ void com_send(void *)
             body != NULL &&
             xQueueReceive(data_queue, &bms_data, (TickType_t)500) == pdPASS)
         {
-            if (net_status == CONNECTED_TO_CAR || net_status == CONNECTED_TO_STORAGE)
+            if (WiFi.status() == WL_CONNECTED)
             {
 
                 int body_len = 0;

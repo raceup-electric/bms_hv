@@ -69,8 +69,12 @@ void task_main(void *) {
       nap();
     }
 
-    if(counter == 5) {
+    if(counter % 5 == 0) {
       xQueueSend(data_queue, &g_bms, 0);
+    }
+    if(counter == 255 && WiFi.status() != WL_CONNECTED) {
+      WiFi.begin(SSID_CAR, PASSWORD_CAR);
+      delay(1000);
       counter = 0;
     }
     counter++;
@@ -91,10 +95,11 @@ void setup() {
   data_queue = xQueueCreate(3, sizeof(struct BMS));
   commands_queue = xQueueCreate(5, 1); // 1 char len
 
+  WiFi.mode(WIFI_AP_STA);
   com_init();
 
+  xTaskCreatePinnedToCore(task_main, "loop", 10000, NULL, 2, NULL, 0);
   xTaskCreatePinnedToCore(com_send, "com_send", 16384, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(task_main, "loop", 8192, NULL, 2, NULL, 0);
 }
 
 void loop() {
