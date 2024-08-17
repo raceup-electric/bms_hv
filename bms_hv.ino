@@ -18,7 +18,7 @@ QueueHandle_t commands_queue;
 int stest = 0;
 
 void task_main(void *) {
-  uint8_t counter = 0;
+  uint16_t counter = 0;
 
   while(1){
     reset_measures();
@@ -72,9 +72,9 @@ void task_main(void *) {
     if(counter % 5 == 0) {
       xQueueSend(data_queue, &g_bms, 0);
     }
-    if(counter == 255 && WiFi.status() != WL_CONNECTED) {
+    if(counter == 500 && WiFi.status() != WL_CONNECTED) {
       WiFi.begin(SSID_CAR, PASSWORD_CAR);
-      delay(1000);
+      delay(500);
       counter = 0;
     }
     counter++;
