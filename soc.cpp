@@ -16,7 +16,7 @@ void estimate_soc() {
     return;
   }
   uint32_t period = now - g_bms.soc.t_prev;
-  float delta_dod = -((g_bms.lem.curr / 1000.0) * (g_bms.tot_volt / 10000.0) * (period / 1000.0) / 3600.0) / (C_RATED * TOT_CELLS * OV_THRESHOLD / 10000.0); // % of Wh during period relative to rated capacity
+  float delta_dod = -((g_bms.lem.curr / 1000.0) * (g_bms.tot_volt / 10000.0) * (period / 1000.0) / 3600.0) / (C_RATED * NOMINAL_VOLT / 10000.0); // % of Wh during period relative to rated capacity
   g_bms.soc.dod += ETA * delta_dod; // Update dod relative to rated capacity accounting for coulombic efficiency
   g_bms.soc.soc = g_bms.soc.soh - g_bms.soc.dod; // capacity releasable is the max capacity - capacity discharged
   if (g_bms.lem.curr < 0 && g_bms.tot_volt <= EMPTY_VOLT) { // reached end of discharge

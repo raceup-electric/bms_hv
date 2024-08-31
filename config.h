@@ -24,7 +24,7 @@ constexpr uint32_t T_FAULT_TIME = 1000;
 constexpr uint16_t MEAS_DELAY = 6;
 constexpr uint8_t READ_DELAY = 2;
 // balancing discharge config
-constexpr uint16_t BAL_EPSILON = 250; // amount of tolerance when balancing (0.1mV)
+constexpr uint16_t BAL_EPSILON = 50; // amount of tolerance when balancing (0.1mV)
 constexpr uint16_t BAL_DELAY = 1000; // wait BAL_DELAY ms before measuring again (better accuracy)
 // fan config
 constexpr uint8_t MIN_TEMP_FAN = 20;
@@ -52,6 +52,7 @@ constexpr uint8_t PRECH_MIN_CYCLE = 5;
 constexpr float C_RATED = 12.7; // Ah
 constexpr uint16_t SAFETY_MARGIN = 1000; // in 0.1 mV => 100 mV  
 constexpr uint32_t CHARGED_VOLT = (OV_THRESHOLD - SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV 
+constexpr uint32_t NOMINAL_VOLT = 37000 * TOT_CELLS;
 constexpr uint32_t EMPTY_VOLT = (UV_THRESHOLD + SAFETY_MARGIN) * TOT_CELLS; // 0.1 mV 
 constexpr uint32_t SOC_NVS_PERIOD = 60 * 1000; // every minute
 constexpr float ETA = 0.98; // coulomb efficiency
