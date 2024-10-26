@@ -1,7 +1,7 @@
 #ifndef CANC
 #define CANC
 
-#include <esp32_can.h>
+#include "esp32_can.h"
 #include "config.h"
 #include "lem.h"
 #include "precharge.h"

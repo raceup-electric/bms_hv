@@ -24,7 +24,7 @@ class ConfigurationMenu(ctk.CTkTabview):
 
         if switch == 0 or switch == -1:
             return
-        
+
         self.controller.set_mode(self.mode.get()[0])
 
     def _set_type(self):

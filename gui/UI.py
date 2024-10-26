@@ -7,7 +7,7 @@ class UI(ctk.CTk):
 
     def __init__(self):
         super().__init__()
-        
+
         #self.iconbitmap("icon.ico")
         self.title("BMS UIx")
         self.resizable(False, False)
