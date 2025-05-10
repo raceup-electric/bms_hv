@@ -1,4 +1,14 @@
-# BMS host RaceUP SG-06
+# BMS host RaceUP SG-08
+
+Per flashare, aggiungere queste librerie:
+- [AsyncTCP](https://github.com/ESP32Async/Asynctcp)
+- [ESPAsyncWebserver](https://github.com/ESP32Async/ESPAsyncWebServer)
+- [esp32_can](https://github.com/collin80/esp32_can)
+- [can_common](https://github.com/collin80/can_common)
+  
+! USARE LA VERSIONE DEL PACKAGE ESP32 V. 3.0.7 ! 
+
+Poi flash usando la board esp32s3 dev (per arduino-cli esp32\:esp32\:esp32s3)
 
 Questa repository contiene il codice per l'host del BMS basato su Arduino 2. 
 
