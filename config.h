@@ -14,8 +14,8 @@ constexpr uint8_t CELL_CHANNEL = 0;
 constexpr uint8_t GPIO_CHANNEL = 0;
 constexpr uint8_t MONITORING_SLEEP_TIMEOUT = 60; //s
 // threshold faults
-constexpr uint16_t UV_THRESHOLD = 30000;
-constexpr uint16_t OV_THRESHOLD = 42000;
+constexpr uint16_t UV_THRESHOLD = 32000;
+constexpr uint16_t OV_THRESHOLD = 42800;
 constexpr uint16_t UT_THRESHOLD = 10;
 constexpr uint16_t OT_THRESHOLD = 60;
 constexpr uint8_t MIN_ERR_THRESHOLD = 10;
@@ -72,7 +72,7 @@ constexpr uint8_t LED_0_PIN = 21;
 // operations config
 constexpr bool SCREEN_ENABLE = false;
 constexpr bool DEBUG = false;
-constexpr bool FAULT_ENABLE = false;
+constexpr bool FAULT_ENABLE = true;
 // WiFi config
 constexpr char* SSID_STORAGE = "";
 constexpr char* PASSWORD_STORAGE = "";
